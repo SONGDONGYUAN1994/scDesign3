@@ -1,0 +1,28 @@
+Package: scDesign3
+Type: Package
+Title: An all-in-one statistical framework that generates realistic single-cell omics data and infers cell heterogeneity structure
+Version: 1.0.0
+Authors@R: 
+    person("Dongyuan", "Song", , "dongyuansong@ucla.edu", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-1114-1215"))
+Maintainer: Dongyuan Song <dongyuansong@ucla.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 3.6.0)
+Imports:
+    dplyr,
+    tidyr,
+    tibble,
+    stats,
+    mgcv,
+    gamlss,
+    gamlss.dist,
+    gamlss.add,
+    SummarizedExperiment,
+    SingleCellExperiment,
+Suggests:
+    ggplot2,
+    testthat
