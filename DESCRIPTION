@@ -26,3 +26,5 @@ Imports:
 Suggests:
     ggplot2,
     testthat
+URL: https://github.com/SONGDONGYUAN1994/scDesign3
+BugReports: https://github.com/SONGDONGYUAN1994/scDesign3/issues
