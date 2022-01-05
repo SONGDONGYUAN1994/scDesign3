@@ -203,7 +203,7 @@ fit_copula <- function(sce,
   }
 
 
-  return(list(new_mvn = new_mvu, model_aic = model_aic, cor_list = cor_list))
+  return(list(new_mvu = new_mvu, model_aic = model_aic, cor_list = cor_list))
 }
 
 
