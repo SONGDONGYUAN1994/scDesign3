@@ -12,7 +12,8 @@ construct_data(
   pseudotime,
   spatial,
   other_covariates,
-  ncell = dim(sce)[2]
+  ncell = dim(sce)[2],
+  group_by
 )
 }
 \arguments{
@@ -23,7 +24,7 @@ construct_data(
 \item{covariate_use}{A string of the primary covariate.
 Must be one of 'celltype', 'pseudotime' or 'spatial'.}
 
-\item{celltype}{A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cee_type'.}
+\item{celltype}{A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.}
 
 \item{pseudotime}{A string or a string vector of the name of pseudotime and (if exist)
 multiple lineages. Default is NULL.}
@@ -34,6 +35,8 @@ multiple lineages. Default is NULL.}
 
 \item{ncell}{The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.}
+
+\item{group_by}{A string or a string vector which indicates the groups for correlation structure.}
 }
 \value{
 A list with the components:

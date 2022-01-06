@@ -7,6 +7,7 @@
 fit_copula(
   sce,
   assay_use,
+  input_data,
   new_covariate = NULL,
   marginal_list,
   family,
@@ -14,8 +15,7 @@ fit_copula(
   DT = TRUE,
   pseudo_obs = FALSE,
   epsilon = 1e-06,
-  group,
-  ind = FALSE,
+  cor_formula,
   family_set = c("gaussian", "indep"),
   n_cores
 )
@@ -25,6 +25,8 @@ fit_copula(
 
 \item{assay_use}{A string which indicates the assay you will use in the sce.
 Default is 'counts'.}
+
+\item{input_data}{A input count matrix.}
 
 \item{new_covariate}{A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.}
 
@@ -43,9 +45,7 @@ Default is FALSE.}
 
 \item{epsilon}{A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.}
 
-\item{group}{A string or a string vector which indicates the groups for correlation structure.}
-
-\item{ind}{A logic variable. If TRUE, no copula model will be fitted. Default is FASLE.}
+\item{cor_formula}{A string or a string vector which indicates the groups for correlation structure.}
 
 \item{family_set}{A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").}
 

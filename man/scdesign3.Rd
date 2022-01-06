@@ -34,7 +34,7 @@ scdesign3(
 \item{covariate_use}{A string of the primary covariate.
 Must be one of 'celltype', 'pseudotime' or 'spatial'.}
 
-\item{celltype}{A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cee_type'.}
+\item{celltype}{A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.}
 
 \item{pseudotime}{A string or a string vector of the name of pseudotime and (if exist)
 multiple lineages. Default is NULL.}

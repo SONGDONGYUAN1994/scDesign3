@@ -10,13 +10,14 @@
 #' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.
 #' @param covariate_use A string of the primary covariate.
 #' Must be one of 'celltype', 'pseudotime' or 'spatial'.
-#' @param celltype A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cee_type'.
+#' @param celltype A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.
 #' @param pseudotime A string or a string vector of the name of pseudotime and (if exist)
 #' multiple lineages. Default is NULL.
 #' @param spatial A length two string vector of the names of spatial coordinates. Defualt is NULL.
 #' @param other_covariates A string or a string vector of the other covaraites you want to include in the data.
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 #' If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.
+#' @param group_by A string or a string vector which indicates the groups for correlation structure.
 #'
 #' @return A list with the components:
 #' \describe{
@@ -33,7 +34,8 @@ construct_data <- function(sce,
                           pseudotime,
                           spatial,
                           other_covariates,
-                          ncell = dim(sce)[2]) {
+                          ncell = dim(sce)[2],
+                          group_by) {
   ## Extract expression matrix
   count_mat <-
     t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
@@ -87,6 +89,49 @@ construct_data <- function(sce,
   }else{
     newCovariate <- NULL
   }
+
+  # identify groups
+  n_gene <- dim(sce)[1]
+  n_cell <- dim(sce)[2]
+  group <- unlist(group_by)
+  if(ncell != dim(dat)[1]){
+    if (group[1] == "none") {
+      corr_group <- rep(1, n_cell)
+      corr_group2 <- rep(1, dim(newCovariate)[1])
+    } else if (group[1] == "ind"){
+      corr_group <- rep(NULL, n_cell)
+      corr_group2 <- rep(NULL, dim(newCovariate)[1])
+    } else if (group[1] == "pseudotime" | length(group) > 1) {
+      ## For continuous pseudotime, discretize it
+      corr_group <- SummarizedExperiment::colData(sce)[, group]
+      mclust_mod <- mclust::Mclust(corr_group, G = 1:5)
+      corr_group <- mclust_mod$classification
+
+      corr_group2 <- newCovariate[,group]
+      corr_group2 <- mclust::predict.Mclust(mclust_mod, newdata = corr_group2)$classification
+
+    } else {
+      corr_group <- SummarizedExperiment::colData(sce)[, group]
+      corr_group2 <- newCovariate[,group]
+    }
+    newCovariate$corr_group <- corr_group2
+  }else{
+    if (group[1] == "none") {
+      corr_group <- rep(1, n_cell)
+    } else if (group[1] == "ind"){
+      corr_group <- rep(NULL, n_cell)
+    }else if (group[1] == "pseudotime" | length(group) > 1) {
+      ## For continuous pseudotime, discretize it
+      corr_group <- SummarizedExperiment::colData(sce)[, group]
+      mclust_mod <- mclust::Mclust(corr_group, G = 1:5)
+
+      corr_group <- mclust_mod$classification
+
+    } else {
+      corr_group <- SummarizedExperiment::colData(sce)[, group]
+    }
+  }
+  dat$corr_group <- corr_group
 
   return(list(count_mat = count_mat, dat = dat, newCovariate = newCovariate))
 }
@@ -148,4 +193,3 @@ simuCovariateMat <- function(covariate_mat,
   rownames(covariate_new) <- paste0("Cell", seq_len(n_cell_new))
   return(covariate_new)
 }
-

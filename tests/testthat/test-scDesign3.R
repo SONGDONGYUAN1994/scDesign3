@@ -1,4 +1,4 @@
-context("Run scDesign3")
+#context("Run scDesign3")
 library(scDesign3)
 
 test_that("Run scDesign3", {
@@ -10,7 +10,8 @@ test_that("Run scDesign3", {
                             celltype = "cell_type",
                             pseudotime = "pseudotime",
                             spatial = NULL,
-                            other_covariates = NULL)
+                            other_covariates = NULL,
+                            group_by = "pseudotime")
 
   my_marginal <- fit_marginal(data = my_data,
                               mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
@@ -24,9 +25,10 @@ test_that("Run scDesign3", {
                           marginal_list = my_marginal,
                           family = "nb",
                           copula = "vine",
-                          group = "pseudotime",
+                          cor_formula = "pseudotime",
                           n_cores = 1,
-                          new_covariate = NULL)
+                          new_covariate = NULL,
+                          input_data = my_data$dat)
 
   my_newcount <- simu_new(sce = example_sce,
                           marginal_list = my_marginal,

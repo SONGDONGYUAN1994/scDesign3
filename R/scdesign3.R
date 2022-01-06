@@ -6,7 +6,7 @@
 #' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.
 #' @param covariate_use A string of the primary covariate.
 #' Must be one of 'celltype', 'pseudotime' or 'spatial'.
-#' @param celltype A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cee_type'.
+#' @param celltype A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.
 #' @param pseudotime A string or a string vector of the name of pseudotime and (if exist)
 #' multiple lineages. Default is NULL.
 #' @param spatial A length two string vector of the names of spatial coordinates. Defualt is NULL.
@@ -56,13 +56,6 @@ scdesign3 <- function(sce,
                       ){
 
   message("Input Data Construction Start")
-  if (cor_formula[1] == "ind") {
-    ind <- TRUE
-    group <- "none"
-  } else {
-    ind <- FALSE
-    group <- cor_formula
-  }
 
   input_data <- construct_data(sce = sce,
                         assay_use = assay_use,
@@ -71,7 +64,8 @@ scdesign3 <- function(sce,
                         pseudotime = pseudotime,
                         spatial = spatial,
                         other_covariates = other_covariates,
-                        ncell = ncell)
+                        ncell = ncell,
+                        group_by = cor_formula)
   message("Input Data Construction End")
 
   message("Start Marginal Fitting")
@@ -89,12 +83,12 @@ scdesign3 <- function(sce,
   message("Start Copula Fitting")
   copula_res <- fit_copula(sce = sce,
                           assay_use = assay_use,
+                          input_data = input_data$dat,
                           new_covariate = input_data$new_covariate,
                           marginal_list = marginal_res,
                           family = family,
                           copula = copula,
-                          group = group,
-                          ind = ind,
+                          cor_formula = cor_formula,
                           family_set = family_set,
                           n_cores = n_cores)
   message("Copula Fitting End")

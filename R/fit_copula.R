@@ -8,6 +8,7 @@
 #' @param sce A \code{SingleCellExperiment} object.
 #' @param assay_use A string which indicates the assay you will use in the sce.
 #' Default is 'counts'.
+#' @param input_data A input count matrix.
 #' @param new_covariate A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.
 #' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}}.
 #' @param family A string of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
@@ -18,8 +19,7 @@
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
 #' @param epsilon A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.
-#' @param group A string or a string vector which indicates the groups for correlation structure.
-#' @param ind A logic variable. If TRUE, no copula model will be fitted. Default is FASLE.
+#' @param cor_formula A string or a string vector which indicates the groups for correlation structure.
 #' @param family_set A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").
 #' @param n_cores An integer. The number of cores to use.
 #'
@@ -35,18 +35,18 @@
 #' @export fit_copula
 
 fit_copula <- function(sce,
-                      assay_use,
-                      new_covariate = NULL,
-                      marginal_list,
-                      family,
-                      copula = 'vine',
-                      DT = TRUE,
-                      pseudo_obs = FALSE,
-                      epsilon = 1e-6,
-                      group,
-                      ind = FALSE,
-                      family_set = c("gaussian", "indep"),
-                      n_cores) {
+                       assay_use,
+                       input_data,
+                       new_covariate = NULL,
+                       marginal_list,
+                       family,
+                       copula = 'vine',
+                       DT = TRUE,
+                       pseudo_obs = FALSE,
+                       epsilon = 1e-6,
+                       cor_formula,
+                       family_set = c("gaussian", "indep"),
+                       n_cores) {
   # convert count matrix
   if (copula == "gaussian") {
     message("Convert Residuals to Multivariate Gaussian")
@@ -74,57 +74,26 @@ fit_copula <- function(sce,
     message("Converting End")
   }
 
-  # identify groups
+  group_index <- unique(input_data$corr_group)
+  corr_group <- as.data.frame(input_data$corr_group)
+  colnames(corr_group) <- "corr_group"
   ngene <- dim(sce)[1]
-  ncell <- dim(sce)[2]
-
-  if (is.null(rownames(newmat))) {
-    rownames(newmat) <- colnames(sce)
+  if(is.null(new_covariate)){
+    new_corr_group <- NULL
+  }else{
+    new_corr_group <- as.data.frame(new_covariate$corr_group)
+    colnames(new_corr_group) <- "corr_group"
   }
-
-  group <- unlist(group)
-  group_var <- unlist(group)
-
-  if (group[1] == "none") {
-    group <- rep(1, ncell)
-  } else if (group[1] == "pseudotime" | length(group) > 1) {
-    ## For continuous pseudotime, discretize it
-    group <- SummarizedExperiment::colData(sce)[, group]
-    mclust_mod <- mclust::Mclust(group, G = 1:5)
-
-    group <- mclust_mod$classification
-
-  } else {
-    group <- SummarizedExperiment::colData(sce)[, group]
-  }
-  group_index <- unique(group)
-
-  ## cluster for new covariate
-  if(!is.null(new_covariate) & group_var[1] != "none"){
-    if(group_var[1] == "pseudotime" | length(group_var) > 1){
-      new_cov_group <- new_covariate[, group_var]
-      mclust_mod <- mclust::Mclust(new_cov_group, G = 1:5) ## Here needs check. The group based on new covariate should correspond to group from ori covaraite.
-      new_cov_group <- as.data.frame(mclust_mod$classification)
-    }
-  }
-  # fit copula
-  newmvn.list <- lapply(group_index, function(x, sce, newmat, ind, n_cores) {
+  ind <- cor_formula[1] == "ind"
+  newmvn.list <- lapply(group_index, function(x, sce, newmat, corr_group, new_corr_group,ind, n_cores) {
     message(paste0("Copula group ", x, " starts"))
-    curr_index <- colnames(sce)[which(group == x)]
+    curr_index <- which(corr_group[,1]==x)
     if(is.null(new_covariate)){
       curr_ncell <- length(curr_index)
       curr_ncell_idx <- curr_index
     }else{
-      if(group_var[1] == "none"){
-        curr_ncell <- dim(new_covariate)[1]
-        curr_ncell_idx <- rownames(new_covariate)
-      }else if(group_var[1] == "pseudotime" | length(group_var) > 1){
-        curr_ncell <-  length(new_cov_group[which(new_cov_group==x),])
-        curr_ncell_idx <- paste0("Cell", which(new_cov_group==x))
-      }else{
-        curr_ncell <-dim(as.data.frame(new_covariate[new_covariate[,group_var]==x,]))[1]
-        curr_ncell_idx <- paste0("Cell", which(new_covariate[ ,1]==x))
-      }
+      curr_ncell <- length(which(new_corr_group[,1]==x))
+      curr_ncell_idx <- paste0("Cell", which(new_corr_group[ ,1]==x))
     }
 
     if (copula == "gaussian") {
@@ -146,8 +115,8 @@ fit_copula <- function(sce,
 
       #message("Cal AIC Start")
       model_aic <- cal_aic(norm.mat = newmat,
-                          cor.mat = cor.mat,
-                          ind = ind)
+                           cor.mat = cor.mat,
+                           ind = ind)
       #message("Cal AIC End")
 
     }else if(copula == "vine"){
@@ -183,10 +152,9 @@ fit_copula <- function(sce,
       model_aic = model_aic,
       cor.mat = cor.mat
     ))
-  }, sce = sce, newmat = newmat, ind = ind, n_cores = n_cores)
+  }, sce = sce, newmat = newmat, ind = ind, n_cores = n_cores, corr_group = corr_group, new_corr_group = new_corr_group)
 
   newmvn <- do.call(rbind, lapply(newmvn.list, function(x) x$new_mvu))
-
   copula.aic <- sum(sapply(newmvn.list, function(x) x$model_aic))
 
   marginal.aic <- sum(sapply(marginal_list, stats::AIC))
@@ -196,19 +164,10 @@ fit_copula <- function(sce,
 
   cor_list <- lapply(newmvn.list, function(x) x$cor.mat)
 
-  if(is.null(new_covariate)){
-    new_mvu <- as.data.frame(newmvn[colnames(sce), ])
-  }else{
-    new_mvu <- as.data.frame(newmvn[rownames(new_covariate), ])
-  }
-
+  new_mvu <- as.data.frame(newmvn)
 
   return(list(new_mvu = new_mvu, model_aic = model_aic, cor_list = cor_list))
 }
-
-
-
-
 
 
 ## Calculate the correlation matrix. If use sparse cor estimation, package spcov will be used (it can be VERY SLOW).
