@@ -441,9 +441,9 @@ predict.gamlss <- function(object,
   refit <- stats::lm.wfit(X[onlydata,  , drop = FALSE], y, w)
   ## ckeck the residuals if they are zero
   ##if (any(abs(stats::resid(refit))>1e-005))
-  if (abs(sum(stats::resid(refit)))>1e-001||abs(sum(coef(object, what=what)-coef(refit), na.rm=TRUE))>1e-005)
-    warning(paste("There is a discrepancy  between the original and the re-fit",
-                  " \n used to achieve 'safe' stats::predictions \n ", sep = "" ))
+  # if (abs(sum(stats::resid(refit)))>1e-001||abs(sum(coef(object, what=what)-coef(refit), na.rm=TRUE))>1e-005)
+  #   warning(paste("There is a discrepancy  between the original and the re-fit",
+  #                 " \n used to achieve 'safe' stats::predictions \n ", sep = "" ))
   ## this is disturbing fit and refit have different coefficients  why?
   ## fit <- stats::lm.wfit(X, yaug, waug)
   ## get the coefficients

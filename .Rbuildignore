@@ -13,7 +13,7 @@
 .RData
 
 # Example code in package build process
-*-Ex.R
+/*-Ex.R
 
 # Output files from R CMD build
 /*.tar.gz
@@ -37,8 +37,8 @@ vignettes/*.pdf
 vignettes/*_cache/
 
 # Temporary files created by R markdown
-*.utf8.md
-*.knit.md
+^utf8.md$
+^knit.md$
 .Rproj.user
 
 # Temporary files created by cpp
