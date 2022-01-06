@@ -85,7 +85,7 @@ fit_copula <- function(sce,
     colnames(new_corr_group) <- "corr_group"
   }
   ind <- cor_formula[1] == "ind"
-  newmvn.list <- lapply(group_index, function(x, sce, newmat, corr_group, new_corr_group,ind, n_cores) {
+  newmvn.list <- lapply(group_index, function(x, sce, newmat, corr_group, new_corr_group, ind, n_cores) {
     message(paste0("Copula group ", x, " starts"))
     curr_index <- which(corr_group[,1]==x)
     if(is.null(new_covariate)){

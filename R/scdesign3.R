@@ -65,7 +65,7 @@ scdesign3 <- function(sce,
                         spatial = spatial,
                         other_covariates = other_covariates,
                         ncell = ncell,
-                        group_by = cor_formula)
+                        corr_by = cor_formula)
   message("Input Data Construction End")
 
   message("Start Marginal Fitting")

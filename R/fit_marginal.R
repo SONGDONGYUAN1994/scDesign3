@@ -30,22 +30,22 @@ fit_marginal <- function(data,
   dat <- data$dat
   feature_names <- colnames(count_mat)
 
+  mgcv_formula <-
+    stats::as.formula(paste0(predictor, "~", mu_formula))
+
+  ## If use the mgcv s() smoother
+  mu_mgcvform <- grepl("^s\\(", mu_formula) | grepl("^te\\(", mu_formula)
+
   ## If use bam to fit marginal distribution
+  usebam <- usebam & mu_mgcvform ## If no smoothing terms, no need to to use bam.
   if(usebam){
     fitfunc = mgcv::bam
   }else{
     fitfunc = mgcv::gam
   }
 
-
-  mgcv_formula <-
-    stats::as.formula(paste0(predictor, "~", mu_formula))
-
-
-  ## If use the mgcv s() smoother
-  mu_mgcvform <- grepl("^s\\(", mu_formula) | grepl("^te\\(", mu_formula)
   if (mu_mgcvform) {
-    if(identical(fitfunc, mgcv::bam)){
+    if(usebam){
       mu_formula <-
         stats::as.formula(paste0(predictor, "~", "ba(~", mu_formula, ", method = 'fREML', gc.level = 0, discrete = TRUE)"))
     }else{
@@ -59,7 +59,7 @@ fit_marginal <- function(data,
 
   sigma_mgcvform <- grepl("^s\\(", sigma_formula) | grepl("^te\\(", sigma_formula)
   if (sigma_mgcvform) {
-    if(identical(fitfunc, mgcv::bam)){
+    if(usebam){
       sigma_formula <-
         stats::as.formula(paste0("~", "ba(~", sigma_formula, ", method = 'fREML', gc.level = 0, discrete = TRUE)"))
     }else{
@@ -72,6 +72,7 @@ fit_marginal <- function(data,
   }
   #
   # print(mu_formula)
+  #pbmcapply::pbmc
   model_fit <- pbmcapply::pbmclapply(feature_names, function(gene,
                                                              mc.cores,
                                                              #pseudotime,
@@ -88,7 +89,7 @@ fit_marginal <- function(data,
     dat$gene <- count_mat[, gene]
 
     if (family == "poisson") {
-      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson")
+      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson", discrete = usebam)
 
       ## If sigma_formula == ~1, gamlss degenerates into mgcv::gam
       if (sigma_formula != "~1") {
@@ -119,7 +120,7 @@ fit_marginal <- function(data,
     } else if (family == "gaussian") {
       # dat$gene = log1p(dat$gene)
       ## !!! Poisson doesnot have gamlss since its sigma equals mean!
-      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "gaussian")
+      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "gaussian", usebam)
 
       if (sigma_formula != "~1") {
         gamlss.fit <- tryCatch({
@@ -147,7 +148,7 @@ fit_marginal <- function(data,
         gamlss.fit <- NULL
       }
     } else if (family == "nb"){
-      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "nb", discrete = identical(fitfunc, mgcv::bam))
+      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "nb", discrete = usebam)
       #mgcv.fit <- mgcv::gam(formula = mgcv_formula, data = dat, family = "nb")
       if (sigma_formula != "~1") {
         #dat$pseudotime <- pseudotime
@@ -179,7 +180,7 @@ fit_marginal <- function(data,
     } else if (family == "zip") {
 
       ## Fit mgcv::gam(poisson) in case gamlss(ZINB) fails.
-      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson")
+      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson", discrete = usebam)
 
       gamlss.fit <- tryCatch({
         res <- gamlss::gamlss(
@@ -206,7 +207,7 @@ fit_marginal <- function(data,
 
     } else if (family == "zinb"){
       ## Fit mgcv::gam(poisson) in case gamlss(ZINB) fails.
-      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson")
+      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson", discrete = usebam)
       #mgcv.fit <- mgcv::gam(mgcv_formula, data = dat, family = "poisson")
 
       gamlss.fit <- tryCatch({

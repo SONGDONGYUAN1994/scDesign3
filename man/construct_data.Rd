@@ -13,7 +13,7 @@ construct_data(
   spatial,
   other_covariates,
   ncell = dim(sce)[2],
-  group_by
+  corr_by
 )
 }
 \arguments{
@@ -36,7 +36,7 @@ multiple lineages. Default is NULL.}
 \item{ncell}{The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.}
 
-\item{group_by}{A string or a string vector which indicates the groups for correlation structure.}
+\item{corr_by}{A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.}
 }
 \value{
 A list with the components:

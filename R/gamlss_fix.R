@@ -611,3 +611,76 @@ model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), pa
   )
   mf
 }
+
+
+gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
+  if (is.null(xeval))
+  {#fitting
+    #formula <- attr(x,"formula")
+    #control <- as.list(attr(x, "control"))
+    Y.var <- y
+    W.var <- w
+    G <- attr(x,"G")
+    G$y <- Y.var
+    G$w <- W.var
+    G$mf$Y.var <- Y.var
+    G$mf$`(weights)` <- W.var
+    fit <-  mgcv::gam(G=G, fit=TRUE)
+    df <- sum(ifelse(is.null(fit$edf2), yes = fit$edf, fit$edf2) + fit$edf1 - fit$edf)-1
+    fv <- stats::fitted(fit)
+    residuals <- y-fv
+    list(fitted.values=fv, residuals=residuals,
+         nl.df = df, lambda=fit$sp[1], #
+         coefSmo = fit, var=NA)    # var=fv has to fixed
+  } else { # predict
+    gamlss.env <- as.environment(attr(x, "gamlss.env"))
+    obj <- get("object", envir=gamlss.env ) # get the object from predict
+    TT <- get("TT", envir=gamlss.env ) # get wich position is now
+    SL <- get("smooth.labels", envir=gamlss.env) # all the labels of the smoother
+    fit <- eval(parse(text=paste("obj$", get("what", envir=gamlss.env), ".coefSmo[[",as.character(match(TT,SL)), "]]", sep="")))
+    OData <- attr(x,"data")
+    ll <- dim(OData)[1]
+    pred <- stats::predict(fit,newdata = OData[seq(length(y)+1,ll),])
+  }
+}
+
+gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
+  if (is.null(xeval))
+  {#fitting
+    Y.var <- y
+    W.var <- w
+    G <- attr(x,"G")
+    control = attr(x,"control")
+    G$y <- Y.var
+    G$w <- W.var
+    G$mf$Y.var <- Y.var
+    G$mf$`(weights)` <- W.var
+    fit <-  mgcv::bam(G=G, fit=TRUE,
+                offset=control$offset, method=control$method,
+                control=control$control, select=control$select,
+                scale=control$scale, gamma=control$gamma,
+                knots=control$knots, sp=control$sp, min.sp=control$min.sp,
+                paraPen=control$paraPen, chunk.size=control$chunk.size,
+                rho=control$rho, AR.start=control$AR.start,
+                discrete=control$discrete,
+                cluster=control$cluster, nthreads=control$nthreads,
+                gc.level=control$gc.level, use.chol=control$use.chol,
+                samfrac=control$samfrac,
+                drop.unused.levels=control$bam$drop.unused.levels)
+    df <- sum(ifelse(is.null(fit$edf2), yes = fit$edf, fit$edf2) + fit$edf1 - fit$edf)-1
+    fv <- stats::fitted(fit)
+    residuals <- y-fv
+    list( fitted.values=fv, residuals=residuals,
+          nl.df = df, lambda=fit$sp[1], #
+          coefSmo = fit, var=NA)    # var=fv has to fixed
+  } else { # predict
+    gamlss.env <- as.environment(attr(x, "gamlss.env"))
+    obj <- get("object", envir=gamlss.env ) # get the object from predict
+    TT <- get("TT", envir=gamlss.env ) # get wich position is now
+    SL <- get("smooth.labels", envir=gamlss.env) # all the labels of the smoother
+    fit <- eval(parse(text=paste("obj$", get("what", envir=gamlss.env), ".coefSmo[[",as.character(match(TT,SL)), "]]", sep="")))
+    OData <- attr(x,"data")
+    ll <- dim(OData)[1]
+    pred <- stats::predict(fit,newdata = OData[seq(length(y)+1,ll),])
+  }
+}

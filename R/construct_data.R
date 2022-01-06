@@ -17,7 +17,7 @@
 #' @param other_covariates A string or a string vector of the other covaraites you want to include in the data.
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 #' If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.
-#' @param group_by A string or a string vector which indicates the groups for correlation structure.
+#' @param corr_by A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.
 #'
 #' @return A list with the components:
 #' \describe{
@@ -35,7 +35,7 @@ construct_data <- function(sce,
                           spatial,
                           other_covariates,
                           ncell = dim(sce)[2],
-                          group_by) {
+                          corr_by) {
   ## Extract expression matrix
   count_mat <-
     t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
@@ -93,9 +93,9 @@ construct_data <- function(sce,
   # identify groups
   n_gene <- dim(sce)[1]
   n_cell <- dim(sce)[2]
-  group <- unlist(group_by)
+  group <- unlist(corr_by)
   if(ncell != dim(dat)[1]){
-    if (group[1] == "none") {
+    if (group[1] == "1") {
       corr_group <- rep(1, n_cell)
       corr_group2 <- rep(1, dim(newCovariate)[1])
     } else if (group[1] == "ind"){
@@ -116,10 +116,10 @@ construct_data <- function(sce,
     }
     newCovariate$corr_group <- corr_group2
   }else{
-    if (group[1] == "none") {
+    if (group[1] == "1") {
       corr_group <- rep(1, n_cell)
     } else if (group[1] == "ind"){
-      corr_group <- rep(NULL, n_cell)
+      corr_group <- rep("ind", n_cell)
     }else if (group[1] == "pseudotime" | length(group) > 1) {
       ## For continuous pseudotime, discretize it
       corr_group <- SummarizedExperiment::colData(sce)[, group]
@@ -152,7 +152,7 @@ simuCovariateMat <- function(covariate_mat,
   df <- covariate_mat
 
   if(if_factor_exist) {
-    df_all <- dplyr::mutate(df, discrete_group = interaction(dplyr::mutate_if(is.factor), sep = "-"))
+    df_all <- dplyr::mutate(df, discrete_group = interaction(dplyr::mutate_if(is.factor), sep = "-")) ## Please fix this.
 
     df_list <- split(df_all, df_all$discrete_group)
 

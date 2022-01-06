@@ -11,7 +11,7 @@ test_that("Run scDesign3", {
                             pseudotime = "pseudotime",
                             spatial = NULL,
                             other_covariates = NULL,
-                            group_by = "pseudotime")
+                            corr_by = "pseudotime")
 
   my_marginal <- fit_marginal(data = my_data,
                               mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
