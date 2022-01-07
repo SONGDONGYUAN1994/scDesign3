@@ -43,33 +43,39 @@ construct_data <- function(sce,
   ## Extract col data
   coldata_mat <- data.frame(SummarizedExperiment::colData(sce))
 
-
-
-  ## Extract pseudotime / cell type / spatial
-  if (!is.null(celltype)) {
-    celltype <- as.matrix(coldata_mat[, celltype, drop = FALSE])
-  }
-
-  if (!is.null(pseudotime)) {
-    pseudotime <- as.matrix(coldata_mat[, pseudotime, drop = FALSE])
-  }
-
-  if (!is.null(spatial)) {
-    spatial <- as.matrix(coldata_mat[, spatial, drop = FALSE])
-  }
-
-
-  if (covariate_use == "celltype") {
-    dat <- data.frame(celltype)
-    dat$cell_type <- as.factor(dat$cell_type)
-  } else if (covariate_use == "pseudotime") {
-    n_l <- dim(pseudotime)[2]
-    dat <- data.frame(pseudotime)
-  } else if (covariate_use == "spatial") {
-    dat <- data.frame(spatial)
+  ##
+  if (is.null(celltype) & is.null(pseudotime) & is.null(spatial)) {
+    stop("One of celltype, pseudotime and spatial must be provided!")
   } else {
-    stop("Covairate_use must be one of 'celltype', 'pseudotime' or 'spatial'!")
+    primary_covariate <- c(celltype, pseudotime, spatial)
+    dat <- as.data.frame(coldata_mat[, primary_covariate, drop = FALSE])
   }
+
+  # ## Extract pseudotime / cell type / spatial
+  # if (!is.null(celltype)) {
+  #   celltype <- as.matrix(coldata_mat[, celltype, drop = FALSE])
+  # }
+  #
+  # if (!is.null(pseudotime)) {
+  #   pseudotime <- as.matrix(coldata_mat[, pseudotime, drop = FALSE])
+  # }
+  #
+  # if (!is.null(spatial)) {
+  #   spatial <- as.matrix(coldata_mat[, spatial, drop = FALSE])
+  # }
+  #
+  #
+  # if (covariate_use == "celltype") {
+  #   dat <- data.frame(celltype)
+  #   dat$cell_type <- as.factor(dat$cell_type)
+  # } else if (covariate_use == "pseudotime") {
+  #   n_l <- dim(pseudotime)[2]
+  #   dat <- data.frame(pseudotime)
+  # } else if (covariate_use == "spatial") {
+  #   dat <- data.frame(spatial)
+  # } else {
+  #   stop("Covairate_use must be one of 'celltype', 'pseudotime' or 'spatial'!")
+  # }
 
   ## Convert NA to -1
   #pseudotime[is.na(pseudotime)] <- -1
@@ -80,6 +86,9 @@ construct_data <- function(sce,
     dat <- cbind(dat, other_covariates)
     if("condition" %in% colnames(other_covariates)){
       dat$condition <- as.factor(dat$condition)
+    }
+    if("batch" %in% colnames(other_covariates)){
+      dat$batch <- as.factor(dat$batch)
     }
   }
 
@@ -152,7 +161,7 @@ simuCovariateMat <- function(covariate_mat,
   df <- covariate_mat
 
   if(if_factor_exist) {
-    df_all <- dplyr::mutate(df, discrete_group = interaction(dplyr::mutate_if(is.factor), sep = "-")) ## Please fix this.
+    df_all <-  dplyr::mutate(df, discrete_group = interaction(dplyr::select_if(df, is.factor), sep = "-"))
 
     df_list <- split(df_all, df_all$discrete_group)
 

@@ -59,7 +59,6 @@ scdesign3 <- function(sce,
 
   input_data <- construct_data(sce = sce,
                         assay_use = assay_use,
-                        covariate_use = covariate_use,
                         celltype = celltype,
                         pseudotime = pseudotime,
                         spatial = spatial,

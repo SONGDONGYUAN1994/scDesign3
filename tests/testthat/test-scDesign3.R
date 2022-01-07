@@ -6,7 +6,6 @@ test_that("Run scDesign3", {
 
   my_data <- construct_data(sce = example_sce,
                             assay_use = "counts",
-                            covariate_use = "pseudotime",
                             celltype = "cell_type",
                             pseudotime = "pseudotime",
                             spatial = NULL,

@@ -93,7 +93,7 @@ ga <- function(formula, envir, control = ga.control(...), ...)
   attr(xvar, "G")          <- G
   xvar
 }
-
+##' @export
 ba <-function(formula, control = ba.control(...), ...)
 {
   #------------------------------------------
@@ -180,7 +180,7 @@ ba <-function(formula, control = ba.control(...), ...)
   attr(xvar, "G")          <- G
   xvar
 }
-
+##' @export
 #--------------------------------------------------------------------------------------
 ba.control = function(offset = NULL,
                       method = "fREML",
@@ -261,7 +261,7 @@ gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
     pred <- stats::predict(fit,newdata = OData[seq(length(y)+1,ll),])
   }
 }
-
+##' @export
 #-------------------------------------------------------------------------
 #-------------------------------------------------------------------------
 ga.control = function(offset = NULL,
@@ -292,6 +292,7 @@ ga.control = function(offset = NULL,
        drop.intercept=drop.intercept, discrete = discrete, ...)
 }
 #--------------------------------------------------------------------------------------
+##' @export
 gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting
@@ -323,6 +324,7 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   }
 }
 
+##' @export
 predict.gamlss <- function(object,
                            what = c("mu", "sigma", "nu", "tau"),
                            parameter = NULL,
@@ -584,7 +586,7 @@ predict.gamlss <- function(object,
   pred
 }
 
-
+##' @export
 model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), parameter = NULL, ...)
 {
   object <- formula
@@ -612,7 +614,7 @@ model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), pa
   mf
 }
 
-
+##' @export
 gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting
@@ -644,6 +646,7 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   }
 }
 
+##' @export
 gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting

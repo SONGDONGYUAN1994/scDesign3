@@ -7,7 +7,6 @@
 construct_data(
   sce,
   assay_use = "counts",
-  covariate_use,
   celltype,
   pseudotime,
   spatial,
@@ -20,9 +19,6 @@ construct_data(
 \item{sce}{A \code{SingleCellExperiment} object.}
 
 \item{assay_use}{A string which indicates the assay you will use in the sce. Default is 'counts'.}
-
-\item{covariate_use}{A string of the primary covariate.
-Must be one of 'celltype', 'pseudotime' or 'spatial'.}
 
 \item{celltype}{A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.}
 

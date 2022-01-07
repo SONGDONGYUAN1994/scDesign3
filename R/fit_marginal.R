@@ -173,7 +173,8 @@ fit_marginal <- function(data,
         #  return(NULL)
         #}
 
-        , silent = FALSE)
+        ,
+        silent = FALSE)
       } else {
         gamlss.fit <- NULL
       }
@@ -250,7 +251,7 @@ fit_marginal <- function(data,
         1 / stats::predict(gamlss.fit, type = "response", what = "sigma")
 
       if_infinite <- (sum(is.infinite(mean_vec + theta_vec)) > 0)
-      if_overmax <- (max(mean_vec) > max(dat$gene))
+      if_overmax <- FALSE # (max(mean_vec) > max(dat$gene))
       if (if_infinite | if_overmax) {
         message(paste0(gene, " gamlss returns abnormal fitting values!"))
         fit <- mgcv.fit
