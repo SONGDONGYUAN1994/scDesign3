@@ -7,22 +7,18 @@
 construct_data(
   sce,
   assay_use = "counts",
-  covariate_use,
   celltype,
   pseudotime,
   spatial,
   other_covariates,
   ncell = dim(sce)[2],
-  group_by
+  corr_by
 )
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object.}
 
 \item{assay_use}{A string which indicates the assay you will use in the sce. Default is 'counts'.}
-
-\item{covariate_use}{A string of the primary covariate.
-Must be one of 'celltype', 'pseudotime' or 'spatial'.}
 
 \item{celltype}{A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.}
 
@@ -36,7 +32,7 @@ multiple lineages. Default is NULL.}
 \item{ncell}{The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.}
 
-\item{group_by}{A string or a string vector which indicates the groups for correlation structure.}
+\item{corr_by}{A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.}
 }
 \value{
 A list with the components:

@@ -189,7 +189,6 @@ ba <-function(formula, control = ba.control(...), ...)
   xvar
 }
 
-
 #' Functions from gamlss/gamlss.add with bugs fixed
 #'
 #' The control for \code{ba()}. From \code{gamlss.add::ba.control()} and \code{gamlss::bam()}.
@@ -259,7 +258,6 @@ ba.control = function(offset = NULL,
         drop.intercept=drop.intercept, ...)
 }
 
-
 #' Functions from gamlss/gamlss.add with bugs fixed
 #'
 #' The control for \code{ga()}. From \code{gamlss.add::ga.control()} and \code{gamlss::gam()}.
@@ -312,6 +310,7 @@ ga.control = function(offset = NULL,
        drop.intercept=drop.intercept, discrete = discrete, ...)
 }
 
+
 #' Functions from gamlss/gamlss.add with bugs fixed
 #'
 #' The GAMLSS specific method which produce predictors for a new data set for a specified parameter from a GAMLSS objects.
@@ -327,6 +326,37 @@ ga.control = function(offset = NULL,
 #' @param ... Other arguments.
 #' @return A vector or matrix of predicted values.
 #' @export
+gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
+  if (is.null(xeval))
+  {#fitting
+    #formula <- attr(x,"formula")
+    #control <- as.list(attr(x, "control"))
+    Y.var <- y
+    W.var <- w
+    G <- attr(x,"G")
+    G$y <- Y.var
+    G$w <- W.var
+    G$mf$Y.var <- Y.var
+    G$mf$`(weights)` <- W.var
+    fit <-  mgcv::gam(G=G, fit=TRUE)
+    df <- sum(fit$edf)-1
+    fv <- stats::fitted(fit)
+    residuals <- y-fv
+    list(fitted.values=fv, residuals=residuals,
+         nl.df = df, lambda=fit$sp[1], #
+         coefSmo = fit, var=NA)    # var=fv has to fixed
+  } else { # stats::predict
+    gamlss.env <- as.environment(attr(x, "gamlss.env"))
+    obj <- get("object", envir=gamlss.env ) # get the object from stats::predict
+    TT <- get("TT", envir=gamlss.env ) # get wich position is now
+    SL <- get("smooth.labels", envir=gamlss.env) # all the labels of the smoother
+    fit <- eval(parse(text=paste("obj$", get("what", envir=gamlss.env), ".coefSmo[[",as.character(match(TT,SL)), "]]", sep="")))
+    OData <- attr(x,"data")
+    ll <- dim(OData)[1]
+    pred <- stats::predict(fit,newdata = OData[seq(length(y)+1,ll),])
+  }
+}
+
 predict.gamlss <- function(object,
                            what = c("mu", "sigma", "nu", "tau"),
                            parameter = NULL,
@@ -588,6 +618,7 @@ predict.gamlss <- function(object,
   pred
 }
 
+
 #' Functions from gamlss/gamlss.add with bugs fixed
 #'
 #' The gamlss versions of the generic function \code{model.frame}
@@ -667,6 +698,7 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   }
 }
 
+
 ##' Support for Function ba()
 ##'
 ##'This is support for the  smoother functions \code{ba()} intefaces for Simon Woood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
@@ -676,7 +708,6 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
 ##' @param xeval If xeval=TRUE then predicion is used
 ##' @param ... Other arguments
 ##'
-##' @export
 gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting
@@ -717,4 +748,3 @@ gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
     pred <- stats::predict(fit,newdata = OData[seq(length(y)+1,ll),])
   }
 }
-

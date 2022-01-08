@@ -6,12 +6,11 @@ test_that("Run scDesign3", {
 
   my_data <- construct_data(sce = example_sce,
                             assay_use = "counts",
-                            covariate_use = "pseudotime",
                             celltype = "cell_type",
                             pseudotime = "pseudotime",
                             spatial = NULL,
                             other_covariates = NULL,
-                            group_by = "pseudotime")
+                            corr_by = "pseudotime")
 
   my_marginal <- fit_marginal(data = my_data,
                               mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
