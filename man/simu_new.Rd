@@ -24,7 +24,7 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 A list with the components:
 \describe{
   \item{\code{new_count}}{A matrix of the new simulated count (expression) matrix.}
-  \item{\code{cor_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
+  \item{\code{corr_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
   \item{\code{model_aic}}{A vector of the marginal AIC and the copula AIC.}
 }
 }

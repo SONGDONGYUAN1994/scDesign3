@@ -38,12 +38,10 @@ test_that("Run scDesign3", {
 
   my_simu <- scdesign3(sce = example_sce,
                        assay_use = "counts",
-                       covariate_use = "pseudotime",
                        celltype = "cell_type",
                        pseudotime = "pseudotime",
                        spatial = NULL,
                        other_covariates = NULL,
-                       predictor = "gene",
                        mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
                        sigma_formula = "s(pseudotime, bs = 'cr', k = 5)",
                        family = "nb",

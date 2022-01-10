@@ -8,8 +8,6 @@
 #'
 #' @param sce A \code{SingleCellExperiment} object.
 #' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.
-#' @param covariate_use A string of the primary covariate.
-#' Must be one of 'celltype', 'pseudotime' or 'spatial'.
 #' @param celltype A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.
 #' @param pseudotime A string or a string vector of the name of pseudotime and (if exist)
 #' multiple lineages. Default is NULL.
@@ -29,7 +27,6 @@
 #' @export construct_data
 construct_data <- function(sce,
                           assay_use = "counts",
-                          covariate_use,
                           celltype,
                           pseudotime,
                           spatial,
@@ -50,6 +47,9 @@ construct_data <- function(sce,
     primary_covariate <- c(celltype, pseudotime, spatial)
     dat <- as.data.frame(coldata_mat[, primary_covariate, drop = FALSE])
   }
+
+  if(!is.null(dat$cellytype)) {
+    dat$celltype <- as.factor(dat$celltype)}
 
   # ## Extract pseudotime / cell type / spatial
   # if (!is.null(celltype)) {

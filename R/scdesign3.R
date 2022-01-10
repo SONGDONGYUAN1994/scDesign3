@@ -4,7 +4,6 @@
 #'
 #' @param sce A \code{SingleCellExperiment} object.
 #' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.
-#' @param covariate_use A string of the primary covariate.
 #' Must be one of 'celltype', 'pseudotime' or 'spatial'.
 #' @param celltype A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.
 #' @param pseudotime A string or a string vector of the name of pseudotime and (if exist)
@@ -12,7 +11,6 @@
 #' @param spatial A length two string vector of the names of spatial coordinates. Defualt is NULL.
 #' @param other_covariates A string or a string vector of the other covaraites you want to include in the data.
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
-#' @param predictor Default is gene. ## Fix later
 #' @param mu_formula A string of the mu parameter formula
 #' @param sigma_formula A string of the sigma parameter formula
 #' @param family A string of the marginal distribution.
@@ -36,13 +34,11 @@
 #' @export scdesign3
 scdesign3 <- function(sce,
                       assay_use = "counts",
-                      covariate_use = "celltype",
                       celltype = "cell_type",
                       pseudotime = "pseudotime",
                       spatial = c("spatial1", "spatial2"),
                       other_covariates = c("batch", "condition"),
                       ncell = dim(sce)[2],
-                      predictor = "gene",
                       mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
                       sigma_formula = "1",
                       family = "nb",
@@ -73,7 +69,6 @@ scdesign3 <- function(sce,
     sigma_formula = sigma_formula,
     n_cores = n_cores,
     data = input_data,
-    predictor = predictor,
     family = family,
     usebam = usebam
   )
@@ -100,5 +95,9 @@ scdesign3 <- function(sce,
                            family = family,
                            new_covariate = input_data$new_covariate)
   message("New Data Generating End")
-  return(list(new_count = res_list$new_count, new_covariate = input_data$new_covariate))
+  return(list(new_count = res_list$new_count,
+              new_covariate = input_data$new_covariate,
+              marginal_list = marginal_res,
+              corr_list = res_list$corr_list,
+              model_aic = res_list$model_aic))
 }

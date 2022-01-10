@@ -326,36 +326,6 @@ ga.control = function(offset = NULL,
 #' @param ... Other arguments.
 #' @return A vector or matrix of predicted values.
 #' @export
-gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
-  if (is.null(xeval))
-  {#fitting
-    #formula <- attr(x,"formula")
-    #control <- as.list(attr(x, "control"))
-    Y.var <- y
-    W.var <- w
-    G <- attr(x,"G")
-    G$y <- Y.var
-    G$w <- W.var
-    G$mf$Y.var <- Y.var
-    G$mf$`(weights)` <- W.var
-    fit <-  mgcv::gam(G=G, fit=TRUE)
-    df <- sum(fit$edf)-1
-    fv <- stats::fitted(fit)
-    residuals <- y-fv
-    list(fitted.values=fv, residuals=residuals,
-         nl.df = df, lambda=fit$sp[1], #
-         coefSmo = fit, var=NA)    # var=fv has to fixed
-  } else { # stats::predict
-    gamlss.env <- as.environment(attr(x, "gamlss.env"))
-    obj <- get("object", envir=gamlss.env ) # get the object from stats::predict
-    TT <- get("TT", envir=gamlss.env ) # get wich position is now
-    SL <- get("smooth.labels", envir=gamlss.env) # all the labels of the smoother
-    fit <- eval(parse(text=paste("obj$", get("what", envir=gamlss.env), ".coefSmo[[",as.character(match(TT,SL)), "]]", sep="")))
-    OData <- attr(x,"data")
-    ll <- dim(OData)[1]
-    pred <- stats::predict(fit,newdata = OData[seq(length(y)+1,ll),])
-  }
-}
 
 predict.gamlss <- function(object,
                            what = c("mu", "sigma", "nu", "tau"),

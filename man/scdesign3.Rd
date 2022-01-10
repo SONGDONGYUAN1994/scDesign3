@@ -7,13 +7,11 @@
 scdesign3(
   sce,
   assay_use = "counts",
-  covariate_use = "celltype",
   celltype = "cell_type",
   pseudotime = "pseudotime",
   spatial = c("spatial1", "spatial2"),
   other_covariates = c("batch", "condition"),
   ncell = dim(sce)[2],
-  predictor = "gene",
   mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
   sigma_formula = "1",
   family = "nb",
@@ -29,9 +27,7 @@ scdesign3(
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object.}
 
-\item{assay_use}{A string which indicates the assay you will use in the sce. Default is 'counts'.}
-
-\item{covariate_use}{A string of the primary covariate.
+\item{assay_use}{A string which indicates the assay you will use in the sce. Default is 'counts'.
 Must be one of 'celltype', 'pseudotime' or 'spatial'.}
 
 \item{celltype}{A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.}
@@ -44,8 +40,6 @@ multiple lineages. Default is NULL.}
 \item{other_covariates}{A string or a string vector of the other covaraites you want to include in the data.}
 
 \item{ncell}{The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).}
-
-\item{predictor}{Default is gene. ## Fix later}
 
 \item{mu_formula}{A string of the mu parameter formula}
 

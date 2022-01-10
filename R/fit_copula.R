@@ -121,13 +121,23 @@ fit_copula <- function(sce,
 
     }else if(copula == "vine"){
       if(!ind) {
+        message("Vine Copula Estimation Starts")
+        #start <- Sys.time()
         curr_mat <- newmat[curr_index, , drop = FALSE]
         vine.fit <- rvinecopulib::vinecop(data = curr_mat,
                                           family_set = family_set,
+                                          show_trace = FALSE,
+                                          par_method = "mle",
                                           cores = n_cores)
+        #end <- Sys.time()
+        #print(end - start)
+        message("Vine Copula Estimation Ends")
         if(curr_ncell != 0){
+          message("Sampling Vine Copula Starts")
           new_mvu <- rvinecopulib::rvinecop(curr_ncell,
-                                            vine = vine.fit, cores = n_cores)
+                                            vine = vine.fit,
+                                            cores = n_cores, qrng = TRUE)
+          message("Sampling Vine Copula Ends")
           rownames(new_mvu) <- curr_ncell_idx
         }else{
           new_mvu <- NULL
