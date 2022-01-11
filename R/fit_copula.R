@@ -244,7 +244,7 @@ convert_n <- function(sce,
                      epsilon = 1e-6,
                      family) {
   ## Extract count matrix
-  count_mat <- t(SummarizedExperiment::assay(sce, assay_use))
+  count_mat <- t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
 
   # n cell
   ncell <- dim(count_mat)[1]
