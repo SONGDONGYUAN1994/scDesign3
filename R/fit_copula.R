@@ -19,15 +19,15 @@
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
 #' @param epsilon A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.
-#' @param cor_formula A string or a string vector which indicates the groups for correlation structure.
 #' @param family_set A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").
 #' @param n_cores An integer. The number of cores to use.
 #'
 #' @return A list with the components:
 #' \describe{
 #'   \item{\code{new_mvu}}{A matrix of the new multivariate uniform distribution from the copula.}
-#'   \item{\code{cor_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
+#'   \item{\code{corr_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
 #'   \item{\code{model_aic}}{A vector of the marginal AIC and the copula AIC.}
+#'   \item{\code{model_bic}}{A vector of the marginal BIC and the copula BIC.}
 #' }
 #'
 #' @import mclust
@@ -44,7 +44,6 @@ fit_copula <- function(sce,
                        DT = TRUE,
                        pseudo_obs = FALSE,
                        epsilon = 1e-6,
-                       cor_formula,
                        family_set = c("gaussian", "indep"),
                        n_cores) {
   # convert count matrix
@@ -84,7 +83,7 @@ fit_copula <- function(sce,
     new_corr_group <- as.data.frame(new_covariate$corr_group)
     colnames(new_corr_group) <- "corr_group"
   }
-  ind <- cor_formula[1] == "ind"
+  ind <- group_index[1] == "ind"
   newmvn.list <- lapply(group_index, function(x, sce, newmat, corr_group, new_corr_group, ind, n_cores) {
     message(paste0("Copula group ", x, " starts"))
     curr_index <- which(corr_group[,1]==x)
@@ -113,11 +112,14 @@ fit_copula <- function(sce,
       #message("MVN Sampling End")
       rownames(new_mvu) <- curr_ncell_idx
 
-      #message("Cal AIC Start")
+      #message("Cal AIC/BIC Start")
       model_aic <- cal_aic(norm.mat = newmat,
                            cor.mat = cor.mat,
                            ind = ind)
-      #message("Cal AIC End")
+      model_bic <- cal_bic(norm.mat = newmat,
+                           cor.mat = cor.mat,
+                           ind = ind)
+      #message("Cal AIC/BIC End")
 
     }else if(copula == "vine"){
       if(!ind) {
@@ -145,13 +147,14 @@ fit_copula <- function(sce,
 
 
         model_aic <- stats::AIC(vine.fit)
-
+        model_bic <- stats::BIC(vine.fit)
         cor.mat <- vine.fit
       }
       else {
         new_mvu <- matrix(data = stats::runif(curr_ncell*ngene), nrow = curr_ncell)
         rownames(new_mvu) <- curr_ncell_idx
         model_aic <- 0
+        model_bic <- 0
         cor.mat <- NULL
       }
     }else{
@@ -160,23 +163,30 @@ fit_copula <- function(sce,
     return(list(
       new_mvu = new_mvu,
       model_aic = model_aic,
+      model_bic = model_bic,
       cor.mat = cor.mat
     ))
   }, sce = sce, newmat = newmat, ind = ind, n_cores = n_cores, corr_group = corr_group, new_corr_group = new_corr_group)
 
   newmvn <- do.call(rbind, lapply(newmvn.list, function(x) x$new_mvu))
-  copula.aic <- sum(sapply(newmvn.list, function(x) x$model_aic))
 
+  copula.aic <- sum(sapply(newmvn.list, function(x) x$model_aic))
   marginal.aic <- sum(sapply(marginal_list, stats::AIC))
+
+  copula.bic <- sum(sapply(newmvn.list, function(x) x$model_bic))
+  marginal.bic <- sum(sapply(marginal_list, stats::BIC))
 
   model_aic <- c(marginal.aic, copula.aic)
   names(model_aic) <- c("aic.marginal", "aic.copula")
 
-  cor_list <- lapply(newmvn.list, function(x) x$cor.mat)
+  model_bic <- c(marginal.bic, copula.bic)
+  names(model_bic) <- c("bic.marginal", "bic.copula")
+
+  corr_list <- lapply(newmvn.list, function(x) x$cor.mat)
 
   new_mvu <- as.data.frame(newmvn)
 
-  return(list(new_mvu = new_mvu, model_aic = model_aic, cor_list = cor_list))
+  return(list(new_mvu = new_mvu, model_aic = model_aic, model_bic = model_bic, corr_list = corr_list))
 }
 
 
@@ -578,4 +588,27 @@ cal_aic <- function(norm.mat,
   }
 
   copula.aic
+}
+
+cal_bic <- function(norm.mat,
+                    cor.mat,
+                    ind) {
+  n_obs <- dim(norm.mat)[1]
+  if (ind) {
+    copula.bic = 0
+  } else {
+    copula.nop <- (as.integer(sum(cor.mat != 0)) - dim(cor.mat)[1]) / 2
+
+    copula.bic <-
+      -2 * (sum(
+        mvtnorm::dmvnorm(
+          x = norm.mat,
+          mean = rep(0, dim(cor.mat)[1]),
+          sigma = cor.mat,
+          log = TRUE
+        )
+      ) - sum(rowSums(stats::dnorm(norm.mat, log = TRUE)))) + log(n_obs) * copula.nop
+  }
+
+  copula.bic
 }

@@ -26,6 +26,7 @@ A list with the components:
   \item{\code{new_count}}{A matrix of the new simulated count (expression) matrix.}
   \item{\code{corr_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
   \item{\code{model_aic}}{A vector of the marginal AIC and the copula AIC.}
+  \item{\code{model_bic}}{A vector of the marginal BIC and the copula BIC.}
 }
 }
 \description{

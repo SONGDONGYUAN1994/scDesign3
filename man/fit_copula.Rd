@@ -15,7 +15,6 @@ fit_copula(
   DT = TRUE,
   pseudo_obs = FALSE,
   epsilon = 1e-06,
-  cor_formula,
   family_set = c("gaussian", "indep"),
   n_cores
 )
@@ -45,8 +44,6 @@ Default is FALSE.}
 
 \item{epsilon}{A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.}
 
-\item{cor_formula}{A string or a string vector which indicates the groups for correlation structure.}
-
 \item{family_set}{A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").}
 
 \item{n_cores}{An integer. The number of cores to use.}
@@ -55,8 +52,9 @@ Default is FALSE.}
 A list with the components:
 \describe{
   \item{\code{new_mvu}}{A matrix of the new multivariate uniform distribution from the copula.}
-  \item{\code{cor_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
+  \item{\code{corr_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
   \item{\code{model_aic}}{A vector of the marginal AIC and the copula AIC.}
+  \item{\code{model_bic}}{A vector of the marginal BIC and the copula BIC.}
 }
 }
 \description{

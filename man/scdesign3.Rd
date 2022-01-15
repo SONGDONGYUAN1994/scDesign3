@@ -21,7 +21,8 @@ scdesign3(
   copula = "vine",
   DT = TRUE,
   pseudo_obs = FALSE,
-  family_set = c("gaussian", "indep")
+  family_set = c("gaussian", "indep"),
+  return_model = FALSE
 )
 }
 \arguments{
@@ -64,6 +65,8 @@ Default is TRUE.}
 Default is FALSE.}
 
 \item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gaussian", "indep").}
+
+\item{return_model}{A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.}
 }
 \value{
 A list with the components:

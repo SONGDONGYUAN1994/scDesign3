@@ -24,7 +24,6 @@ test_that("Run scDesign3", {
                           marginal_list = my_marginal,
                           family = "nb",
                           copula = "vine",
-                          cor_formula = "pseudotime",
                           n_cores = 1,
                           new_covariate = NULL,
                           input_data = my_data$dat)
@@ -51,7 +50,8 @@ test_that("Run scDesign3", {
                        copula = "vine",
                        DT = TRUE,
                        pseudo_obs = FALSE,
-                       ncell = 1000)
+                       ncell = 1000,
+                       return_model = TRUE)
 
 })
 

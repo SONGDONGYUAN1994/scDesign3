@@ -25,6 +25,7 @@
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
 #' @param family_set A string or a string vector of the bivariate copula families. Default is c("gaussian", "indep").
+#' @param return_model A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
 #'
 #' @return A list with the components:
 #' \describe{
@@ -48,7 +49,8 @@ scdesign3 <- function(sce,
                       copula = "vine",
                       DT = TRUE,
                       pseudo_obs = FALSE,
-                      family_set = c("gaussian", "indep")
+                      family_set = c("gaussian", "indep"),
+                      return_model = FALSE
                       ){
 
   message("Input Data Construction Start")
@@ -82,7 +84,6 @@ scdesign3 <- function(sce,
                           marginal_list = marginal_res,
                           family = family,
                           copula = copula,
-                          cor_formula = cor_formula,
                           family_set = family_set,
                           n_cores = n_cores)
   message("Copula Fitting End")
@@ -95,9 +96,12 @@ scdesign3 <- function(sce,
                            family = family,
                            new_covariate = input_data$new_covariate)
   message("New Data Generating End")
-  return(list(new_count = res_list$new_count,
-              new_covariate = input_data$new_covariate,
-              marginal_list = marginal_res,
-              corr_list = res_list$corr_list,
-              model_aic = res_list$model_aic))
+
+  scdesign3_res <- list(new_count = res_list$new_count,
+                          new_covariate = input_data$new_covariate,
+                          model_aic = res_list$model_aic,
+                          model_bic = res_list$model_bic,
+                          marginal_list = if(return_model) marginal_res else NULL,
+                          corr_list = if(return_model) res_list$corr_list else NULL)
+  return(scdesign3_res)
 }

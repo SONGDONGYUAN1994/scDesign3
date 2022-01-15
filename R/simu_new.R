@@ -18,6 +18,7 @@
 #'   \item{\code{new_count}}{A matrix of the new simulated count (expression) matrix.}
 #'   \item{\code{corr_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
 #'   \item{\code{model_aic}}{A vector of the marginal AIC and the copula AIC.}
+#'   \item{\code{model_bic}}{A vector of the marginal BIC and the copula BIC.}
 #' }
 #'
 #' @export simu_new
@@ -41,8 +42,7 @@ simu_new <- function(sce,
     rownames(new.count) <- rownames(sce)
   }
 
-  return(list(new_count = new.count, model_aic = copula_list$model_aic, corr_list = copula_list
-              $corr_list))
+  return(list(new_count = new.count, model_aic = copula_list$model_aic, model_bic = copula_list$model_bic, corr_list = copula_list$corr_list))
 }
 
 
