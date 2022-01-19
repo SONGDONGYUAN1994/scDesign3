@@ -23,7 +23,7 @@ test_that("Run scDesign3", {
     usebam = FALSE
   )
 
-  my_marginal2 <- fit_marginal(
+   my_marginal2 <- fit_marginal(
     data = my_data,
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
     sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",

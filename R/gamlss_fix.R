@@ -611,9 +611,9 @@ model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), pa
   parform <- stats::formula(object, what)
   data <- if (!is.null(Call$data)) {
     # problem here, as Call$data is .
-    eval(Call$data)
+    #eval(Call$data)
     # instead, this would work:
-    # eval(Call$data, environment(formula$mu.terms))
+    eval(Call$data, environment(formula$mu.terms))
     # (there is no formula$terms, just mu.terms and sigma.terms)
   } else {
     environment(formula$terms)
