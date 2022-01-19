@@ -9,7 +9,7 @@ fit_marginal(
   predictor = "gene",
   mu_formula,
   sigma_formula,
-  family,
+  family_use,
   n_cores,
   usebam
 )
@@ -23,7 +23,7 @@ fit_marginal(
 
 \item{sigma_formula}{A string of the sigma parameter formula}
 
-\item{family}{A string of the marginal distribution.
+\item{family_use}{A string or a vector of strings of the marginal distribution.
 Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{n_cores}{An integer. The number of cores to use.}

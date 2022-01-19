@@ -4,35 +4,42 @@
 \alias{simu_new}
 \title{Simulate new data}
 \usage{
-simu_new(sce, marginal_list, copula_list, n_cores, family, new_covariate)
+simu_new(
+  sce,
+  mean_mat,
+  sigma_mat,
+  zero_mat,
+  quantile_mat,
+  family_use,
+  n_cores,
+  new_covariate
+)
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object.}
 
-\item{marginal_list}{A list of fitted regression models from \code{\link{fit_marginal}}.}
+\item{mean_mat}{A cell by feature matrix of the mean parameter.}
 
-\item{copula_list}{A list of fitted copula models from \code{\link{fit_copula}}.}
+\item{sigma_mat}{A cell by feature matrix of the sigma parameter.}
+
+\item{zero_mat}{A cell by feature matrix of the zero-inflation parameter.}
+
+\item{quantile_mat}{A cell by feature matrix of the multivariate quantile.}
+
+\item{family_use}{A string of the marginal distribution.
+Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{n_cores}{An integer. The number of cores to use.}
 
-\item{family}{A string of the marginal distribution.
-Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
-
-\item{new_covariate}{A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.}
+\item{new_covariate}{A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}}.}
 }
 \value{
-A list with the components:
-\describe{
-  \item{\code{new_count}}{A matrix of the new simulated count (expression) matrix.}
-  \item{\code{corr_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
-  \item{\code{model_aic}}{A vector of the marginal AIC and the copula AIC.}
-  \item{\code{model_bic}}{A vector of the marginal BIC and the copula BIC.}
-}
+A feature by cell matrix of the new simulated count (expression) matrix.
 }
 \description{
 \code{simu_new} generates new simulated data based on fitted marginal and copula models.
 }
 \details{
 The function takes the new covariate (if use) from \code{\link{construct_data}},
-marginal models from \code{\link{fit_marginal}} and multivariate Unifs from \code{\link{fit_copula}}.
+parameter matricies from \code{\link{extract_para}} and multivariate Unifs from \code{\link{fit_copula}}.
 }

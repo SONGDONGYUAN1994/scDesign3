@@ -9,7 +9,7 @@
 #' @param predictor Default is gene. ## Fix later
 #' @param mu_formula A string of the mu parameter formula
 #' @param sigma_formula A string of the sigma parameter formula
-#' @param family A string of the marginal distribution.
+#' @param family_use A string or a vector of strings of the marginal distribution.
 #' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param n_cores An integer. The number of cores to use.
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
@@ -22,13 +22,21 @@ fit_marginal <- function(data,
                          predictor = "gene", ## Fix this later.
                          mu_formula,
                          sigma_formula,
-                         family,
+                         family_use,
                          n_cores,
                          usebam) {
 
   count_mat <-  data$count_mat
   dat <- data$dat
   feature_names <- colnames(count_mat)
+
+  ## Check family_use
+  if(length(family_use) == 1) {
+    family_use <- rep(family_use, length(feature_names))
+  }
+  if(length(family_use) != length(feature_names)) {
+    stop("The family_use must be either a single string or a vector with the same length as all features!")
+  }
 
   mgcv_formula <-
     stats::as.formula(paste0(predictor, "~", mu_formula))
@@ -73,7 +81,8 @@ fit_marginal <- function(data,
   #
   # print(mu_formula)
   #pbmcapply::pbmc
-  model_fit <- pbmcapply::pbmclapply(feature_names, function(gene,
+  model_fit <- pbmcapply::pbmcmapply(function(gene,
+                                              family_gene,
                                                              mc.cores,
                                                              #pseudotime,
                                                              #celltype,
@@ -83,12 +92,12 @@ fit_marginal <- function(data,
                                                              mu_formula,
                                                              sigma_formula,
                                                              predictor,
-                                                             count_mat,
-                                                             family) {
+                                                             count_mat
+                                                             ) {
     ## Add gene expr
     dat$gene <- count_mat[, gene]
 
-    if (family == "poisson") {
+    if (family_gene == "poisson") {
       mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson", discrete = usebam)
 
       ## If sigma_formula == ~1, gamlss degenerates into mgcv::gam
@@ -117,7 +126,7 @@ fit_marginal <- function(data,
       } else {
         gamlss.fit <- NULL
       }
-    } else if (family == "gaussian") {
+    } else if (family_gene == "gaussian") {
       # dat$gene = log1p(dat$gene)
       ## !!! Poisson doesnot have gamlss since its sigma equals mean!
       mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "gaussian", usebam)
@@ -147,7 +156,7 @@ fit_marginal <- function(data,
       } else {
         gamlss.fit <- NULL
       }
-    } else if (family == "nb"){
+    } else if (family_gene == "nb"){
       mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "nb", discrete = usebam)
       #mgcv.fit <- mgcv::gam(formula = mgcv_formula, data = dat, family = "nb")
       if (sigma_formula != "~1") {
@@ -178,7 +187,7 @@ fit_marginal <- function(data,
       } else {
         gamlss.fit <- NULL
       }
-    } else if (family == "zip") {
+    } else if (family_gene == "zip") {
 
       ## Fit mgcv::gam(poisson) in case gamlss(ZINB) fails.
       mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson", discrete = usebam)
@@ -206,7 +215,7 @@ fit_marginal <- function(data,
 
       , silent = FALSE)
 
-    } else if (family == "zinb"){
+    } else if (family_gene == "zinb"){
       ## Fit mgcv::gam(poisson) in case gamlss(ZINB) fails.
       mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson", discrete = usebam)
       #mgcv.fit <- mgcv::gam(mgcv_formula, data = dat, family = "poisson")
@@ -268,14 +277,14 @@ fit_marginal <- function(data,
     }
 
     return(fit)
-  },  mc.cores = n_cores,
-  dat = dat,
+  }, gene = feature_names, family_gene = family_use, MoreArgs = list(dat = dat,
   mgcv_formula = mgcv_formula,
   mu_formula = mu_formula,
   sigma_formula = sigma_formula,
   predictor = predictor,
-  count_mat = count_mat,
-  family = family)
+  count_mat = count_mat),
+  mc.cores = n_cores, SIMPLIFY = FALSE
+  )
 
   if(length(model_fit) == 2) {
     model_fit <- model_fit[[1]]

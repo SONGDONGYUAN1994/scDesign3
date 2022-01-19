@@ -10,7 +10,7 @@ fit_copula(
   input_data,
   new_covariate = NULL,
   marginal_list,
-  family,
+  family_use,
   copula = "vine",
   DT = TRUE,
   pseudo_obs = FALSE,
@@ -31,7 +31,7 @@ Default is 'counts'.}
 
 \item{marginal_list}{A list of fitted regression models from \code{\link{fit_marginal}}.}
 
-\item{family}{A string of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
+\item{family_use}{A string or a vector of strings of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'vine'.}
 

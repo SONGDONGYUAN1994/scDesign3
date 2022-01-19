@@ -14,7 +14,7 @@ scdesign3(
   ncell = dim(sce)[2],
   mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
   sigma_formula = "1",
-  family = "nb",
+  family_use = "nb",
   n_cores = 2,
   usebam = FALSE,
   cor_formula = "cell_type",
@@ -46,7 +46,7 @@ multiple lineages. Default is NULL.}
 
 \item{sigma_formula}{A string of the sigma parameter formula}
 
-\item{family}{A string of the marginal distribution.
+\item{family_use}{A string of the marginal distribution.
 Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{n_cores}{An integer. The number of cores to use.}

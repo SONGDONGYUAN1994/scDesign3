@@ -12,6 +12,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.6.0)
+biocViews:
 Imports:
     dplyr,
     tidyr,
@@ -30,7 +31,6 @@ Imports:
     mvtnorm,
     pbmcapply,
     spcov,
-    copula,
     rvinecopulib
 Suggests:
     ggplot2,
