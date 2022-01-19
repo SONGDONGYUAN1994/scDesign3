@@ -129,7 +129,7 @@ fit_marginal <- function(data,
     } else if (family_gene == "gaussian") {
       # dat$gene = log1p(dat$gene)
       ## !!! Poisson doesnot have gamlss since its sigma equals mean!
-      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "gaussian", usebam)
+      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "gaussian", discrete = usebam)
 
       if (sigma_formula != "~1") {
         gamlss.fit <- tryCatch({
@@ -176,20 +176,20 @@ fit_marginal <- function(data,
         error = function(error) {
           message(paste0(gene, " gamlss fit fails!"))
           return(NULL)
-        }#,
+        },
         #warning = function(warning) {
         #  message(paste0(gene, " gamlss fit ends with warning!"))
         #  return(NULL)
         #}
 
-        ,
+        #,
         silent = FALSE)
       } else {
         gamlss.fit <- NULL
       }
     } else if (family_gene == "zip") {
 
-      ## Fit mgcv::gam(poisson) in case gamlss(ZINB) fails.
+      ## Fit mgcv::gam(poisson) in case gamlss(ZIP) fails.
       mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat, family = "poisson", discrete = usebam)
 
       gamlss.fit <- tryCatch({
@@ -277,7 +277,9 @@ fit_marginal <- function(data,
     }
 
     return(fit)
-  }, gene = feature_names, family_gene = family_use, MoreArgs = list(dat = dat,
+  }, gene = feature_names,
+  family_gene = family_use,
+  MoreArgs = list(dat = dat,
   mgcv_formula = mgcv_formula,
   mu_formula = mu_formula,
   sigma_formula = sigma_formula,
@@ -286,7 +288,7 @@ fit_marginal <- function(data,
   mc.cores = n_cores, SIMPLIFY = FALSE
   )
 
-  if(length(model_fit) == 2) {
+  if(!is.null(model_fit$warning)) {
     model_fit <- model_fit[[1]]
   }
   return(model_fit)

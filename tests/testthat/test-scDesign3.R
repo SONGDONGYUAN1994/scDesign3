@@ -11,25 +11,34 @@ test_that("Run scDesign3", {
     pseudotime = "pseudotime",
     spatial = NULL,
     other_covariates = NULL,
-    corr_by = "pseudotime"
+    corr_by = "cell_type"
   )
 
   my_marginal <- fit_marginal(
     data = my_data,
-    mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-    sigma_formula = "s(pseudotime, bs = 'cr', k = 5)",
-    family_use = "poisson",
+    mu_formula = "cell_type",
+    sigma_formula = "cell_type",
+    family_use = "nb",
     n_cores = 1,
-    usebam = TRUE
+    usebam = FALSE
   )
 
   my_marginal <- fit_marginal(
     data = my_data,
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-    sigma_formula = "s(pseudotime, bs = 'cr', k = 5)",
+    sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
     family_use = c(rep("nb", 5), rep("zip", 5)),
     n_cores = 1,
     usebam = FALSE
+  )
+
+  my_marginal <- fit_marginal(
+    data = my_data,
+    mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+    sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
+    family_use = c(rep("nb", 5), rep("zip", 5)),
+    n_cores = 1,
+    usebam = TRUE
   )
 
   my_copula <- fit_copula(
@@ -70,11 +79,11 @@ test_that("Run scDesign3", {
     spatial = NULL,
     other_covariates = NULL,
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-    sigma_formula = "s(pseudotime, bs = 'cr', k = 5)",
+    sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
     family_use = c(rep("nb", 5), rep("zip", 5)),
     n_cores = 1,
     usebam = FALSE,
-    cor_formula = "pseudotime",
+    corr_formula = "pseudotime",
     copula = "vine",
     DT = TRUE,
     pseudo_obs = FALSE,

@@ -111,9 +111,9 @@ ba <-function(formula, control = ba.control(...), ...)
   if (!methods::is(formula, "formula"))
     stop("formula argument in ba() needs a formula starting with ~")
   # get where "gamlss" is in system call, it can be in gamlss() or predict.gamlss()
-  #rexpr <- grepl("gamlss",sys.calls()) ##
+  rexpr <- grepl("gamlss",sys.calls()) ##
   #rexpr <- grepl("fitModel", sys.calls())
-  rexpr <- grepl("stats::model.frame.default", sys.calls())
+  #rexpr <- grepl("stats::model.frame.default", sys.calls())
 
   for (i in length(rexpr):1) {
     position <- i # get the position
@@ -677,7 +677,7 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
 ##' @param w Iterative weights
 ##' @param xeval If xeval=TRUE then predicion is used
 ##' @param ... Other arguments
-##'
+##' @export
 gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting

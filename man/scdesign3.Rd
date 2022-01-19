@@ -17,7 +17,7 @@ scdesign3(
   family_use = "nb",
   n_cores = 2,
   usebam = FALSE,
-  cor_formula = "cell_type",
+  corr_formula = "cell_type",
   copula = "vine",
   DT = TRUE,
   pseudo_obs = FALSE,
@@ -53,7 +53,7 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.}
 
-\item{cor_formula}{A string of the correlation structure.}
+\item{corr_formula}{A string of the correlation structure.}
 
 \item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'vine'.}
 
