@@ -31,6 +31,7 @@
 #' }
 #'
 #' @import mclust
+#' @import gamlss
 #'
 #' @export fit_copula
 

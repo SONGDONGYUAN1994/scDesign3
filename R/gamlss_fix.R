@@ -220,7 +220,7 @@ ba <-function(formula, control = ba.control(...), ...)
 #'
 #' @return A control object
 #' @export
-ba.control = function(offset = NULL,
+ba.control <- function(offset = NULL,
                       method = "fREML",
                       control = list(),
                       select = FALSE,
@@ -282,7 +282,7 @@ ba.control = function(offset = NULL,
 #'
 #' @return A control object
 #' @export
-ga.control = function(offset = NULL,
+ga.control <- function(offset = NULL,
                       method = "REML",
                       optimizer = c("outer","newton"),
                       control = list(),
@@ -613,7 +613,16 @@ model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), pa
     # problem here, as Call$data is .
     #eval(Call$data)
     # instead, this would work:
-    eval(Call$data, environment(formula$mu.terms))
+    if(what == "mu") {
+      eval(Call$data, environment(formula$mu.terms))
+    }
+    else if (what == "sigma") {
+      eval(Call$data, environment(formula$sigma.terms))
+    } else if (what == "nu") {
+      eval(Call$data, environment(formula$nu.terms))
+    } else if (what == "tau") {
+      eval(Call$data, environment(formula$tau.terms))
+    }
     # (there is no formula$terms, just mu.terms and sigma.terms)
   } else {
     environment(formula$terms)

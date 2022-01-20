@@ -16,7 +16,7 @@ test_that("Run scDesign3", {
 
   my_marginal1 <- fit_marginal(
     data = my_data,
-    mu_formula = "cell_type",
+    mu_formula = "1",
     sigma_formula = "cell_type",
     family_use = "zinb",
     n_cores = 1,

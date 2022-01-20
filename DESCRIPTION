@@ -29,6 +29,7 @@ Imports:
     mclust,
     matrixcalc,
     mvtnorm,
+    parallel,
     pbmcapply,
     spcov,
     rvinecopulib
