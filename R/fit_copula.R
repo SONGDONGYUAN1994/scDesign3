@@ -233,8 +233,9 @@ cal_cor <- function(norm.mat,
     return(cor.mat)
   }
   else {
-    cor.mat <- stats::cor(norm.mat, method = "pearson")
-    s_d <- apply(norm.mat, 2, stats::sd)
+    cor.mat <- Rfast::cora(norm.mat)
+    #s_d <- apply(norm.mat, 2, stats::sd)
+    s_d <- Rfast::colVars(norm.mat, std = TRUE, na.rm = TRUE)
     if (any(0 == s_d)) {
       cor.mat[is.na(cor.mat)] <- 0
     }

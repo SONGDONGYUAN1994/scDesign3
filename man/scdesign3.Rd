@@ -7,21 +7,21 @@
 scdesign3(
   sce,
   assay_use = "counts",
-  celltype = "cell_type",
-  pseudotime = "pseudotime",
-  spatial = c("spatial1", "spatial2"),
-  other_covariates = c("batch", "condition"),
+  celltype,
+  pseudotime,
+  spatial,
+  other_covariates,
   ncell = dim(sce)[2],
-  mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
+  mu_formula,
   sigma_formula = "1",
   family_use = "nb",
   n_cores = 2,
   usebam = FALSE,
-  corr_formula = "cell_type",
+  corr_formula,
   copula = "vine",
   DT = TRUE,
   pseudo_obs = FALSE,
-  family_set = c("gaussian", "indep"),
+  family_set = c("gauss"),
   return_model = FALSE
 )
 }

@@ -18,7 +18,7 @@ test_that("Run scDesign3", {
     data = my_data,
     mu_formula = "1",
     sigma_formula = "cell_type",
-    family_use = "zinb",
+    family_use = "nb",
     n_cores = 1,
     usebam = FALSE
   )
@@ -47,6 +47,17 @@ test_that("Run scDesign3", {
     marginal_list = my_marginal3,
     family_use = c(rep("nb", 5), rep("zip", 5)),
     copula = "vine",
+    n_cores = 1,
+    new_covariate = NULL,
+    input_data = my_data$dat
+  )
+
+  my_copula1 <- fit_copula(
+    sce = example_sce,
+    assay_use = "counts",
+    marginal_list = my_marginal3,
+    family_use = c(rep("nb", 5), rep("zip", 5)),
+    copula = "gaussian",
     n_cores = 1,
     new_covariate = NULL,
     input_data = my_data$dat

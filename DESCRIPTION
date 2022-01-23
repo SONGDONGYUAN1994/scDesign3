@@ -28,6 +28,7 @@ Imports:
     SingleCellExperiment,
     mclust,
     matrixcalc,
+    Rfast,
     mvtnorm,
     parallel,
     pbmcapply,
