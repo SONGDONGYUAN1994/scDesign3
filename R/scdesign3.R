@@ -24,7 +24,8 @@
 #' Default is TRUE.
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
-#' @param family_set A string or a string vector of the bivariate copula families. Default is c("gaussian", "indep").
+#' @param family_set A string or a string vector of the bivariate copula families. Default is c("gauss", "indep").
+#' @param nonnegative A logical variable. If TRUE, values < 0 will be converted to 0.Default is TRUE.
 #' @param return_model A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
 #'
 #' @return A list with the components:
@@ -49,7 +50,8 @@ scdesign3 <- function(sce,
                       copula = "vine",
                       DT = TRUE,
                       pseudo_obs = FALSE,
-                      family_set = c("gauss"),
+                      family_set = c("gauss", "indep"),
+                      nonnegative = TRUE,
                       return_model = FALSE) {
   message("Input Data Construction Start")
 
@@ -110,6 +112,7 @@ Extraction End")
     quantile_mat = copula_res$new_mvu,
     n_cores = n_cores,
     family_use = family_use,
+    nonnegative = nonnegative,
     new_covariate = input_data$new_covariate
   )
   message("New Data Generating End")

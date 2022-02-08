@@ -299,7 +299,7 @@ convert_n <- function(sce,
 
     if (methods::is(fit, "gamlss")) {
       mean_vec <- stats::predict(fit, type = "response", what = "mu")
-      if (y == "poisson") {
+      if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
         theta_vec <-
@@ -329,11 +329,10 @@ convert_n <- function(sce,
       }
 
       mean_vec <- stats::predict(fit, type = "response")
-      if (y == "poisson") {
+      if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
-        theta_vec <-
-          stats::predict(fit, type = "response", what = "sigma") # called the theta_vec but actually used as sigma_vec for Gaussian
+        theta_vec <- rep(sqrt(fit$sig2), length(mean_vec)) # called the theta_vec but actually used as sigma_vec for Gaussian
       } else if (y == "nb") {
         theta <- fit$family$getTheta(TRUE)
         theta_vec <- rep(theta, length(mean_vec))
@@ -353,8 +352,11 @@ convert_n <- function(sce,
       zero_vec <- 0
     }
     family_frame <- cbind(Y, mean_vec, theta_vec, zero_vec)
-
-    if (y == "poisson") {
+    if (y == "binomial") {
+      pvec <- apply(family_frame, 1, function(x) {
+        stats::pbinom(x[1], prob = x[2], size = 1)
+      })
+    } else if (y == "poisson") {
       pvec <- apply(family_frame, 1, function(x) {
         stats::ppois(x[1], lambda = x[2])
       })
@@ -379,7 +381,7 @@ convert_n <- function(sce,
                             nu = x[4])
       })
     } else {
-      stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
+      stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
     }
 
     ## CHECK ABOUT THE FIRST PARAM!!!!!
@@ -388,8 +390,9 @@ convert_n <- function(sce,
         pvec2 <- apply(family_frame, 1, function(x) {
           stats::ppois(x[1] - 1, lambda = x[2]) * as.integer(x[1] > 0)
         })
-      } else if (y == "gaussian") {
+      } else if (y == "gaussian" | y == "binomial") {
         ## Gaussian is continuous, thus do not need DT.
+        ## Binomial seems to be weird to have DT.
         message("Continuous gaussian does not need DT.")
         pvec2 <- pvec
         # pvec2 <- apply(family_frame, 1, function(x){
@@ -415,7 +418,7 @@ convert_n <- function(sce,
                  0)
         })
       } else {
-        stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
+        stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
       }
 
       u1 <- pvec
@@ -481,7 +484,7 @@ convert_u <- function(sce,
 
     if (methods::is(fit, "gamlss")) {
       mean_vec <- stats::predict(fit, type = "response", what = "mu")
-      if (y == "poisson") {
+      if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
         theta_vec <-
@@ -499,7 +502,7 @@ convert_u <- function(sce,
         zero_vec <-
           stats::predict(fit, type = "response", what = "nu")
       } else {
-        stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
+        stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
       }
     } else {
       ## if input is from mgcv, update the family
@@ -509,16 +512,15 @@ convert_u <- function(sce,
       }
 
       mean_vec <- stats::predict(fit, type = "response")
-      if (y == "poisson") {
+      if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
-        theta_vec <-
-          stats::predict(fit, type = "response", what = "sigma") # called the theta_vec but actually used as sigma_vec for Gaussian
+        theta_vec <- rep(sqrt(fit$sig2), length(mean_vec)) # called the theta_vec but actually used as sigma_vec for Gaussian
       } else if (y == "nb") {
         theta <- fit$family$getTheta(TRUE)
         theta_vec <- rep(theta, length(mean_vec))
       } else {
-        stop("Distribution of mgcv must be one of gaussian, poisson or nb!")
+        stop("Distribution of mgcv must be one of gaussian, binomial, poisson or nb!")
       }
     }
 
@@ -534,7 +536,11 @@ convert_u <- function(sce,
     }
     family_frame <- cbind(Y, mean_vec, theta_vec, zero_vec)
 
-    if (y == "poisson") {
+    if (y == "binomial") {
+      pvec <- apply(family_frame, 1, function(x) {
+        stats::pbinom(x[1], prob = x[2], size = 1)
+      })
+    } else if (y == "poisson") {
       pvec <- apply(family_frame, 1, function(x) {
         stats::ppois(x[1], lambda = x[2])
       })
@@ -568,7 +574,7 @@ convert_u <- function(sce,
         pvec2 <- apply(family_frame, 1, function(x) {
           stats::ppois(x[1] - 1, lambda = x[2]) * as.integer(x[1] > 0)
         })
-      } else if (y == "gaussian") {
+      } else if (y == "gaussian" | y == "binomial") {
         ## Gaussian is continuous, thus do not need DT.
         message("Continuous gaussian doesnot need DT.")
         pvec2 <- pvec
@@ -595,7 +601,7 @@ convert_u <- function(sce,
                  0)
         })
       } else {
-        stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
+        stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
       }
 
       u1 <- pvec

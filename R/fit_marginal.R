@@ -10,7 +10,7 @@
 #' @param mu_formula A string of the mu parameter formula
 #' @param sigma_formula A string of the sigma parameter formula
 #' @param family_use A string or a vector of strings of the marginal distribution.
-#' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
+#' Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param n_cores An integer. The number of cores to use.
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
 #'
@@ -93,7 +93,36 @@ fit_marginal <- function(data,
     ## Add gene expr
     dat_use$gene <- count_mat[, gene]
 
-    if (family_gene == "poisson") {
+    if (family_gene == "binomial") {
+      mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat_use, family = "binomial", discrete = usebam)
+
+      ## If sigma_formula == ~1, gamlss degenerates into mgcv::gam
+      if (sigma_formula != "~1") {
+        gamlss.fit <- tryCatch({
+          res <- gamlss::gamlss(
+            formula = mu_formula,
+            #sigma.formula = sigma_formula, ## Binomial is one para dist.
+            data = dat_use,
+            family = gamlss.dist::BI,
+            control = gamlss::gamlss.control(trace = FALSE, c.crit = 0.1)
+
+          )
+          #message(paste0(gene, " gamlss fit successes!"))
+          res
+        },
+        error = function(error) {
+          message(paste0(gene, " gamlss fit fails!"))
+          NULL
+        }#,
+        #warning = function(warning) {
+        #  message(paste0(gene, " gamlss fit ends with warning!"))
+        #  return(NULL)
+        #}
+        , silent = FALSE)
+      } else {
+        gamlss.fit <- NULL
+      }
+    } else if (family_gene == "poisson") {
       mgcv.fit <- fitfunc(formula = mgcv_formula, data = dat_use, family = "poisson", discrete = usebam)
 
       ## If sigma_formula == ~1, gamlss degenerates into mgcv::gam
@@ -108,11 +137,11 @@ fit_marginal <- function(data,
 
           )
           #message(paste0(gene, " gamlss fit successes!"))
-          return(res)
+          res
         },
         error = function(error) {
           message(paste0(gene, " gamlss fit fails!"))
-          return(NULL)
+          NULL
         }#,
         #warning = function(warning) {
         #  message(paste0(gene, " gamlss fit ends with warning!"))
@@ -137,11 +166,11 @@ fit_marginal <- function(data,
             control = gamlss::gamlss.control(trace = FALSE, c.crit = 0.1)
           )
           #message(paste0(gene, " gamlss fit successes!"))
-          return(res)
+          res
         },
         error = function(error) {
           message(paste0(gene, " gamlss fit fails!"))
-          return(NULL)
+          NULL
         }#,
         #warning = function(warning) {
         #  message(paste0(gene, " gamlss fit ends with warning!"))
@@ -169,11 +198,11 @@ fit_marginal <- function(data,
 
           )
           #message(paste0(gene, " gamlss fit successes!"))
-          return(res)
+          res
         },
         error = function(error) {
           message(paste0(gene, " gamlss fit fails!"))
-          return(NULL)
+          NULL
         },
         #warning = function(warning) {
         #  message(paste0(gene, " gamlss fit ends with warning!"))
@@ -200,11 +229,11 @@ fit_marginal <- function(data,
 
         )
         #message(paste0(gene, " gamlss fit successes!"))
-        return(res)
+        res
       },
       error = function(error) {
         message(paste0(gene, " gamlss fit fails!"))
-        return(NULL)
+        NULL
       }#,
       #warning = function(warning) {
       #  message(paste0(gene, " gamlss fit ends with warning!"))
@@ -229,11 +258,11 @@ fit_marginal <- function(data,
 
         )
         #message(paste0(gene, " gamlss fit successes!"))
-        return(res)
+        res
       },
       error = function(error) {
         message(paste0(gene, " gamlss fit fails!"))
-        return(NULL)
+        NULL
       }#,
       #warning = function(warning) {
       #  message(paste0(gene, " gamlss fit ends with warning!"))
@@ -247,18 +276,20 @@ fit_marginal <- function(data,
 
     ## Check if gamlss is fitted.
     if (is.null(gamlss.fit)) {
-      if ((sigma_formula != "~1")) {
+      if (sigma_formula != "~1") {
         message(paste0(gene, " uses mgcv::gam due to gamlss's error!"))
       }
 
       fit <- mgcv.fit
     } else {
+
       mean_vec <- stats::predict(gamlss.fit, type = "response", what = "mu")
       theta_vec <-
-        1 / stats::predict(gamlss.fit, type = "response", what = "sigma")
+        stats::predict(gamlss.fit, type = "response", what = "sigma")
 
       if_infinite <- (sum(is.infinite(mean_vec + theta_vec)) > 0)
-      if_overmax <- FALSE # (max(mean_vec) > max(dat$gene))
+      if_overmax <- (max(mean_vec, na.rm = TRUE) > max(dat_use$gene, na.rm = TRUE))
+
       if (if_infinite | if_overmax) {
         message(paste0(gene, " gamlss returns abnormal fitting values!"))
         fit <- mgcv.fit
@@ -282,8 +313,8 @@ fit_marginal <- function(data,
   mu_formula = mu_formula,
   sigma_formula = sigma_formula,
   predictor = predictor,
-  count_mat = count_mat),
-  mc.cores = n_cores, SIMPLIFY = FALSE
+  count_mat = count_mat), mc.cores = n_cores,
+   SIMPLIFY = FALSE
   )
 
   if(!is.null(model_fit$warning)) {

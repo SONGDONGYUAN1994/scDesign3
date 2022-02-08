@@ -34,7 +34,7 @@ extract_para <-  function(sce,
                        type = "response",
                        what = "mu",
                        newdata = new_covariate)
-      if (y == "poisson") {
+      if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
         theta_vec = stats::predict(fit,
@@ -43,11 +43,11 @@ extract_para <-  function(sce,
                                    newdata = new_covariate) # this thete_vec is used for sigma_vec
       } else if (y == "nb") {
         theta_vec <-
-          1 / stats::predict(fit,
+          stats::predict(fit,
                              type = "response",
                              what = "sigma",
                              newdata = new_covariate)
-        theta_vec[theta_vec < 1e-3] <- 1e-3
+        #theta_vec[theta_vec < 1e-3] <- 1e-3
       } else if (y == "zip") {
         theta_vec <- rep(NA, length(mean_vec))
         zero_vec <-
@@ -67,7 +67,7 @@ extract_para <-  function(sce,
                          what = "nu",
                          newdata = new_covariate)
       } else {
-        stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
+        stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
       }
     } else {
       ## Fit is mgcv::gam
@@ -78,15 +78,15 @@ extract_para <-  function(sce,
         }
 
         mean_vec <- stats::predict(fit, type = "response")
-        if (y == "poisson") {
+        if (y == "poisson" | y == "binomial") {
           theta_vec <- rep(NA, length(mean_vec))
         } else if (y == "gaussian") {
-          theta_vec = stats::predict(fit, type = "response", what = "sigma") # this thete_vec is used for sigma_vec
+          theta_vec <- rep(sqrt(fit$sig2), length(mean_vec)) # this thete_vec is used for sigma_vec
         } else if (y == "nb") {
           theta <- fit$family$getTheta(TRUE)
-          theta_vec <- rep(theta, length(mean_vec))
+          theta_vec <- 1/rep(theta, length(mean_vec))
         } else {
-          stop("Distribution of gamlss must be one of gaussian, poisson, nb!")
+          stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb!")
         }
       } else{
         y <- stats::family(fit)$family[1]
@@ -96,7 +96,7 @@ extract_para <-  function(sce,
 
         mean_vec <-
           stats::predict(fit, type = "response", newdata = new_covariate)
-        if (y == "poisson") {
+        if (y == "poisson" | y == "binomial") {
           theta_vec <- rep(NA, length(mean_vec))
         } else if (y == "gaussian") {
           theta_vec = stats::predict(fit,
@@ -105,9 +105,9 @@ extract_para <-  function(sce,
                                      newdata = new_covariate) # this thete_vec is used for sigma_vec
         } else if (y == "nb") {
           theta <- fit$family$getTheta(TRUE)
-          theta_vec <- rep(theta, length(mean_vec))
+          theta_vec <- 1/rep(theta, length(mean_vec))
         } else {
-          stop("Distribution of gamlss must be one of gaussian, poisson, nb!")
+          stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb!")
         }
       }
     }
