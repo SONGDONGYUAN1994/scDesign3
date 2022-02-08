@@ -10,8 +10,9 @@ simu_new(
   sigma_mat,
   zero_mat,
   quantile_mat,
-  family_use,
   n_cores,
+  family_use,
+  nonnegative = TRUE,
   new_covariate
 )
 }
@@ -26,10 +27,12 @@ simu_new(
 
 \item{quantile_mat}{A cell by feature matrix of the multivariate quantile.}
 
-\item{family_use}{A string of the marginal distribution.
-Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
-
 \item{n_cores}{An integer. The number of cores to use.}
+
+\item{family_use}{A string of the marginal distribution.
+Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.}
+
+\item{nonnegative}{A logical variable. If TRUE, values < 0 will be converted to 0.Default is TRUE.}
 
 \item{new_covariate}{A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}}.}
 }
