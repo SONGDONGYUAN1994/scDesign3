@@ -289,8 +289,9 @@ fit_marginal <- function(data,
 
       if_infinite <- (sum(is.infinite(mean_vec + theta_vec)) > 0)
       if_overmax <- (max(mean_vec, na.rm = TRUE) > max(dat_use$gene, na.rm = TRUE))
+      if_overdisp <- (max(theta_vec, na.rm = TRUE) > 1000)
 
-      if (if_infinite | if_overmax) {
+      if (if_infinite | if_overmax | if_overdisp) {
         message(paste0(gene, " gamlss returns abnormal fitting values!"))
         fit <- mgcv.fit
       } else if (stats::AIC(mgcv.fit) - stats::AIC(gamlss.fit) < -Inf) {

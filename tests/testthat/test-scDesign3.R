@@ -27,10 +27,12 @@ test_that("Run scDesign3", {
     data = my_data,
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
     sigma_formula = "cell_type",
-    family_use = c(rep("zinb", 5), rep("poisson", 5)),
+    family_use = "nb",
     n_cores = 1,
     usebam = FALSE
   )
+
+  my_pvalue <- perform_lrt(my_marginal2, my_marginal1)
 
   my_marginal3 <- fit_marginal(
     data = my_data,
