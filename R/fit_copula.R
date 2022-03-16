@@ -8,7 +8,7 @@
 #' @param sce A \code{SingleCellExperiment} object.
 #' @param assay_use A string which indicates the assay you will use in the sce.
 #' Default is 'counts'.
-#' @param input_data A input count matrix.
+#' @param input_data The input data.
 #' @param new_covariate A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.
 #' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}}.
 #' @param family_use A string or a vector of strings of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
@@ -25,7 +25,7 @@
 #' @return A list with the components:
 #' \describe{
 #'   \item{\code{new_mvu}}{A matrix of the new multivariate uniform distribution from the copula.}
-#'   \item{\code{corr_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
+#'   \item{\code{copula_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
 #'   \item{\code{model_aic}}{A vector of the marginal AIC and the copula AIC.}
 #'   \item{\code{model_bic}}{A vector of the marginal BIC and the copula BIC.}
 #' }
@@ -118,10 +118,10 @@ fit_copula <- function(sce,
           ind = ind
         )
         #message("Sample MVN")
-        new_mvu <- sampleMVN(n = curr_ncell,
-                             Sigma = cor.mat)
+        #new_mvu <- sampleMVN(n = curr_ncell,
+        #                     Sigma = cor.mat)
         #message("MVN Sampling End")
-        rownames(new_mvu) <- curr_ncell_idx
+        #rownames(new_mvu) <- curr_ncell_idx
 
         #message("Cal AIC/BIC Start")
         model_aic <- cal_aic(norm.mat = newmat,
@@ -135,7 +135,7 @@ fit_copula <- function(sce,
       } else if (copula == "vine") {
         if (!ind) {
           message("Vine Copula Estimation Starts")
-          #start <- Sys.time()
+          start <- Sys.time()
           curr_mat <- newmat[curr_index, , drop = FALSE]
           vine.fit <- rvinecopulib::vinecop(
             data = curr_mat,
@@ -144,22 +144,22 @@ fit_copula <- function(sce,
             par_method = "mle",
             cores = n_cores
           )
-          #end <- Sys.time()
-          #print(end - start)
+          end <- Sys.time()
+          print(end - start)
           message("Vine Copula Estimation Ends")
-          if (curr_ncell != 0) {
-            message("Sampling Vine Copula Starts")
-            new_mvu <- rvinecopulib::rvinecop(
-              curr_ncell,
-              vine = vine.fit,
-              cores = n_cores,
-              qrng = TRUE
-            )
-            message("Sampling Vine Copula Ends")
-            rownames(new_mvu) <- curr_ncell_idx
-          } else{
-            new_mvu <- NULL
-          }
+          # if (curr_ncell != 0) {
+          #   message("Sampling Vine Copula Starts")
+          #   new_mvu <- rvinecopulib::rvinecop(
+          #     curr_ncell,
+          #     vine = vine.fit,
+          #     cores = n_cores,
+          #     qrng = TRUE
+          #   )
+          #   message("Sampling Vine Copula Ends")
+          #   rownames(new_mvu) <- curr_ncell_idx
+          # } else{
+          #   new_mvu <- NULL
+          # }
 
 
           model_aic <- stats::AIC(vine.fit)
@@ -167,10 +167,10 @@ fit_copula <- function(sce,
           cor.mat <- vine.fit
         }
         else {
-          new_mvu <-
-            matrix(data = stats::runif(curr_ncell * ngene),
-                   nrow = curr_ncell)
-          rownames(new_mvu) <- curr_ncell_idx
+          #new_mvu <-
+          #  matrix(data = stats::runif(curr_ncell * ngene),
+          #         nrow = curr_ncell)
+          #rownames(new_mvu) <- curr_ncell_idx
           model_aic <- 0
           model_bic <- 0
           cor.mat <- NULL
@@ -180,7 +180,7 @@ fit_copula <- function(sce,
       }
       return(
         list(
-          new_mvu = new_mvu,
+          #new_mvu = new_mvu,
           model_aic = model_aic,
           model_bic = model_bic,
           cor.mat = cor.mat
@@ -188,9 +188,9 @@ fit_copula <- function(sce,
       )
     }, sce = sce, newmat = newmat, ind = ind, n_cores = n_cores, corr_group = corr_group, new_corr_group = new_corr_group)
 
-  newmvn <-
-    do.call(rbind, lapply(newmvn.list, function(x)
-      x$new_mvu))
+  #newmvn <-
+  #  do.call(rbind, lapply(newmvn.list, function(x)
+  #    x$new_mvu))
 
   copula.aic <- sum(sapply(newmvn.list, function(x)
     x$model_aic))
@@ -200,23 +200,24 @@ fit_copula <- function(sce,
     x$model_bic))
   marginal.bic <- sum(sapply(marginal_list, stats::BIC))
 
-  model_aic <- c(marginal.aic, copula.aic)
-  names(model_aic) <- c("aic.marginal", "aic.copula")
+  model_aic <- c(marginal.aic, copula.aic, marginal.aic + copula.aic)
+  names(model_aic) <- c("aic.marginal", "aic.copula", "aic.total")
 
-  model_bic <- c(marginal.bic, copula.bic)
-  names(model_bic) <- c("bic.marginal", "bic.copula")
+  model_bic <- c(marginal.bic, copula.bic, marginal.bic + copula.bic)
+  names(model_bic) <- c("bic.marginal", "bic.copula", "bic.total")
 
-  corr_list <- lapply(newmvn.list, function(x)
+  copula_list <- lapply(newmvn.list, function(x)
     x$cor.mat)
+  names(copula_list) <- group_index
 
-  new_mvu <- as.data.frame(newmvn)
+  #new_mvu <- as.data.frame(newmvn)
 
   return(
     list(
-      new_mvu = new_mvu,
+      #new_mvu = new_mvu,
       model_aic = model_aic,
       model_bic = model_bic,
-      corr_list = corr_list
+      copula_list = copula_list
     )
   )
 }

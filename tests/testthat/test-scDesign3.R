@@ -78,9 +78,11 @@ test_that("Run scDesign3", {
     mean_mat = my_para$mean_mat,
     sigma_mat = my_para$sigma_mat,
     zero_mat = my_para$zero_mat,
-    quantile_mat = my_copula$new_mvu,
+    quantile_mat = NULL,
+    copula_list = my_copula$copula_list,
     n_cores = 1,
     family_use = c(rep("nb", 5), rep("zip", 5)),
+    input_data = my_data$dat,
     new_covariate = my_data$new_covariate
   )
 

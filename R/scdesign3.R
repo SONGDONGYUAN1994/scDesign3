@@ -109,10 +109,12 @@ Extraction End")
     mean_mat = para_list$mean_mat,
     sigma_mat = para_list$sigma_mat,
     zero_mat = para_list$zero_mat,
-    quantile_mat = copula_res$new_mvu,
+    quantile_mat = NULL,
+    copula_list = copula_res$copula_list,
     n_cores = n_cores,
     family_use = family_use,
     nonnegative = nonnegative,
+    input_data = input_data$dat,
     new_covariate = input_data$new_covariate
   )
   message("New Data Generating End")

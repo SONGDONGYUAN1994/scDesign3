@@ -9,10 +9,12 @@ simu_new(
   mean_mat,
   sigma_mat,
   zero_mat,
-  quantile_mat,
+  quantile_mat = NULL,
+  copula_list,
   n_cores,
   family_use,
   nonnegative = TRUE,
+  input_data,
   new_covariate
 )
 }
@@ -27,12 +29,16 @@ simu_new(
 
 \item{quantile_mat}{A cell by feature matrix of the multivariate quantile.}
 
+\item{copula_list}{A list of copulas for generating the multivariate quantile matrix. If provided, the \code{quantile_mat} must be NULL.}
+
 \item{n_cores}{An integer. The number of cores to use.}
 
 \item{family_use}{A string of the marginal distribution.
 Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.}
 
-\item{nonnegative}{A logical variable. If TRUE, values < 0 will be converted to 0.Default is TRUE.}
+\item{nonnegative}{A logical variable. If TRUE, values < 0 will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
+
+\item{input_data}{A input count matrix.}
 
 \item{new_covariate}{A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}}.}
 }

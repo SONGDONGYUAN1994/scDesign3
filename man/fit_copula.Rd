@@ -25,7 +25,7 @@ fit_copula(
 \item{assay_use}{A string which indicates the assay you will use in the sce.
 Default is 'counts'.}
 
-\item{input_data}{A input count matrix.}
+\item{input_data}{The input data.}
 
 \item{new_covariate}{A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.}
 
@@ -52,7 +52,7 @@ Default is FALSE.}
 A list with the components:
 \describe{
   \item{\code{new_mvu}}{A matrix of the new multivariate uniform distribution from the copula.}
-  \item{\code{corr_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
+  \item{\code{copula_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
   \item{\code{model_aic}}{A vector of the marginal AIC and the copula AIC.}
   \item{\code{model_bic}}{A vector of the marginal BIC and the copula BIC.}
 }
