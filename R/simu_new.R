@@ -15,6 +15,7 @@
 #' @param family_use A string of the marginal distribution.
 #' Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param nonnegative A logical variable. If TRUE, values < 0 will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
+#' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.
 #' @param input_data A input count matrix.
 #' @param new_covariate A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}}.
 #'
@@ -31,6 +32,7 @@ simu_new <- function(sce,
                      n_cores,
                      family_use,
                      nonnegative = TRUE,
+                     nonzerovar = TRUE,
                      input_data,
                      new_covariate){
   if(!is.null(quantile_mat) & !is.null(copula_list)) {
@@ -174,6 +176,14 @@ simu_new <- function(sce,
   }else{
     colnames(new_count) <- rownames(new_covariate)
     rownames(new_count) <- rownames(sce)
+  }
+
+  if(nonzerovar) {
+    row_vars <- Rfast::rowVars(new_count)
+    if(sum(row_vars == 0) > 0) {
+      message("Some genes have zero variance. Replace the first one with 1.")
+      new_count[row_vars == 0, 1] <- 1
+    }
   }
 
   return(new_count)

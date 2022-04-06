@@ -14,6 +14,7 @@ simu_new(
   n_cores,
   family_use,
   nonnegative = TRUE,
+  nonzerovar = TRUE,
   input_data,
   new_covariate
 )
@@ -37,6 +38,8 @@ simu_new(
 Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{nonnegative}{A logical variable. If TRUE, values < 0 will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
+
+\item{nonzerovar}{A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.}
 
 \item{input_data}{A input count matrix.}
 
