@@ -26,6 +26,7 @@
 #' Default is FALSE.
 #' @param family_set A string or a string vector of the bivariate copula families. Default is c("gauss", "indep").
 #' @param nonnegative A logical variable. If TRUE, values < 0 will be converted to 0.Default is TRUE.
+#' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.
 #' @param return_model A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
 #'
 #' @return A list with the components:
@@ -52,6 +53,7 @@ scdesign3 <- function(sce,
                       pseudo_obs = FALSE,
                       family_set = c("gauss", "indep"),
                       nonnegative = TRUE,
+                      nonzerovar = TRUE,
                       return_model = FALSE) {
   message("Input Data Construction Start")
 
@@ -114,6 +116,7 @@ Extraction End")
     n_cores = n_cores,
     family_use = family_use,
     nonnegative = nonnegative,
+    nonzerovar = nonzerovar,
     input_data = input_data$dat,
     new_covariate = input_data$new_covariate
   )
