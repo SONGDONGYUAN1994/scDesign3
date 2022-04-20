@@ -181,8 +181,12 @@ simu_new <- function(sce,
   if(nonzerovar) {
     row_vars <- Rfast::rowVars(new_count)
     if(sum(row_vars == 0) > 0) {
-      message("Some genes have zero variance. Replace the first one with 1.")
-      new_count[row_vars == 0, 1] <- 1
+      message("Some genes have zero variance. Replace a random one with 1.")
+      row_vars_index <- which(row_vars == 0)
+      col_index <- seq_len(dim(new_count)[2])
+      for(i in row_vars_index) {
+        new_count[i, sample(col_index, 1)] <- 1
+      }
     }
   }
 
