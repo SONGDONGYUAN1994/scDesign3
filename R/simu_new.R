@@ -75,39 +75,37 @@ simu_new <- function(sce,
         }
         cor.mat <- copula_list[[x]]
 
-        if (class(cor.mat)[1] == "matrix") {
-          #message(paste0("Group ", group_index, " Start"))
+        if(curr_ncell == 0) {
+          new_mvu <- NULL
+        } else {
+          if (class(cor.mat)[1] == "matrix") {
+            #message(paste0("Group ", group_index, " Start"))
 
-          #message("Sample MVN")
-          new_mvu <- sampleMVN(n = curr_ncell,
-                               Sigma = cor.mat)
-          #message("MVN Sampling End")
-          rownames(new_mvu) <- curr_ncell_idx
-        } else if (class(cor.mat)[1] == "vinecop") {
-          if (!ind) {
-            if (curr_ncell != 0) {
-              #message("Sampling Vine Copula Starts")
-              new_mvu <- rvinecopulib::rvinecop(
-                curr_ncell,
-                vine = cor.mat,
-                cores = n_cores,
-                qrng = TRUE
-              )
-              #message("Sampling Vine Copula Ends")
-              rownames(new_mvu) <- curr_ncell_idx
-            } else{
-              new_mvu <- NULL
-            }
-          }
-          else {
+            #message("Sample MVN")
+            new_mvu <- sampleMVN(n = curr_ncell,
+                                 Sigma = cor.mat)
+            #message("MVN Sampling End")
+            rownames(new_mvu) <- curr_ncell_idx
+          } else if (class(cor.mat)[1] == "vinecop") {
+
+            #message("Sampling Vine Copula Starts")
+            new_mvu <- rvinecopulib::rvinecop(
+              curr_ncell,
+              vine = cor.mat,
+              cores = n_cores,
+              qrng = TRUE
+            )
+            #message("Sampling Vine Copula Ends")
+            rownames(new_mvu) <- curr_ncell_idx
+          } else if (ind) {
             "Use independent copula (random Unif)."
             new_mvu <-
               matrix(data = stats::runif(curr_ncell * ngene),
                      nrow = curr_ncell)
             rownames(new_mvu) <- curr_ncell_idx
+          } else{
+            stop("Copula must be one from 'vine' or 'gaussian', or assume gene-gene is independent")
           }
-        } else{
-          stop("Copula must be one from 'vine' or 'gaussian'")
         }
         return(
           list(
