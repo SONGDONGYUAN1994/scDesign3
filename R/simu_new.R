@@ -144,14 +144,14 @@ simu_new <- function(sce,
       qfvec <-
         gamlss.dist::qZIP(p = para_mat[, 3],
                           mu = para_mat[, 1],
-                          sigma = max(para_mat[, 4], 2.2e-16)) ## Avoid zero zero-inflated prob
+                          sigma = ifelse(para_mat[, 4] != 0, para_mat[, 4],  2.2e-16)) ## Avoid zero zero-inflated prob
     } else if (y == "zinb") {
+
       qfvec <-
         gamlss.dist::qZINBI(p = para_mat[, 3],
                             mu = para_mat[, 1],
                             sigma = para_mat[, 2],
-                            nu = max(para_mat[, 4], 2.2e-16)
-        )
+                            nu = ifelse(para_mat[, 4] != 0, para_mat[, 4],  2.2e-16))
     } else {
       stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
     }
