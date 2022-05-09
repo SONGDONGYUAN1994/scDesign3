@@ -132,7 +132,7 @@ Extraction End")
     else
       NULL,
     corr_list = if (return_model)
-      copula_res$corr_list
+      copula_res$copula_list
     else
       NULL
   )
