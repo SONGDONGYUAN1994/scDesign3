@@ -27,17 +27,29 @@ Imports:
     SummarizedExperiment,
     SingleCellExperiment,
     mclust,
-    matrixcalc,
     Rfast,
     mvtnorm,
     parallel,
     pbmcapply,
-    spcov,
-    rvinecopulib
-Suggests:
+    rvinecopulib,
+    umap,
     ggplot2,
-    testthat (>= 3.0.0)
+    irlba,
+    viridis,
+    BiocStyle
+Suggests:
+    magrittr,
+    Seurat,
+    Signac,
+    matrixcalc,
+    spcov,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    RefManageR,
+    sessioninfo
 URL: https://github.com/SONGDONGYUAN1994/scDesign3
 BugReports: https://github.com/SONGDONGYUAN1994/scDesign3/issues
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Config/testthat/edition: 3
+VignetteBuilder: knitr

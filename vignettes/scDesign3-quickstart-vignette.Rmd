@@ -1,0 +1,103 @@
+---
+title: "scDesign3-quickstart-vignette"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign3-quickstart-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>",
+    crop = NULL ## Related to https://stat.ethz.ch/pipermail/bioc-devel/2020-April/016656.html
+)
+```
+
+Load packages.
+```{r}
+suppressPackageStartupMessages(library(scDesign3))
+suppressPackageStartupMessages(library(SingleCellExperiment))
+suppressPackageStartupMessages(library(ggplot2))
+theme_set(theme_bw())
+```
+
+## Introduction
+scDesign3 is a unified probabilistic framework that generates realistic in silico high-dimensional single-cell omics data of various cell states, including discrete cell types, continuous trajectories, and spatial locations by learning from real datasets. Since the functionalities of scDesign3 is very comprehensive, here we only introduce how scDesign3 simulates an scRNA-seq dataset with one continuous developmental trajectory. For more information, please check the website: .
+
+## Read in the reference data
+
+The raw data is from the [scvelo](https://scvelo.readthedocs.io/scvelo.datasets.pancreas/), which describes pancreatic endocrinogenesis. We pre-select the top 1000 highly variable genes and filter out some cell types to ensure a **single trajectory**.
+
+```{r}
+example_sce <- readRDS((url("https://www.dropbox.com/s/p1mvl5osxp55sot/PANCREAS_sce.rds?raw=1")))
+print(example_sce)
+```
+To save computational time, we only use the top 100 genes.
+```{r}
+example_sce <- example_sce[1:100, ]
+```
+
+## Simulation
+
+```{r}
+set.seed(123)
+example_simu <- scdesign3(
+    sce = example_sce,
+    assay_use = "counts",
+    celltype = "cell_type",
+    pseudotime = "pseudotime",
+    spatial = NULL,
+    other_covariates = NULL,
+    mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
+    sigma_formula = "s(pseudotime, k = 5, bs = 'cr')",
+    family_use = "nb",
+    n_cores = 2,
+    usebam = FALSE,
+    corr_formula = "1",
+    copula = "gaussian",
+    DT = TRUE,
+    pseudo_obs = FALSE,
+    return_model = FALSE,
+    nonzerovar = FALSE
+  )
+```
+Now we get the synthetic count matrix.
+```{r}
+dim(example_simu$new_count)
+```
+Create simu sce.
+```{r}
+logcounts(example_sce) <- log1p(counts(example_sce))
+simu_sce <- example_sce
+counts(simu_sce) <- example_simu$new_count
+logcounts(simu_sce) <- log1p(counts(simu_sce))
+```
+
+## Visualization
+```{r}
+set.seed(123)
+compare_figure <- plot_reduceddim(ref_sce = example_sce, 
+                                  sce_list = list(simu_sce), 
+                                  name_vec = c("Reference", "scDesign3"),
+                                  assay_use = "logcounts", 
+                                  if_plot = TRUE, 
+                                  color_by = "pseudotime", 
+                                  n_pc = 20)
+plot(compare_figure$p_umap)
+```
+

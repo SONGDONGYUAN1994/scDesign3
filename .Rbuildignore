@@ -45,4 +45,6 @@ vignettes/*_cache/
 src/*.o
 src/*.so
 src/*.dll
-inst/doc
+#inst/doc
+^doc$
+^Meta$

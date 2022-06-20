@@ -17,7 +17,7 @@ test_that("Run scDesign3", {
   my_marginal1 <- fit_marginal(
     data = my_data,
     mu_formula = "1",
-    sigma_formula = "cell_type",
+    sigma_formula = "1",
     family_use = "nb",
     n_cores = 1,
     usebam = FALSE
@@ -26,7 +26,7 @@ test_that("Run scDesign3", {
    my_marginal2 <- fit_marginal(
     data = my_data,
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-    sigma_formula = "cell_type",
+    sigma_formula = "1",
     family_use = "nb",
     n_cores = 1,
     usebam = FALSE
@@ -39,7 +39,7 @@ test_that("Run scDesign3", {
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
     sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
     family_use = c(rep("nb", 5), rep("zip", 5)),
-    n_cores = 1,
+    n_cores = 2,
     usebam = TRUE
   )
 
@@ -54,16 +54,16 @@ test_that("Run scDesign3", {
     input_data = my_data$dat
   )
 
-  my_copula1 <- fit_copula(
-    sce = example_sce,
-    assay_use = "counts",
-    marginal_list = my_marginal3,
-    family_use = c(rep("nb", 5), rep("zip", 5)),
-    copula = "gaussian",
-    n_cores = 1,
-    new_covariate = NULL,
-    input_data = my_data$dat
-  )
+  # my_copula1 <- fit_copula(
+  #   sce = example_sce,
+  #   assay_use = "counts",
+  #   marginal_list = my_marginal3,
+  #   family_use = c(rep("nb", 5), rep("zip", 5)),
+  #   copula = "gaussian",
+  #   n_cores = 1,
+  #   new_covariate = NULL,
+  #   input_data = my_data$dat
+  # )
 
   my_para <- extract_para(
     sce = example_sce,
@@ -96,7 +96,7 @@ test_that("Run scDesign3", {
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
     sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
     family_use = c(rep("nb", 5), rep("zip", 5)),
-    n_cores = 1,
+    n_cores = 2,
     usebam = FALSE,
     corr_formula = "pseudotime",
     copula = "vine",
