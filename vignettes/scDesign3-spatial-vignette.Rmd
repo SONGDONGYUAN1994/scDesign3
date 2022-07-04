@@ -1,10 +1,14 @@
 ---
-title: "scDesign3-spatial_vignette"
+title: "Simulate spatial transcriptomic data"
 author: 
   - name: Dongyuan Song
     affiliation:
     - Bioinformatics IDP, University of California, Los Angeles
     email: dongyuansong@ucla.edu
+  - name: Guanao Yan
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: gayan@g.ucla.edu
 output: 
   BiocStyle::html_document:
     self_contained: yes
@@ -28,13 +32,14 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r}
-suppressPackageStartupMessages(library(scDesign3))
-suppressPackageStartupMessages(library(SingleCellExperiment))
-suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(magrittr))
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(viridis))
+
+```{r, message=FALSE}
+library(scDesign3)
+library(SingleCellExperiment)
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+library(viridis)
 theme_set(theme_bw())
 ```
 
@@ -45,18 +50,18 @@ In this tutorial, we show how to use scDesign3 to simulate the single-cell spati
 
 The raw data is from the [Seurat](https://satijalab.org/seurat/articles/spatial_vignette.html), which is a dataset generated with the Visium technology from 10x Genomics. We pre-select the top spatial variable genes.
 
-```{r}
+```{r, message=FALSE}
 example_sce <- readRDS((url("https://www.dropbox.com/s/v1uazcl2glirmfe/VISIUM_sce.rds?raw=1")))
 print(example_sce)
 ```
 To save time, we subset the top 10 genes.
-```{r}
+```{r, message=FALSE}
 example_sce <- example_sce[1:10, ]
 ```
 
 ## Simulation
 
-```{r}
+```{r, message=FALSE}
 set.seed(123)
 example_simu <- scdesign3(
     sce = example_sce,
@@ -79,7 +84,7 @@ example_simu <- scdesign3(
   )
 ```
 
-```{r}
+```{r, message=FALSE}
 logcounts(example_sce) <- log1p(counts(example_sce))
 simu_sce <- example_sce
 counts(simu_sce) <- example_simu$new_count
@@ -87,7 +92,7 @@ logcounts(simu_sce) <- log1p(counts(simu_sce))
 ```
 
 ## Visualization
-```{r, fig.width=10}
+```{r, fig.width=10, message=FALSE}
 VISIUM_dat_test <- data.frame(t(log1p(counts(example_sce)))) %>% as_tibble() %>% dplyr::mutate(X = colData(example_sce)$spatial1, Y = colData(example_sce)$spatial2) %>% tidyr::pivot_longer(-c("X", "Y"), names_to = "Gene", values_to = "Expression") %>% dplyr::mutate(Method = "Reference")
 VISIUM_dat_scDesign3 <- data.frame(t(log1p(counts(simu_sce)))) %>% as_tibble() %>% dplyr::mutate(X = colData(simu_sce)$spatial1, Y = colData(simu_sce)$spatial2) %>% tidyr::pivot_longer(-c("X", "Y"), names_to = "Gene", values_to = "Expression") %>% dplyr::mutate(Method = "scDesign3")
 VISIUM_dat <- bind_rows(VISIUM_dat_test, VISIUM_dat_scDesign3) %>% dplyr::mutate(Method = factor(Method, levels = c("Reference", "scDesign3")))

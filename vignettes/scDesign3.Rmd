@@ -19,6 +19,12 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}  
 ---
+```{css, echo=FALSE}
+pre {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+}
+```
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(

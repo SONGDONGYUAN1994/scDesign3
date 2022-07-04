@@ -1,0 +1,207 @@
+---
+title: "Simulate datasets with batch effect"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+  - name: Qingyang Wang
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: qw802@g.ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign3-batchEffect-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{css, echo=FALSE}
+pre {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+}
+```
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message=FALSE}
+library(scDesign3)
+library(ggplot2)
+```
+
+
+## Introduction
+In this tutorial, we show how to use scDesign3 to simulate data with batch effects and how to remove the batch effects.
+
+## Read in the reference data
+The raw data is from the `SeuratData`. The data is called `pbmcsca` in the package; it is PBMC Systematic Comparative Analysis dataset from the Broad Institute.
+
+```{r, message=FALSE}
+example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AACFsTJvmzgBKicMsbFzxbyUa/BATCH_sce.rds?raw=1")))
+print(example_sce)
+```
+To save computational time, we only use the top 100 genes.
+```{r, message=FALSE}
+example_sce <- example_sce[1:100, ]
+```
+
+The column `batch` in this example dataset's colData contains the batch information.
+```{r, message=FALSE}
+head(colData(example_sce))
+```
+
+
+## Simulation
+We can simulate a new data with batch effect information.
+```{r, message=FALSE}
+simu_res <- scdesign3(sce = example_sce, 
+                              assay_use = "counts", 
+                              celltype = "cell_type", 
+                              pseudotime = NULL, 
+                              spatial = NULL, 
+                              other_covariates = c("batch"), 
+                              mu_formula = "cell_type + batch", 
+                              sigma_formula = "1", 
+                              family_use = "nb", 
+                              n_cores = 2, 
+                              usebam = FALSE, 
+                              corr_formula = "1", 
+                              copula = "gaussian", 
+                              DT = TRUE, 
+                              pseudo_obs = FALSE, 
+                              return_model = FALSE)
+```
+
+
+We can also remove the batch effect and generate new data.
+```{r, message=FALSE}
+BATCH_data <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = NULL,
+  spatial = NULL,
+  other_covariates = c("batch"),
+  corr_by = "1"
+)
+```
+```{r, message=FALSE}
+BATCH_marginal <- fit_marginal(
+  data = BATCH_data,
+  predictor = "gene",
+  mu_formula = "cell_type + batch",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 2,
+  usebam = FALSE
+)
+```
+```{r, message=FALSE}
+BATCH_copula <- fit_copula(
+    sce = example_sce,
+    assay_use = "counts",
+    marginal_list = BATCH_marginal,
+    family_use = "nb",
+    copula = "gaussian",
+    n_cores = 2,
+    new_covariate = NULL,
+    input_data = BATCH_data$dat
+  )
+```
+```{r, message=FALSE}
+BATCH_marginal_null <- lapply(BATCH_marginal, function(x) {
+  x$coefficients[length(x$coefficients)] <- 0
+  x
+})
+```
+```{r, message=FALSE}
+BATCH_para_null <- extract_para(
+    sce = example_sce,
+    marginal_list = BATCH_marginal_null,
+    n_cores = 2,
+    family_use = "nb",
+    new_covariate = NULL
+  )
+```
+```{r, message=FALSE}
+BATCH_newcount_null <- simu_new(
+    sce = example_sce,
+    mean_mat = BATCH_para_null$mean_mat,
+    sigma_mat = BATCH_para_null$sigma_mat,
+    zero_mat = BATCH_para_null$zero_mat,
+    quantile_mat = NULL,
+    copula_list = BATCH_copula$copula_list,
+    n_cores = 2,
+    family_use = "nb",
+    input_data = BATCH_data$dat,
+    new_covariate = BATCH_data$new_covariate
+  )
+```
+
+Additionally, we can alter the batch effect information and simulate new dataset with altered batch effect information.
+```{r, message=FALSE}
+BATCH_marginal_alter <- lapply(BATCH_marginal, function(x) {
+  x$coefficients[length(x$coefficients)] <- rnorm(1, mean = 5, sd = 2)
+  x
+})
+```
+```{r, message=FALSE}
+BATCH_para_alter <- extract_para(
+    sce = example_sce,
+    marginal_list = BATCH_marginal_alter,
+    n_cores = 2,
+    family_use = "nb",
+    new_covariate = NULL
+  )
+```
+```{r, message=FALSE}
+BATCH_newcount_alter <- simu_new(
+    sce = example_sce,
+    mean_mat = BATCH_para_alter$mean_mat,
+    sigma_mat = BATCH_para_alter$sigma_mat,
+    zero_mat = BATCH_para_alter$zero_mat,
+    quantile_mat = NULL,
+    copula_list = BATCH_copula$copula_list,
+    n_cores = 2,
+    family_use = "nb",
+    input_data = BATCH_data$dat,
+    new_covariate = BATCH_data$new_covariate
+  )
+```
+
+## Visulization
+We first create three `SingleCellExperiment` object using three count matrix generated above.
+```{r, message=FALSE}
+simu_res_list <- lapply(list(simu_res$new_count, BATCH_newcount_null, BATCH_newcount_alter), function(x){
+  simu_sce <- example_sce
+  counts(simu_sce) <- x
+  logcounts(simu_sce) <- log1p(counts(simu_sce))
+  return(simu_sce)
+})
+```
+Then, we visualize the results.
+```{r, message=FALSE}
+set.seed(123)
+compare_figure <- plot_reduceddim(ref_sce = example_sce, 
+                                  sce_list = simu_res_list, 
+                                  name_vec = c("Reference", "w/ Batch", "w/o Batch","Aritifical Batch"),
+                                  assay_use = "logcounts", 
+                                  if_plot = TRUE, 
+                                  color_by = "cell_type", 
+                                  shape_by = "batch",
+                                  n_pc = 20)
+plot(compare_figure$p_umap)
+```

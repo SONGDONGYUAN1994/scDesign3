@@ -12,6 +12,7 @@
 #' @param center A logic value of whether centering the data before PCA. Default is TRUE.
 #' @param scale. A logic value of whether scaling the data before PCA. Default is TRUE.
 #' @param if_plot A logic value of whether returning the plot. If FALSE, return the reduced dimensions of each dataset.
+#' @param shape_by A string which indicates the column in \code{colData} used for shape.
 #' @param color_by A string which indicates the column in \code{colData} used for color.
 #'
 #' @return The ggplot or the dataframe of reduced dimensions.
@@ -28,6 +29,7 @@ plot_reduceddim <- function(ref_sce,
                             center = TRUE,
                             scale. = TRUE,
                             if_plot = TRUE,
+                            shape_by = NULL,
                             color_by) {
 
   Method <- NULL ## Avoid check note.
@@ -38,6 +40,18 @@ plot_reduceddim <- function(ref_sce,
   if(sum(Rfast::colVars(mat_ref) == 0) > 0) {
     stop("The ref dataset contains 0 variance features. Please remove them.")
   }
+
+  if(!is.null(shape_by)){
+    if(!(shape_by %in% colnames(colData(ref_sce)))) {
+      stop("The shape_by in not in your ref_sce's colData. Please double check the variable name for shape_by.")
+    }
+    shape_by_check <- sapply(sce_list, function(x){shape_by %in% colnames(colData(x))})
+    if(!all(shape_by_check)){
+      stop("The shape_by in not in your sce_list's colData. Please double check the variable name for shape_by.")
+    }
+  }
+
+
 
   mat_list <- lapply(sce_list, function(x){
     mat <- t(as.matrix(SummarizedExperiment::assay(x, assay_use)))
@@ -70,7 +84,12 @@ plot_reduceddim <- function(ref_sce,
 
   rd_list <- lapply(sce_list_new, function(x) {
     rd <- tibble::as_tibble(SummarizedExperiment::colData(x))
-    rd <- dplyr::select(rd, color_by)
+    if(is.null(shape_by)){
+      rd <- dplyr::select(rd, color_by)
+    }else{
+      rd <- dplyr::select(rd, c(color_by,shape_by))
+    }
+
 
     rd_pca <- tibble::as_tibble(SingleCellExperiment::reducedDim(x, "PCA"))
     rd_umap <- tibble::as_tibble(SingleCellExperiment::reducedDim(x, "UMAP"))
@@ -85,13 +104,14 @@ plot_reduceddim <- function(ref_sce,
   rd_tbl <- dplyr::mutate(rd_tbl, Method = factor(Method, levels = name_vec))
 
   if(if_plot) {
+
     p_pca <- ggplot(rd_tbl, aes_string(x = "PC1", y = "PC2", color = color_by)) +
-      geom_point(alpha = 0.5, size = 1) +
+      geom_point(alpha = 0.5, size = 1, aes_string(shape = shape_by)) +
       facet_wrap(~Method, nrow = 1) +
       theme(aspect.ratio = 1, legend.position = "bottom") +
       guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
     p_umap <- ggplot(rd_tbl, aes_string(x = "UMAP1", y = "UMAP2", color = color_by)) +
-      geom_point(alpha = 0.5, size = 1) +
+      geom_point(alpha = 0.5, size = 1, aes_string(shape = shape_by)) +
       facet_wrap(~Method, nrow = 1) +
       theme(aspect.ratio = 1, legend.position = "bottom") +
       guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))

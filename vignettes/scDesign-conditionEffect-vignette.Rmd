@@ -1,0 +1,183 @@
+---
+title: "Simulate datasets with condition effect"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+  - name: Qingyang Wang
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: qw802@g.ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign-conditionEffect-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{css, echo=FALSE}
+pre {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+}
+```
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message=FALSE}
+library(scDesign3)
+```
+
+## Introduction
+In this tutorial, we show how to use scDesign3 to simulate data with condition effects and how to adjust the condition effects.
+
+## Read in the reference data
+The raw data is from the `SeuratData` package. The data is called `ifnb` in the package; it is PBMC data simulated and controlled by IFNB.
+
+```{r, message=FALSE}
+example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AABoozvjRadAygeSSJFoc2OOa/IFNB_sce.rds?raw=1")))
+print(example_sce)
+```
+To save computational time, we only use the top 100 genes.
+```{r, message=FALSE}
+example_sce <- example_sce[1:100,]
+```
+
+
+The condition information is stored in colData of the example dataset.
+```{r, message=FALSE}
+head(colData(example_sce))
+```
+## simulation
+First, we will simulate new data with the condition effects.
+```{r, message=FALSE}
+simu_res <- scdesign3(
+    sce = example_sce,
+    assay_use = "counts",
+    celltype = "cell_type",
+    pseudotime = NULL,
+    spatial = NULL,
+    other_covariates = c("condition"),
+    mu_formula = "cell_type + condition + cell_type*condition",
+    sigma_formula = "cell_type",
+    family_use = "nb",
+    n_cores = 2,
+    usebam = FALSE,
+    corr_formula = "cell_type",
+    copula = "gaussian",
+    DT = TRUE,
+    pseudo_obs = FALSE,
+    return_model = FALSE,
+    nonzerovar = FALSE
+  )
+
+
+```
+
+Then, we can also simulate a new dataset with condition effects on B cells removed.
+```{r, message=FALSE}
+IFNB_data <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = NULL,
+  spatial = NULL,
+  other_covariates = c("condition"),
+  corr_by = "cell_type"
+)
+```
+```{r, message=FALSE}
+IFNB_marginal <- fit_marginal(
+  data = IFNB_data,
+  predictor = "gene",
+  mu_formula = "cell_type + condition + cell_type*condition",
+  sigma_formula = "cell_type",
+  family_use = "nb",
+  n_cores = 2,
+  usebam = FALSE
+)
+```
+```{r, message=FALSE}
+IFNB_copula <- fit_copula(
+    sce = example_sce,
+    assay_use = "counts",
+    marginal_list = IFNB_marginal,
+    family_use = "nb",
+    copula = "gaussian",
+    n_cores = 2,
+    new_covariate = NULL,
+    input_data = IFNB_data$dat
+  )
+```
+```{r, message=FALSE}
+IFNB_marginal_null_B <- lapply(IFNB_marginal, function(x) {
+  x$coefficients["cell_typeB:conditionSTIM"] <- x$coefficients["conditionSTIM"]
+  x
+})
+```
+```{r, message=FALSE}
+IFNB_para_null_B <- extract_para(
+    sce = example_sce,
+    marginal_list = IFNB_marginal_null_B,
+    n_cores = 2,
+    family_use = "nb",
+    new_covariate = NULL
+  )
+```
+```{r, message=FALSE}
+IFNB_newcount_null_B <- simu_new(
+    sce = example_sce,
+    mean_mat = IFNB_para_null_B$mean_mat,
+    sigma_mat = IFNB_para_null_B$sigma_mat,
+    zero_mat = IFNB_para_null_B$zero_mat,
+    quantile_mat = NULL,
+    copula_list = IFNB_copula$copula_list,
+    n_cores = 2,
+    family_use = "nb",
+    input_data = IFNB_data$dat,
+    new_covariate = IFNB_data$new_covariate
+  )
+```
+
+## Visulization
+We first create two `SingleCellExperiment` object using two count matrices generated above.
+```{r, message=FALSE}
+simu_res_list <- lapply(list(simu_res$new_count,IFNB_newcount_null_B ), function(x){
+  logcounts(example_sce) <- log1p(counts(example_sce))
+  simu_sce <- example_sce
+  counts(simu_sce) <- x
+  logcounts(simu_sce) <- log1p(counts(simu_sce))
+  return(simu_sce)
+})
+logcounts(example_sce) <- log1p(counts(example_sce))
+```
+Then, we visualize the results.
+```{r, message=FALSE}
+set.seed(123)
+compare_figure <- plot_reduceddim(ref_sce = example_sce, 
+                                  sce_list = simu_res_list, 
+                                  name_vec = c("Reference", "w/ Condition", "Modified Condition"),
+                                  assay_use = "logcounts", 
+                                  if_plot = TRUE, 
+                                  color_by = "cell_type", 
+                                  shape_by = "condition",
+                                  n_pc = 20)
+plot(compare_figure$p_umap)
+```
+
+
+

@@ -1,0 +1,259 @@
+---
+title: "Compare gaussian copula and vine copula"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+  - name: Qingyang Wang
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: qw802@g.ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign3_copulaCompare}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message=FALSE}
+library(scDesign3)
+library(DuoClustering2018)
+library(scater)
+library(tidygraph)
+library(ggrepel)
+library(scran)
+library(dplyr)
+library(igraph)
+```
+## Introduction
+In this tutorial, we will show the differences between using Gaussian copula and vine copula. Vine copula can better estimate the high-dimensional gene-gene correlation, however, the simulation with vine copula does takes more time than with Gaussian copula. If your reference dataset have more than **1000 genes**, we recommend you simulate data with Gaussian copula.
+
+
+## Read in the reference data
+The raw data is from the R package `DuoClustering2018` which contain a set of datasets with various clustering results.
+```{r, message=FALSE}
+Zhengmix4eq_sce <- get(paste0("sce_filteredExpr10_", "Zhengmix4eq"))(metadata = FALSE)
+```
+```{r, message=FALSE}
+rownames(Zhengmix4eq_sce) <- rowData(Zhengmix4eq_sce)$symbol
+colData(Zhengmix4eq_sce)$cell_type <- colData(Zhengmix4eq_sce)$phenoid
+```
+
+For demonstration purpose, we use the `Zhengmix4eq` dataset in the package with top 100 highly variable genes.
+```{r, message=FALSE}
+stats <- modelGeneVar(Zhengmix4eq_sce)
+chosen <- getTopHVGs(stats, n = 100)
+Zhengmix4eq_sce_sub <- Zhengmix4eq_sce[chosen, ]
+```
+
+Before simulation, we store two dimension reduction results in the `SingleCellExperiment` object.
+```{r, message=FALSE, warning = FALSE}
+Zhengmix4eq_sce_sub <- runPCA(Zhengmix4eq_sce_sub)
+Zhengmix4eq_sce_sub <- runUMAP(Zhengmix4eq_sce_sub)
+
+```
+
+## Simulation
+We then use `scdesign3` to simulate two new datasets using Gaussian copula and vine copula respectively.
+```{r, message=FALSE}
+Zhengmix4eq_simu_sce_gaussian <- scdesign3(sce = Zhengmix4eq_sce_sub, 
+                            celltype = 'cell_type', 
+                            pseudotime = NULL, 
+                            spatial = NULL, 
+                            other_covariates = NULL, 
+                            corr_formula = "cell_type", 
+                            mu_formula = "cell_type", 
+                            sigma_formula = "cell_type", 
+                            n_cores = 2, 
+                            copula = "gaussian", 
+                            assay_use = "normcounts", 
+                            family_use = "nb", 
+                            pseudo_obs = TRUE, return_model = TRUE)
+```
+
+```{r, message=FALSE}
+Zhengmix4eq_simu_sce_vine <- scdesign3(sce = Zhengmix4eq_sce_sub, 
+                            celltype = 'cell_type', 
+                            pseudotime = NULL, 
+                            spatial = NULL, 
+                            other_covariates = NULL, 
+                            corr_formula = "cell_type", 
+                            mu_formula = "cell_type", 
+                            sigma_formula = "cell_type", 
+                            n_cores = 2, 
+                            copula = "vine", 
+                            assay_use = "normcounts", 
+                            family_use = "nb", 
+                            pseudo_obs = TRUE, return_model = TRUE)
+```
+
+
+## Visualization
+For the simulation result using Gaussian copula, the return object contains a `corr_list` which is the gene-gene correlation matrices for each group that user specified, in this case, the groups are cell types. For the simulation result using vine copula, the `corr_list` gives the vine structure for each group that user specified, in this case, the groups are cell types. We then reformat the two `corr_list` and visualize them.
+```{r, message=FALSE}
+Zhengmix4eq_corr_list <- Zhengmix4eq_simu_sce_gaussian$corr_list
+
+names(Zhengmix4eq_corr_list) <- c("b.cells", "naive.cytotoxic", "cd14.monocytes", "regulatory.t")
+
+heatmap_order <- order(rowData(Zhengmix4eq_sce_sub)$mean_counts)
+
+Zhengmix4eq_corr_list <- lapply(Zhengmix4eq_corr_list, function(x) {
+  x <- x[heatmap_order, heatmap_order]
+  x
+})
+
+  cor_melted <- lapply(Zhengmix4eq_corr_list, reshape2::melt)
+  cor_dat <- Reduce(rbind, cor_melted)
+  cor_dat$Method <- Reduce(c, lapply(c("b.cells", "naive.cytotoxic", "cd14.monocytes", "regulatory.t"), function(x){
+    rep(x, nrow(cor_melted[[x]]))
+  }))
+  cor_dat$Method <- factor(cor_dat$Method, levels = c("cd14.monocytes",  "b.cells","regulatory.t",  "naive.cytotoxic"))
+```
+```{r, message=FALSE}
+cor_dat <- cor_dat %>% dplyr::mutate(Method = if_else(Method == "b.cells", "B cell", if_else(Method == "cd14.monocytes", "CD14+ monocyte", if_else(Method == "regulatory.t", "Regulatory T cell", "Naive cytotoxic T cell")))) %>% dplyr::mutate(Method = factor(Method, levels = c("CD14+ monocyte", "B cell", "Regulatory T cell", "Naive cytotoxic T cell")))
+```
+
+```{r, fig.width=12, message=FALSE}
+corr_p <- cor_dat %>% ggplot(
+                        aes(Var2, Var1, fill = value))+
+      facet_wrap(~Method, nrow = 1) + #, labeller = label_parsed
+      geom_tile() +
+      scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                           midpoint = 0, limit = c(-1, 1), space = "Lab", 
+                           name="Pearson\nCorrelation") +
+      theme(panel.spacing.x=unit(0, "lines"),panel.spacing.y=unit(1, "lines"),
+        legend.position = "right",
+        panel.border = element_rect(colour = "black", fill=NA, size=0.5),
+            axis.text.x = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank())+
+      xlab("") + ylab("") + coord_fixed()
+
+```
+
+```{r, message=FALSE}
+vine_list <- Zhengmix4eq_simu_sce_vine$corr_list
+```
+```{r, fig.width=12,fig.show='hide', message=FALSE, warning=FALSE}
+plt1 <- plot(vine_list[[3]], tree = 1, var_names = "use")+ theme(aspect.ratio = 1, title = element_blank())
+plt2 <- plot(vine_list[[1]], tree = 1, var_names = "use")+ theme(aspect.ratio = 1, title = element_blank())
+plt3 <- plot(vine_list[[4]], tree = 1, var_names = "use")+ theme(aspect.ratio = 1, title = element_blank())
+plt4 <- plot(vine_list[[2]], tree = 1, var_names = "use")+ theme(aspect.ratio = 1, title = element_blank())
+```
+
+```{r, message=FALSE}
+degree_thresh <- 3
+
+igr_obj1 <- get("g", plt1$plot_env)[[1]]
+
+p1 <- ggraph::ggraph(igr_obj1, "igraph",
+      algorithm = "tree", circular = TRUE
+    ) + ggraph::geom_edge_link(colour = "#C0C0C0")+
+      ggraph::geom_node_point(col = "#56B4E9", size = 2) +
+      ggplot2::theme_void()+ ggraph::geom_node_text(ggplot2::aes(filter = igraph::degree(igr_obj1) > degree_thresh, label = name),
+        fontface = "bold",
+        repel = TRUE, check_overlap = TRUE, size = 3
+      )+ theme(aspect.ratio = 1,
+                panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+
+igr_obj2 <- get("g", plt2$plot_env)[[1]]
+
+p2 <- ggraph::ggraph(igr_obj2, "igraph",
+      algorithm = "tree", circular = TRUE
+    ) + ggraph::geom_edge_link(colour = "#C0C0C0")+
+      ggraph::geom_node_point(col = "#56B4E9", size = 2) +
+      ggplot2::theme_void()+ ggraph::geom_node_text(ggplot2::aes(filter = igraph::degree(igr_obj2) > degree_thresh, label = name),
+        fontface = "bold",
+        repel = TRUE, check_overlap = TRUE, size = 3
+      )+ theme(aspect.ratio = 1,
+                panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+
+igr_obj3 <- get("g", plt3$plot_env)[[1]]
+
+p3 <- ggraph::ggraph(igr_obj3, "igraph",
+      algorithm = "tree", circular = TRUE
+    ) + ggraph::geom_edge_link(colour = "#C0C0C0")+
+      ggraph::geom_node_point(col = "#56B4E9", size = 2) +
+      ggplot2::theme_void()+ ggraph::geom_node_text(ggplot2::aes(filter = igraph::degree(igr_obj3) > degree_thresh, label = name),
+        fontface = "bold",
+        repel = TRUE, check_overlap = TRUE, size = 3
+      )+ theme(aspect.ratio = 1,
+                panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+
+igr_obj4 <- get("g", plt4$plot_env)[[1]]
+
+p4 <- ggraph::ggraph(igr_obj4, "igraph",
+      algorithm = "tree", circular = TRUE
+    ) + ggraph::geom_edge_link(colour = "#C0C0C0")+
+      ggraph::geom_node_point(col = "#56B4E9", size = 2) +
+      ggplot2::theme_void()+ ggraph::geom_node_text(ggplot2::aes(filter = igraph::degree(igr_obj4) > degree_thresh, label = name),
+        fontface = "bold",
+        repel = TRUE, check_overlap = TRUE, size = 3
+      ) + theme(aspect.ratio = 1,
+                panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA, size=0.5))
+vine_dat <- list(igr_obj1, igr_obj2, igr_obj3, igr_obj4)
+```
+
+
+```{r, message=FALSE}
+p_vine_list <- lapply(vine_dat, function(x) {
+  degree_thresh = 4
+  degree_indicator = igraph::degree(x) > degree_thresh
+  #print(igraph::degree(x) )
+  p <- ggraph::ggraph(x, "igraph",
+      algorithm = "tree", circular = TRUE
+    ) + ggraph::geom_edge_link(colour = "#C0C0C0")+
+      ggraph::geom_node_point(col = "#56B4E9", size = 2) +
+      ggplot2::theme_void()+ ggraph::geom_node_text(ggplot2::aes(filter = degree_indicator, label = name),
+        fontface = "bold",
+        repel = TRUE, check_overlap = TRUE, size = 3
+      ) + theme(aspect.ratio = 1,
+                panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA, size=0.5))
+})
+p_vine_copula <- cowplot::plot_grid(plotlist = p_vine_list , nrow = 1, align = "hv", axis = "lr")
+```
+
+For the four plots on the top, they are generated using the `corr_list` returned when we use Gaussian copula. For the four plots on the bottom, they are generated using the `corr_list` returned when we use vine copula. The bottom plots give more direct visualization about which genes are connected in the vine structure, in the other words, which genes are closer to each other.
+```{r, fig.width=12, message=FALSE}
+p_vine <- cowplot::plot_grid(p1, p2, p3, p4, nrow = 1, align = "hv")
+
+cowplot::plot_grid(corr_p, p_vine, nrow = 2, align = "hv", axis = "lr" )
+```
+

@@ -48,3 +48,6 @@ src/*.dll
 #inst/doc
 ^doc$
 ^Meta$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

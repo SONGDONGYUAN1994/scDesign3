@@ -16,6 +16,7 @@ plot_reduceddim(
   center = TRUE,
   scale. = TRUE,
   if_plot = TRUE,
+  shape_by = NULL,
   color_by
 )
 }
@@ -36,6 +37,8 @@ Default is 'logcounts'.}
 \item{scale.}{A logic value of whether scaling the data before PCA. Default is TRUE.}
 
 \item{if_plot}{A logic value of whether returning the plot. If FALSE, return the reduced dimensions of each dataset.}
+
+\item{shape_by}{A string which indicates the column in \code{colData} used for shape.}
 
 \item{color_by}{A string which indicates the column in \code{colData} used for color.}
 }
