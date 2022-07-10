@@ -1,5 +1,5 @@
 ---
-title: "scDesign3-quickstart-vignette"
+title: "scDesign3 Quickstart"
 author: 
   - name: Dongyuan Song
     affiliation:
@@ -28,6 +28,7 @@ pre {
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
+    message = FALSE,
     collapse = TRUE,
     comment = "#>",
     crop = NULL ## Related to https://stat.ethz.ch/pipermail/bioc-devel/2020-April/016656.html
@@ -36,9 +37,9 @@ knitr::opts_chunk$set(
 
 Load packages.
 ```{r}
-suppressPackageStartupMessages(library(scDesign3))
-suppressPackageStartupMessages(library(SingleCellExperiment))
-suppressPackageStartupMessages(library(ggplot2))
+library(scDesign3)
+library(SingleCellExperiment)
+library(ggplot2)
 theme_set(theme_bw())
 ```
 

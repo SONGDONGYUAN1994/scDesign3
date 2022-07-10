@@ -1,5 +1,5 @@
 ---
-title: "scDesign3-introduction-vignette"
+title: "scDesign3 Introduction"
 author: 
   - name: Dongyuan Song
     affiliation:
@@ -36,8 +36,8 @@ library(scDesign3)
 ```
 
 In this tutorial, we will demostrate how to simulate a new dataset using a one-shot function or a sequence of functions provided by our package.
-## Read in the reference data
 
+## Read in the reference data
 The raw data is from the [scvelo](https://scvelo.readthedocs.io/scvelo.datasets.pancreas/), which describes pancreatic endocrinogenesis. We pre-select the top 1000 highly variable genes and filter out some cell types to ensure a **single trajectory**.
 
 ```{r, message=FALSE}

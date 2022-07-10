@@ -42,11 +42,11 @@ library(dplyr)
 library(igraph)
 ```
 ## Introduction
-In this tutorial, we will show the differences between using Gaussian copula and vine copula. Vine copula can better estimate the high-dimensional gene-gene correlation, however, the simulation with vine copula does takes more time than with Gaussian copula. If your reference dataset have more than **1000 genes**, we recommend you simulate data with Gaussian copula.
+In this tutorial, we will show the differences between using Gaussian copula and vine copula when simulate new data. Vine copula can better estimate the high-dimensional gene-gene correlation, however, the simulation with vine copula does takes more time than with Gaussian copula. If your reference dataset have more than **1000 genes**, we recommend you simulate data with Gaussian copula.
 
 
 ## Read in the reference data
-The raw data is from the R package `DuoClustering2018` which contain a set of datasets with various clustering results.
+The raw data is from the R package `DuoClustering2018`.
 ```{r, message=FALSE}
 Zhengmix4eq_sce <- get(paste0("sce_filteredExpr10_", "Zhengmix4eq"))(metadata = FALSE)
 ```
@@ -87,7 +87,7 @@ Zhengmix4eq_simu_sce_gaussian <- scdesign3(sce = Zhengmix4eq_sce_sub,
                             pseudo_obs = TRUE, return_model = TRUE)
 ```
 
-```{r, message=FALSE}
+```{r, message=FALSE,results='hide'}
 Zhengmix4eq_simu_sce_vine <- scdesign3(sce = Zhengmix4eq_sce_sub, 
                             celltype = 'cell_type', 
                             pseudotime = NULL, 
@@ -106,6 +106,8 @@ Zhengmix4eq_simu_sce_vine <- scdesign3(sce = Zhengmix4eq_sce_sub,
 
 ## Visualization
 For the simulation result using Gaussian copula, the return object contains a `corr_list` which is the gene-gene correlation matrices for each group that user specified, in this case, the groups are cell types. For the simulation result using vine copula, the `corr_list` gives the vine structure for each group that user specified, in this case, the groups are cell types. We then reformat the two `corr_list` and visualize them.
+
+We first visualize the `corr_list` returned when we use Gaussian copula.
 ```{r, message=FALSE}
 Zhengmix4eq_corr_list <- Zhengmix4eq_simu_sce_gaussian$corr_list
 
@@ -129,6 +131,7 @@ Zhengmix4eq_corr_list <- lapply(Zhengmix4eq_corr_list, function(x) {
 cor_dat <- cor_dat %>% dplyr::mutate(Method = if_else(Method == "b.cells", "B cell", if_else(Method == "cd14.monocytes", "CD14+ monocyte", if_else(Method == "regulatory.t", "Regulatory T cell", "Naive cytotoxic T cell")))) %>% dplyr::mutate(Method = factor(Method, levels = c("CD14+ monocyte", "B cell", "Regulatory T cell", "Naive cytotoxic T cell")))
 ```
 
+
 ```{r, fig.width=12, message=FALSE}
 corr_p <- cor_dat %>% ggplot(
                         aes(Var2, Var1, fill = value))+
@@ -145,7 +148,7 @@ corr_p <- cor_dat %>% ggplot(
             axis.text.y = element_blank(),
             axis.ticks.y = element_blank())+
       xlab("") + ylab("") + coord_fixed()
-
+corr_p
 ```
 
 ```{r, message=FALSE}
@@ -239,7 +242,7 @@ p_vine_list <- lapply(vine_dat, function(x) {
       ggraph::geom_node_point(col = "#56B4E9", size = 2) +
       ggplot2::theme_void()+ ggraph::geom_node_text(ggplot2::aes(filter = degree_indicator, label = name),
         fontface = "bold",
-        repel = TRUE, check_overlap = TRUE, size = 3
+        repel = TRUE, check_overlap = TRUE, size = 3.0
       ) + theme(aspect.ratio = 1,
                 panel.background = element_blank(),
         panel.grid.major = element_blank(), 
@@ -250,10 +253,9 @@ p_vine_list <- lapply(vine_dat, function(x) {
 p_vine_copula <- cowplot::plot_grid(plotlist = p_vine_list , nrow = 1, align = "hv", axis = "lr")
 ```
 
-For the four plots on the top, they are generated using the `corr_list` returned when we use Gaussian copula. For the four plots on the bottom, they are generated using the `corr_list` returned when we use vine copula. The bottom plots give more direct visualization about which genes are connected in the vine structure, in the other words, which genes are closer to each other.
+We then visualize the `corr_list` returned when we use vine copula. Comparing with the visualization above, the plots below give more direct visualization about which genes are connected in the vine structure and show gene networks.
 ```{r, fig.width=12, message=FALSE}
 p_vine <- cowplot::plot_grid(p1, p2, p3, p4, nrow = 1, align = "hv")
-
-cowplot::plot_grid(corr_p, p_vine, nrow = 2, align = "hv", axis = "lr" )
+p_vine
 ```
 

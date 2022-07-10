@@ -63,7 +63,7 @@ res_sub <- res %>% dplyr::filter(method %in% c("SC3", "Seurat", "PCAHC", "PCAKme
 res_sub_list <- res_sub %>% group_by(dataset, method, run, k, resolution) %>% group_split()
 ```
 
-For demonstration purpose, we use the `Zhengmix4eq` dataset in the package with top 100 highly varaible genes and the corresponding k-means clustering result with k = $2 ,\cdots, 10$.
+For demonstration purpose, we use the `Zhengmix4eq` dataset in the package with top 100 highly varaible genes and the corresponding k-means clustering results with k = $2 ,\cdots, 10$.
 ```{r, message=FALSE}
 kmeans_res <- Filter(function(x){all(x$method == "PCAKmeans")}, res_sub_list)
 ncell <- ncol(Zhengmix4eq_sce)
@@ -103,16 +103,16 @@ scDesign3_result <- lapply(kmeans_res, function(x) {
 ```
 
 ## Visualization
-After the simulations, we can check the AIC provided by our package and the calculated ARI to evaluate clustering qualities.
+After the simulations, we can check the BIC provided by our package and the calculated ARI to evaluate k-means clustering qualities.
 ```{r, message=FALSE}
-aic_list <- lapply(scDesign3_result, function(x){return(x$model_aic)})
+bic_list <- lapply(scDesign3_result, function(x){return(x$model_bic)})
 kmeans_ari <- sapply(kmeans_res, function(x){ARI(x$cluster, x$trueclass)})
-aic_df <- data.frame(matrix(unlist(aic_list), nrow = length(aic_list), byrow = TRUE))
-colnames(aic_df) <- names(aic_list[[1]])
-rownames(aic_df) <- paste0("k = ", 2:10)
-metric <- tibble(ari = kmeans_ari, aic = aic_df$aic.marginal, Method = paste0("k = ", 2:10))
-p_cluster_metric <- metric %>% ggplot(aes(x =ari, y = aic,label = Method)) + geom_point() + theme_bw() + theme(aspect.ratio = 1,
+bic_df <- data.frame(matrix(unlist(bic_list), nrow = length(bic_list), byrow = TRUE))
+colnames(bic_df) <- names(bic_list[[1]])
+rownames(bic_df) <- paste0("k = ", 2:10)
+metric <- tibble(ari = kmeans_ari, bic = bic_df$bic.marginal, Method = paste0("k = ", 2:10))
+p_cluster_metric <- metric %>% ggplot(aes(x =ari, y = bic,label = Method)) + geom_point() + theme_bw() + theme(aspect.ratio = 1,
     panel.grid.minor = element_blank(),
-    panel.grid.major = element_blank()) + ggpubr::stat_cor(method = "spearman", cor.coef.name = "rho", label.x.npc = "left", label.y.npc = 0.5) + ylab("scDesign3 AIC") + xlab("ARI")
+    panel.grid.major = element_blank()) + ggpubr::stat_cor(method = "spearman", cor.coef.name = "rho", label.x.npc = "left", label.y.npc = 0.5) + ylab("scDesign3 BIC") + xlab("ARI")
 p_cluster_metric
 ```

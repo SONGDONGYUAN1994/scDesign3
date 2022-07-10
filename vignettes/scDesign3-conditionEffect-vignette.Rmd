@@ -43,7 +43,7 @@ library(scDesign3)
 ```
 
 ## Introduction
-In this tutorial, we show how to use scDesign3 to simulate data with condition effects and how to adjust the condition effects.
+In this tutorial, we will show how to use scDesign3 to simulate data with condition effects and how to adjust the condition effects.
 
 ## Read in the reference data
 The raw data is from the `SeuratData` package. The data is called `ifnb` in the package; it is PBMC data simulated and controlled by IFNB.
@@ -62,7 +62,7 @@ The condition information is stored in colData of the example dataset.
 ```{r, message=FALSE}
 head(colData(example_sce))
 ```
-## simulation
+## Simulation
 First, we will simulate new data with the condition effects.
 ```{r, message=FALSE}
 simu_res <- scdesign3(
@@ -154,7 +154,7 @@ IFNB_newcount_null_B <- simu_new(
 ```
 
 ## Visulization
-We first create two `SingleCellExperiment` object using two count matrices generated above.
+We first create two `SingleCellExperiment` objects using two count matrices generated above.
 ```{r, message=FALSE}
 simu_res_list <- lapply(list(simu_res$new_count,IFNB_newcount_null_B ), function(x){
   logcounts(example_sce) <- log1p(counts(example_sce))
@@ -166,7 +166,7 @@ simu_res_list <- lapply(list(simu_res$new_count,IFNB_newcount_null_B ), function
 logcounts(example_sce) <- log1p(counts(example_sce))
 ```
 Then, we visualize the results.
-```{r, message=FALSE}
+```{r, message=FALSE, fig.width=12}
 set.seed(123)
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 
                                   sce_list = simu_res_list, 

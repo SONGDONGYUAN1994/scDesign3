@@ -44,10 +44,10 @@ library(ggplot2)
 
 
 ## Introduction
-In this tutorial, we show how to use scDesign3 to simulate data with batch effects and how to remove the batch effects.
+In this tutorial, we will show how to use scDesign3 to simulate data with original batch effects and how to remove the batch effects. We will also demostrate how to add ariticial batch effects.
 
 ## Read in the reference data
-The raw data is from the `SeuratData`. The data is called `pbmcsca` in the package; it is PBMC Systematic Comparative Analysis dataset from the Broad Institute.
+The raw data is from the `SeuratData` package. The data is called `pbmcsca` in the package; it is PBMC Systematic Comparative Analysis dataset from the Broad Institute.
 
 ```{r, message=FALSE}
 example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AACFsTJvmzgBKicMsbFzxbyUa/BATCH_sce.rds?raw=1")))
@@ -183,7 +183,7 @@ BATCH_newcount_alter <- simu_new(
 ```
 
 ## Visulization
-We first create three `SingleCellExperiment` object using three count matrix generated above.
+We first create three `SingleCellExperiment` objects using three count matrices generated above.
 ```{r, message=FALSE}
 simu_res_list <- lapply(list(simu_res$new_count, BATCH_newcount_null, BATCH_newcount_alter), function(x){
   simu_sce <- example_sce
@@ -193,7 +193,7 @@ simu_res_list <- lapply(list(simu_res$new_count, BATCH_newcount_null, BATCH_newc
 })
 ```
 Then, we visualize the results.
-```{r, message=FALSE}
+```{r, message=FALSE, fig.width=12}
 set.seed(123)
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 
                                   sce_list = simu_res_list, 

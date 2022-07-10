@@ -1,5 +1,5 @@
 ---
-title: "Evaluate psedotime qualities using scDesign3"
+title: "Evaluate pseudotime qualities using scDesign3"
 author: 
   - name: Dongyuan Song
     affiliation:
@@ -50,10 +50,10 @@ theme_set(theme_bw())
 ```
 
 ## Introduction
-In this tutorial, we will first use the package `dyngen` to generate a dataset with ground truth \"pseudotime\". Then, we will perturb the ground truth pseudotime to worsen its quality and use scDesign3's AIC and BIC to examine different pseudotime's quality. 
+In this tutorial, we will first use the R package `dyngen` to generate a dataset with ground truth \"pseudotime\". Then, we will perturb the ground truth pseudotime to worsen its quality and use scDesign3's BIC to examine different pseudotime qualities. 
 
 ## Generation of reference dataset & Simulation
-We will use `dyngen` to generate a dataset with ground truth "pseudotime".
+We will first use `dyngen` to generate a dataset with ground truth "pseudotime".
 ```{r, warning=FALSE, message=FALSE}
 set.seed(123)
 backbone <- backbone_linear()
@@ -72,7 +72,7 @@ out <- generate_dataset(
   make_plots = FALSE
   )
 example_sce <- as_sce(out$model)
-colData(example_sce)$pseudotime <- out$dataset$progressions$percentage 
+colData(example_sce)$pseudotime <- out$model$experiment$cell_info$time 
 ```
 Secondly, we perturb the generated time by percentage, ranging from 0% to 100%.
 ```{r, message=FALSE}
@@ -111,7 +111,7 @@ scDesign3_result <- lapply(example_sce_list, function(x) {
 ```
 
 ## Visualization
-After the simulation, we can plot the BIC values vs $r^2$.
+After the simulation, we can plot the BIC values from our function `scdesign3` vs calculated $r^2$ between the original pseudotime and perturbed pseudotime.
 ```{r, message=FALSE}
 bic_list <- lapply(scDesign3_result, function(x){return(x$model_bic)})
 bic_df <- data.frame(matrix(unlist(bic_list), nrow = length(bic_list), byrow = TRUE))
