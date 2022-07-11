@@ -2,3 +2,19 @@ url: ~
 template:
   bootstrap: 5
 
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - scDesign3
+  - scDesign3-introduction-vignette
+  - scDesign3_copulaCompare
+  - scDesign3-multipleLineages_vignette
+  - scDesign3-conditionEffect-vignette
+  - scDesign3-batchEffect-vignette
+  - scDesign3-spatial-vignette
+  - scDesign3-scATACseq-vignette
+  - scDesign3-clusterQuality-vignette
+  - scDesign3-pseudotimeQuality-vignette
+
+

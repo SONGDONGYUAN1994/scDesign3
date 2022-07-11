@@ -1,5 +1,5 @@
 ---
-title: "Simulate dataset with multiple lineages"
+title: "Simulate datasets with multiple lineages"
 author: 
   - name: Dongyuan Song
     affiliation:
