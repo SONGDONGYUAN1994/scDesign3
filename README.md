@@ -10,3 +10,6 @@ To install the development version from github, please run:
 ```r
 devtools::install_github("SONGDONGYUAN1994/scDesign3")
 ```
+
+## Usage
+Please check the [website](https://songdongyuan1994.github.io/scDesign3/docs/index.html).

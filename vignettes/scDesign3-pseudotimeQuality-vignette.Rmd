@@ -1,5 +1,5 @@
 ---
-title: "Evaluate pseudotime qualities using scDesign3"
+title: "Evaluate pseudotime quality by scDesign3"
 author: 
   - name: Dongyuan Song
     affiliation:
@@ -50,7 +50,7 @@ theme_set(theme_bw())
 ```
 
 ## Introduction
-In this tutorial, we will first use the R package `dyngen` to generate a dataset with ground truth \"pseudotime\". Then, we will perturb the ground truth pseudotime to worsen its quality and use scDesign3's BIC to examine different pseudotime qualities. 
+In this tutorial, we will first use the R package `dyngen` to generate a dataset with ground truth \"pseudotime\". Then, we will perturb the ground truth pseudotime to worsen its quality and use scDesign3's BIC to examine pseudotime quality. 
 
 ## Generation of reference dataset & Simulation
 We will first use `dyngen` to generate a dataset with ground truth "pseudotime".
@@ -68,10 +68,10 @@ config <-
   )
 out <- generate_dataset(
   config,
-  format = "dyno",
+  format = "sce",
   make_plots = FALSE
   )
-example_sce <- as_sce(out$model)
+example_sce <- out$dataset
 colData(example_sce)$pseudotime <- out$model$experiment$cell_info$time 
 ```
 Secondly, we perturb the generated time by percentage, ranging from 0% to 100%.

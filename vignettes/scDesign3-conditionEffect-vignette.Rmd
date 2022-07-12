@@ -52,11 +52,18 @@ The raw data is from the `SeuratData` package. The data is called `ifnb` in the 
 example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AABoozvjRadAygeSSJFoc2OOa/IFNB_sce.rds?raw=1")))
 print(example_sce)
 ```
-To save computational time, we only use the top 100 genes.
 ```{r, message=FALSE}
-example_sce <- example_sce[1:100,]
+print(table(colData(example_sce)$cell_type))
 ```
 
+To save computational time, we only use the top 100 genes and two cell types (CD14 Mono and B).
+```{r, message=FALSE}
+example_sce <- example_sce[1:100, colData(example_sce)$cell_type %in% c("CD14 Mono", "B")]
+
+## Remove unused cell type levels
+colData(example_sce)$cell_type <- droplevels(colData(example_sce)$cell_type)
+
+```
 
 The condition information is stored in colData of the example dataset.
 ```{r, message=FALSE}
@@ -73,7 +80,7 @@ simu_res <- scdesign3(
     spatial = NULL,
     other_covariates = c("condition"),
     mu_formula = "cell_type + condition + cell_type*condition",
-    sigma_formula = "cell_type",
+    sigma_formula = "1",
     family_use = "nb",
     n_cores = 2,
     usebam = FALSE,
@@ -105,7 +112,7 @@ IFNB_marginal <- fit_marginal(
   data = IFNB_data,
   predictor = "gene",
   mu_formula = "cell_type + condition + cell_type*condition",
-  sigma_formula = "cell_type",
+  sigma_formula = "1",
   family_use = "nb",
   n_cores = 2,
   usebam = FALSE
@@ -125,7 +132,7 @@ IFNB_copula <- fit_copula(
 ```
 ```{r, message=FALSE}
 IFNB_marginal_null_B <- lapply(IFNB_marginal, function(x) {
-  x$coefficients["cell_typeB:conditionSTIM"] <- x$coefficients["conditionSTIM"]
+  x$coefficients["cell_typeB:conditionSTIM"] <- 0-x$coefficients["conditionSTIM"]
   x
 })
 ```

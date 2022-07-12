@@ -5,7 +5,7 @@ Version: 1.0.0
 Authors@R: 
     c(person("Dongyuan", "Song", , "dongyuansong@ucla.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-1114-1215")),
-    person("Qingyang", "Wang", , "qw802@g.ucla.edu", role = c("aut","cre"),
+    person("Qingyang", "Wang", , "qw802@g.ucla.edu", role = c("aut"),
            comment = c(ORCID = "0000-0002-1051-609X")))
 Maintainer: Dongyuan Song <dongyuansong@ucla.edu>
 Description: scDesign3 is a unified probabilistic framework that generates realistic in silico high-dimensional single-cell omics data of various cell states, including discrete cell types, continuous trajectories, and spatial locations by learning from real datasets. This package provides a convenient one-shot function to simulate new datasets and provide AIC and BIC to help evaluate the "goodness of fit" of the reference dataset.
@@ -48,6 +48,7 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     RefManageR,
+    dyngen,
     sessioninfo
 URL: https://github.com/SONGDONGYUAN1994/scDesign3
 BugReports: https://github.com/SONGDONGYUAN1994/scDesign3/issues

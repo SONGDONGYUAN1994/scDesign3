@@ -1,5 +1,5 @@
 ---
-title: "Evaluate clustering qualities using scDesign3"
+title: "Evaluate clustering quality by scDesign3"
 author: 
   - name: Dongyuan Song
     affiliation:
