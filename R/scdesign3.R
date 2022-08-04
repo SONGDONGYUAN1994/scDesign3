@@ -85,7 +85,7 @@ scdesign3 <- function(sce,
     sce = sce,
     assay_use = assay_use,
     input_data = input_data$dat,
-    new_covariate = input_data$new_covariate,
+    new_covariate = input_data$newCovariate,
     marginal_list = marginal_res,
     family_use = family_use,
     copula = copula,
@@ -100,7 +100,7 @@ scdesign3 <- function(sce,
     marginal_list = marginal_res,
     n_cores = n_cores,
     family_use = family_use,
-    new_covariate = input_data$new_covariate
+    new_covariate = input_data$newCovariate
   )
   message("Parameter
 Extraction End")
@@ -118,13 +118,13 @@ Extraction End")
     nonnegative = nonnegative,
     nonzerovar = nonzerovar,
     input_data = input_data$dat,
-    new_covariate = input_data$new_covariate
+    new_covariate = input_data$newCovariate
   )
   message("New Data Generating End")
 
   scdesign3_res <- list(
     new_count = new_count,
-    new_covariate = input_data$new_covariate,
+    new_covariate = input_data$newCovariate,
     model_aic = copula_res$model_aic,
     model_bic = copula_res$model_bic,
     marginal_list = if (return_model)
