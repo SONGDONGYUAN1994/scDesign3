@@ -544,9 +544,9 @@ predict.gamlss <- function(object,
 
   ### get all variables in the fomula
   if(what == "mu"){
-    all_vars <- names(object$mu.coefficients)[-1]
+    all_vars <- attr(object$mu.terms,"term.labels")
   }else{
-    all_vars <- names(object$sigma.coefficients)[-1]
+    all_vars <- attr(object$sigma.terms,"term.labels")
   }
 
 
