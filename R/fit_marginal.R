@@ -81,7 +81,9 @@ fit_marginal <- function(data,
   #
   # print(mu_formula)
   #pbmcapply::pbmc
-  model_fit <- pbmcapply::pbmcmapply(function(gene,
+  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
+  BPPARAM$workers <- n_cores
+  model_fit <- suppressMessages(BiocParallel::bpmapply(function(gene,
                                               family_gene,
                                               dat_use,
                                               mgcv_formula,
@@ -314,9 +316,9 @@ fit_marginal <- function(data,
   mu_formula = mu_formula,
   sigma_formula = sigma_formula,
   predictor = predictor,
-  count_mat = count_mat), mc.cores = n_cores,
+  count_mat = count_mat), BPPARAM = BPPARAM,
    SIMPLIFY = FALSE
-  )
+  ))
 
   if(!is.null(model_fit$warning)) {
     #stop("Model has warning!")

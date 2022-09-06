@@ -272,10 +272,50 @@ cal_cor <- function(norm.mat,
 sampleMVN <- function(n,
                       Sigma) {
   mvnrv <-
-    mvtnorm::rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma)
+    rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma)
   mvnrvq <- apply(mvnrv, 2, stats::pnorm)
 
   return(mvnrvq)
+}
+
+## fix integer overflow issue when # of gene* # of cell is too larger in rnorm(n * ncol(sigma))
+rmvnorm <- function(n, mean = rep(0, nrow(sigma)), sigma = diag(length(mean)),
+                    method=c("eigen", "svd", "chol"), pre0.9_9994 = FALSE, checkSymmetry = TRUE)
+{
+  if (checkSymmetry && !isSymmetric(sigma, tol = sqrt(.Machine$double.eps),
+                                    check.attributes = FALSE)) {
+    stop("sigma must be a symmetric matrix")
+  }
+  if (length(mean) != nrow(sigma))
+    stop("mean and sigma have non-conforming size")
+
+  method <- match.arg(method)
+
+  R <- if(method == "eigen") {
+    ev <- eigen(sigma, symmetric = TRUE)
+    if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))){
+      warning("sigma is numerically not positive semidefinite")
+    }
+    ## ev$vectors %*% diag(sqrt(ev$values), length(ev$values)) %*% t(ev$vectors)
+    ## faster for large  nrow(sigma):
+    t(ev$vectors %*% (t(ev$vectors) * sqrt(pmax(ev$values, 0))))
+  }
+  else if(method == "svd"){
+    s. <- svd(sigma)
+    if (!all(s.$d >= -sqrt(.Machine$double.eps) * abs(s.$d[1]))){
+      warning("sigma is numerically not positive semidefinite")
+    }
+    t(s.$v %*% (t(s.$u) * sqrt(pmax(s.$d, 0))))
+  }
+  else if(method == "chol"){
+    R <- chol(sigma, pivot = TRUE)
+    R[, order(attr(R, "pivot"))]
+  }
+
+  retval <- matrix(rnorm(as.double(n) * ncol(sigma)), nrow = n, byrow = !pre0.9_9994) %*%  R
+  retval <- sweep(retval, 2, mean, "+")
+  colnames(retval) <- names(mean)
+  retval
 }
 
 
@@ -295,7 +335,9 @@ convert_n <- function(sce,
   # n cell
   ncell <- dim(count_mat)[1]
 
-  mat <- pbmcapply::pbmcmapply(function(x, y) {
+  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
+  BPPARAM$workers <- n_cores
+  mat <- BiocParallel::bpmapply(function(x, y) {
     fit <- marginal_list[[x]]
 
     if (methods::is(fit, "gamlss")) {
@@ -449,7 +491,7 @@ convert_n <- function(sce,
       lower.tail = TRUE,
       log.p = FALSE
     )
-  }, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
+  }, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
 
   colnames(mat) <- rownames(sce)
   rownames(mat) <- colnames(sce)
@@ -479,8 +521,10 @@ convert_u <- function(sce,
 
   # n cell
   ncell <- dim(count_mat)[1]
- #pbmcapply::pbmc
-  mat <- pbmcapply::pbmcmapply(function(x, y) {
+
+  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
+  BPPARAM$workers <- n_cores
+  mat <- BiocParallel::bpmapply(function(x, y) {
     fit <- marginal_list[[x]]
 
     if (methods::is(fit, "gamlss")) {
@@ -626,7 +670,7 @@ convert_u <- function(sce,
     }
 
     r
-  }, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
+  }, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
 
   colnames(mat) <- rownames(sce)
   rownames(mat) <- colnames(sce)

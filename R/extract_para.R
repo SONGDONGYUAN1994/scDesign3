@@ -25,7 +25,9 @@ extract_para <-  function(sce,
                           n_cores,
                           family_use,
                           new_covariate) {
-  mat <- pbmcapply::pbmcmapply(function(x, y) {
+  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
+  BPPARAM$workers <- n_cores
+  mat <- BiocParallel::bpmapply(function(x, y) {
     fit <- marginal_list[[x]]
 
     if (methods::is(fit, "gamlss")) {
@@ -124,7 +126,7 @@ extract_para <-  function(sce,
       rownames(para_mat) <- rownames(new_covariate)
     }
     para_mat
-  }, x = seq_len(dim(sce)[1]), y = family_use, mc.cores = n_cores, SIMPLIFY = FALSE)
+  }, x = seq_len(dim(sce)[1]), y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE)
 
   mean_mat <- sapply(mat, function(x)
     x[, 1])

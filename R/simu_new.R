@@ -122,7 +122,9 @@ simu_new <- function(sce,
   }
 
   ## New count
-  mat <-  pbmcapply::pbmcmapply(function(x, y) {
+  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
+  BPPARAM$workers <- n_cores
+  mat <-  BiocParallel::bpmapply(function(x, y) {
 
     para_mat <- cbind(mean_mat[, x], sigma_mat[, x], quantile_mat[, x], zero_mat[, x])
 
@@ -160,7 +162,7 @@ simu_new <- function(sce,
 
     r <- as.vector(qfvec)
     r
-  }, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
+  }, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
 
   new_count <- mat #simplify2array(mat)
 

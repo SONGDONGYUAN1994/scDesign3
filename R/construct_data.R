@@ -168,8 +168,9 @@ simuCovariateMat <- function(covariate_mat,
     group_prop <-  table(df_all$discrete_group)/dim(df_all)[1]
     group_name <- names(group_prop)
     group_n_new <- stats::rmultinom(1, size = n_cell_new, prob = group_prop)
+    BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
     if(if_numeric_exist) {
-      new_dat_list <- pbmcapply::pbmcmapply(FUN = function(df, n) {
+      new_dat_list <- BiocParallel::bpmapply(FUN = function(df, n) {
         df <- dplyr::select(df, -"discrete_group")
         df_numeric <- dplyr::select_if(df, is.numeric)
         df_factor <- dplyr::select_if(df, is.factor)
@@ -180,16 +181,16 @@ simuCovariateMat <- function(covariate_mat,
         new_dat[colnames(df_factor)] <- df_factor[1, ]
         new_dat
 
-      }, df = df_list, n = group_n_new, SIMPLIFY = FALSE)
+      }, df = df_list, n = group_n_new, BPPARAM = BPPARAM,SIMPLIFY = FALSE)
       covariate_new <- do.call("rbind", new_dat_list)
     }
     else {
-      new_dat_list <- pbmcapply::pbmcmapply(FUN = function(df, n) {
+      new_dat_list <- BiocParallel::bpmapply(FUN = function(df, n) {
         df <- dplyr::select(df, -"discrete_group")
         df_factor <- dplyr::select_if(df, is.factor)
         df_onerow <- as.data.frame(df_factor[1, ])
         new_dat <- as.data.frame(df_onerow[rep(1, n), ])
-      }, df = df_list, n = group_n_new, SIMPLIFY = FALSE)
+      }, df = df_list, n = group_n_new, BPPARAM = BPPARAM, SIMPLIFY = FALSE)
       covariate_new <- do.call("rbind", new_dat_list)
       colnames(covariate_new) <- colnames(covariate_mat)
     }
