@@ -51,7 +51,7 @@ example_sce <- example_sce[1:100, ]
 
 ## Simulation
 The function `scdesign3()` is a one-shot function that can generate new dataset.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 set.seed(123)
 example_simu <- scdesign3(
     sce = example_sce,
@@ -99,7 +99,7 @@ plot(compare_figure$p_umap)
 ## Step-by-step functions
 Alternatively, you can run through the following steps to generate the new dataset. The code below does exactly the same thing as the one-shot function above.
 1. Construct the input dataset.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 PANCREAS_data <- construct_data(
     sce = example_sce,
     assay_use = "counts",
@@ -111,7 +111,7 @@ PANCREAS_data <- construct_data(
   )
 ```
 2. Fit regression models for each feature based on your specification.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 PANCREAS_marginal <- fit_marginal(
     data = PANCREAS_data,
     predictor = "gene",
@@ -123,7 +123,7 @@ PANCREAS_marginal <- fit_marginal(
   )
 ```
 3. Fit a copula, obtain AIC and BIC.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 PANCREAS_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -139,13 +139,13 @@ PANCREAS_copula <- fit_copula(
 
 * a cell-by-gene mean matrix
 * a sigma matrix which is:
-  + a cell-by-gene matrix of $\phi$ for negative binomial distribution
-  + a cell-by-gene matrix of $\sigma^2$ for Gaussian distribution
+  + a cell-by-gene matrix of $\frac{1}{\phi}$ for negative binomial distribution
+  + a cell-by-gene matrix of the standard deviation $\sigma$ for Gaussian distribution
   + a cell-by-gene matrix of 1 for poisson distribution
 * a zero matrix which is:
   + a cell-by-gene matrix of zero probabilities for zero-inflated negative binomial and zero-inflated poisson distributions
   + a zero matrix for negative binomial, Gaussian, and poisson distributions
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 PANCREAS_para <- extract_para(
     sce = example_sce,
     marginal_list = PANCREAS_marginal,
@@ -155,7 +155,7 @@ PANCREAS_para <- extract_para(
   )
 ```
 5. Simulate the new count matrix.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
  PANCREAS_newcount <- simu_new(
     sce = example_sce,
     mean_mat = PANCREAS_para$mean_mat,
