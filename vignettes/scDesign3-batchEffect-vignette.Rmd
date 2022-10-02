@@ -66,7 +66,7 @@ head(colData(example_sce))
 
 ## Simulation
 We can simulate a new data with batch effect information.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 simu_res <- scdesign3(sce = example_sce, 
                               assay_use = "counts", 
                               celltype = "cell_type", 
@@ -87,7 +87,7 @@ simu_res <- scdesign3(sce = example_sce,
 
 
 We can also remove the batch effect and generate new data.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_data <- construct_data(
   sce = example_sce,
   assay_use = "counts",
@@ -98,7 +98,7 @@ BATCH_data <- construct_data(
   corr_by = "1"
 )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_marginal <- fit_marginal(
   data = BATCH_data,
   predictor = "gene",
@@ -109,7 +109,7 @@ BATCH_marginal <- fit_marginal(
   usebam = FALSE
 )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -121,13 +121,13 @@ BATCH_copula <- fit_copula(
     input_data = BATCH_data$dat
   )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_marginal_null <- lapply(BATCH_marginal, function(x) {
   x$coefficients[length(x$coefficients)] <- 0
   x
 })
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_para_null <- extract_para(
     sce = example_sce,
     marginal_list = BATCH_marginal_null,
@@ -136,7 +136,7 @@ BATCH_para_null <- extract_para(
     new_covariate = NULL
   )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_newcount_null <- simu_new(
     sce = example_sce,
     mean_mat = BATCH_para_null$mean_mat,
@@ -152,13 +152,13 @@ BATCH_newcount_null <- simu_new(
 ```
 
 Additionally, we can alter the batch effect information and simulate new dataset with altered batch effect information.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_marginal_alter <- lapply(BATCH_marginal, function(x) {
   x$coefficients[length(x$coefficients)] <- rnorm(1, mean = 5, sd = 2)
   x
 })
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_para_alter <- extract_para(
     sce = example_sce,
     marginal_list = BATCH_marginal_alter,
@@ -167,7 +167,7 @@ BATCH_para_alter <- extract_para(
     new_covariate = NULL
   )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_newcount_alter <- simu_new(
     sce = example_sce,
     mean_mat = BATCH_para_alter$mean_mat,

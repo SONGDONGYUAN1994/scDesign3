@@ -61,7 +61,7 @@ example_sce <- example_sce[1:100, ]
 
 ## Simulation
 
-```{r}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 set.seed(123)
 example_simu <- scdesign3(
     sce = example_sce,

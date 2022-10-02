@@ -57,7 +57,7 @@ example_sce <- example_sce[, sample(seq_len(dim(example_sce)[2]), 1000, replace 
 ## Simulation
 Here we choose the Zero-inflated Poisson (ZIP) as the distribution due to its good empirical performance. Users may explore other distributions (Poisson, NB, ZINB) since there is no conclusion on the best distribution of ATAC-seq.
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 set.seed(123)
 example_simu <- scdesign3(
     sce = example_sce,

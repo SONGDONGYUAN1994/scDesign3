@@ -54,7 +54,7 @@ In this tutorial, we will first use the R package `dyngen` to generate a dataset
 
 ## Generation of reference dataset & Simulation
 We will first use `dyngen` to generate a dataset with ground truth "pseudotime".
-```{r, warning=FALSE, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 set.seed(123)
 backbone <- backbone_linear()
 config <-
@@ -91,7 +91,7 @@ example_sce_list <- lapply(0:10, function(x) {
 ```
 
 Thirdly, we run the function `scdesign3` on datasets with perturbed pseudotime.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 scDesign3_result <- lapply(example_sce_list, function(x) {
   res <-  scdesign3(
     sce = x,

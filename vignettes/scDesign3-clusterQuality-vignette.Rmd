@@ -80,7 +80,7 @@ train_sce <- sce[, train_index]
 
 ## Simulation
 We then use different cell-type clustering information to simulate new data.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 scDesign3_result <- lapply(kmeans_res, function(x) {
       dat <- x %>% dplyr::select(c("cell", "cluster")) %>% data.frame()
       rownames(dat) <- dat$cell

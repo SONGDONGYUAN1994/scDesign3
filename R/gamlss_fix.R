@@ -542,19 +542,23 @@ predict.gamlss <- function(object,
 
 
 
-  ### get all variables in the fomula
-  if(what == "mu"){
-    all_vars <- attr(object$mu.terms,"term.labels")
-  }else{
-    all_vars <- attr(object$sigma.terms,"term.labels")
+
+  ### get all variables in the formula
+  if(is.data.frame(newdata) && !is.null(attr(newdata,"terms"))){
+    if(what == "mu"){
+      all_vars <- attr(object$mu.terms,"term.labels")
+    }else{
+      all_vars <- attr(object$sigma.terms,"term.labels")
+    }
+
+    if(sum(!(all_vars %in% names(newdata)))){
+      stop("newdata should include all required variables")
+    }else{
+      newdata <- newdata[which(names(newdata) %in% all_vars)]
+    }
+
   }
 
-
-  if(sum(!(all_vars %in% names(newdata)))){
-    stop("newdata should include all required variables")
-  }else{
-    newdata <- newdata[which(names(newdata) %in% all_vars)]
-  }
 
   ## merge the two data together
   #data <- concat(data,newdata)

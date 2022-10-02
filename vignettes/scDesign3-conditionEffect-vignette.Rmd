@@ -40,6 +40,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, message=FALSE}
 library(scDesign3)
+library(SingleCellExperiment)
 ```
 
 ## Introduction
@@ -71,7 +72,7 @@ head(colData(example_sce))
 ```
 ## Simulation
 First, we will simulate new data with the condition effects.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 simu_res <- scdesign3(
     sce = example_sce,
     assay_use = "counts",
@@ -96,7 +97,7 @@ simu_res <- scdesign3(
 ```
 
 Then, we can also simulate a new dataset with condition effects on B cells removed.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 IFNB_data <- construct_data(
   sce = example_sce,
   assay_use = "counts",
@@ -107,7 +108,7 @@ IFNB_data <- construct_data(
   corr_by = "cell_type"
 )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 IFNB_marginal <- fit_marginal(
   data = IFNB_data,
   predictor = "gene",
@@ -118,7 +119,7 @@ IFNB_marginal <- fit_marginal(
   usebam = FALSE
 )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 IFNB_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -130,13 +131,13 @@ IFNB_copula <- fit_copula(
     input_data = IFNB_data$dat
   )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 IFNB_marginal_null_B <- lapply(IFNB_marginal, function(x) {
   x$coefficients["cell_typeB:conditionSTIM"] <- 0-x$coefficients["conditionSTIM"]
   x
 })
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 IFNB_para_null_B <- extract_para(
     sce = example_sce,
     marginal_list = IFNB_marginal_null_B,
@@ -145,7 +146,7 @@ IFNB_para_null_B <- extract_para(
     new_covariate = NULL
   )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 IFNB_newcount_null_B <- simu_new(
     sce = example_sce,
     mean_mat = IFNB_para_null_B$mean_mat,

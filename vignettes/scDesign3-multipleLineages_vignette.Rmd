@@ -71,7 +71,7 @@ head(colData(example_sce))[,c("pseudotime1","pseudotime2","l1","l2")]
 
 ## Simulation
 Then, we can use this multiple-lineage dataset to generate new data.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 set.seed(123)
 example_simu <- scdesign3(
     sce = example_sce,
