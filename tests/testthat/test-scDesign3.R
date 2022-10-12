@@ -14,6 +14,17 @@ test_that("Run scDesign3", {
     corr_by = "cell_type"
   )
 
+  my_data2 <- construct_data(
+    sce = example_sce,
+    assay_use = "counts",
+    celltype = "cell_type",
+    pseudotime = NULL,
+    spatial = NULL,
+    other_covariates = NULL,
+    corr_by = "cell_type",
+    ncell = 10000
+  )
+
   my_marginal1 <- fit_marginal(
     data = my_data,
     mu_formula = "1",
