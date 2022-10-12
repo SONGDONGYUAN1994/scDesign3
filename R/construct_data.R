@@ -48,8 +48,8 @@ construct_data <- function(sce,
     dat <- as.data.frame(coldata_mat[, primary_covariate, drop = FALSE])
   }
 
-  if(!is.null(dat$cellytype)) {
-    dat$celltype <- as.factor(dat$celltype)}
+  if(!is.null(dat[, cellytype])) {
+    dat[, cellytype] <- as.factor(dat[, cellytype])}
 
   # ## Extract pseudotime / cell type / spatial
   # if (!is.null(celltype)) {
