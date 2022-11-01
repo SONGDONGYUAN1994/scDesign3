@@ -18,6 +18,12 @@
 #' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.
 #' @param input_data A input count matrix.
 #' @param new_covariate A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}}.
+#' @param parallelization A string indicating the specific parallelization function to use.
+#' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A feature by cell matrix of the new simulated count (expression) matrix.
 #'
@@ -34,7 +40,9 @@ simu_new <- function(sce,
                      nonnegative = TRUE,
                      nonzerovar = TRUE,
                      input_data,
-                     new_covariate){
+                     new_covariate,
+                     parallelization = "mcmapply",
+                     BPPARAM = NULL){
   if(!is.null(quantile_mat) & !is.null(copula_list)) {
     stop("You can only provide either the quantile_mat or the copula_list!")
   }
@@ -122,9 +130,8 @@ simu_new <- function(sce,
   }
 
   ## New count
-  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
-  BPPARAM$workers <- n_cores
-  mat <-  BiocParallel::bpmapply(function(x, y) {
+
+  mat_function <- function(x, y) {
 
     para_mat <- cbind(mean_mat[, x], sigma_mat[, x], quantile_mat[, x], zero_mat[, x])
 
@@ -162,8 +169,23 @@ simu_new <- function(sce,
 
     r <- as.vector(qfvec)
     r
-  }, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
+  }
 
+  paraFunc <- parallel::mcmapply
+
+  if(parallelization == "bpmapply"){
+    paraFunc <- BiocParallel::bpmapply
+  }
+  if(parallelization == "pbmcmapply"){
+    paraFunc <- pbmcapply::pbmcmapply
+  }
+
+  if(parallelization == "bpmapply"){
+    BPPARAM$workers <- n_cores
+    mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
+  }else{
+    mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE)
+ }
   new_count <- mat #simplify2array(mat)
 
   new_count <- as.matrix(t(new_count))

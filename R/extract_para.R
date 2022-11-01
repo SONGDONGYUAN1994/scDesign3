@@ -11,7 +11,13 @@
 #' @param family_use A string of the marginal distribution.
 #' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param new_covariate A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.
-#'
+#' @param parallelization A string indicating the specific parallelization function to use.
+#' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
+#' '
 #' @return A list with the components:
 #' \describe{
 #'   \item{\code{mean_mat}}{A cell by feature matrix of the mean parameter.}
@@ -24,10 +30,11 @@ extract_para <-  function(sce,
                           marginal_list,
                           n_cores,
                           family_use,
-                          new_covariate) {
-  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
-  BPPARAM$workers <- n_cores
-  mat <- BiocParallel::bpmapply(function(x, y) {
+                          new_covariate,
+                          parallelization = "mcmapply",
+                          BPPARAM = NULL) {
+
+  mat_function <-function(x, y) {
     fit <- marginal_list[[x]]
 
     if (methods::is(fit, "gamlss")) {
@@ -46,9 +53,9 @@ extract_para <-  function(sce,
       } else if (y == "nb") {
         theta_vec <-
           stats::predict(fit,
-                             type = "response",
-                             what = "sigma",
-                             newdata = new_covariate)
+                         type = "response",
+                         what = "sigma",
+                         newdata = new_covariate)
         #theta_vec[theta_vec < 1e-3] <- 1e-3
       } else if (y == "zip") {
         theta_vec <- rep(NA, length(mean_vec))
@@ -126,8 +133,21 @@ extract_para <-  function(sce,
       rownames(para_mat) <- rownames(new_covariate)
     }
     para_mat
-  }, x = seq_len(dim(sce)[1]), y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE)
+  }
+  paraFunc <- parallel::mcmapply
+  if(parallelization == "bpmapply"){
+    paraFunc <- BiocParallel::bpmapply
+  }
+  if(parallelization == "pbmcmapply"){
+    paraFunc <- pbmcapply::pbmcmapply
+  }
 
+  if(parallelization == "bpmapply"){
+    BPPARAM$workers <- n_cores
+    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE)
+  }else{
+    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use,SIMPLIFY = FALSE)
+  }
   mean_mat <- sapply(mat, function(x)
     x[, 1])
   sigma_mat <- sapply(mat, function(x)

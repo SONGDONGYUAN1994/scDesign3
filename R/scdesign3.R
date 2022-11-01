@@ -28,6 +28,12 @@
 #' @param nonnegative A logical variable. If TRUE, values < 0 will be converted to 0.Default is TRUE.
 #' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.
 #' @param return_model A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
+#' @param parallelization A string indicating the specific parallelization function to use.
+#' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A list with the components:
 #' \describe{
@@ -54,7 +60,9 @@ scdesign3 <- function(sce,
                       family_set = c("gauss", "indep"),
                       nonnegative = TRUE,
                       nonzerovar = TRUE,
-                      return_model = FALSE) {
+                      return_model = FALSE,
+                      parallelization = "mcmapply",
+                      BPPARAM = NULL) {
   message("Input Data Construction Start")
 
   input_data <- construct_data(
@@ -65,7 +73,9 @@ scdesign3 <- function(sce,
     spatial = spatial,
     other_covariates = other_covariates,
     ncell = ncell,
-    corr_by = corr_formula
+    corr_by = corr_formula,
+    parallelization = "mcmapply",
+    BPPARAM = BPPARAM
   )
   message("Input Data Construction End")
 
@@ -76,7 +86,9 @@ scdesign3 <- function(sce,
     n_cores = n_cores,
     data = input_data,
     family_use = family_use,
-    usebam = usebam
+    usebam = usebam,
+    parallelization = parallelization,
+    BPPARAM = BPPARAM
   )
   message("Marginal Fitting End")
 
@@ -90,7 +102,9 @@ scdesign3 <- function(sce,
     family_use = family_use,
     copula = copula,
     family_set = family_set,
-    n_cores = n_cores
+    n_cores = n_cores,
+    parallelization = parallelization,
+    BPPARAM = BPPARAM
   )
   message("Copula Fitting End")
 
@@ -100,7 +114,9 @@ scdesign3 <- function(sce,
     marginal_list = marginal_res,
     n_cores = n_cores,
     family_use = family_use,
-    new_covariate = input_data$newCovariate
+    new_covariate = input_data$newCovariate,
+    parallelization = parallelization,
+    BPPARAM = BPPARAM
   )
   message("Parameter
 Extraction End")
@@ -118,7 +134,9 @@ Extraction End")
     nonnegative = nonnegative,
     nonzerovar = nonzerovar,
     input_data = input_data$dat,
-    new_covariate = input_data$newCovariate
+    new_covariate = input_data$newCovariate,
+    parallelization = parallelization,
+    BPPARAM = BPPARAM
   )
   message("New Data Generating End")
 

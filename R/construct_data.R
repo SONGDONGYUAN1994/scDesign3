@@ -16,6 +16,12 @@
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 #' If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.
 #' @param corr_by A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.
+#' @param parallelization A string indicating the specific parallelization function to use.
+#' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A list with the components:
 #' \describe{
@@ -32,7 +38,9 @@ construct_data <- function(sce,
                           spatial,
                           other_covariates,
                           ncell = dim(sce)[2],
-                          corr_by) {
+                          corr_by,
+                          parallelization = "mcmapply",
+                          BPPARAM = NULL) {
   ## Extract expression matrix
   count_mat <-
     t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
@@ -94,7 +102,7 @@ construct_data <- function(sce,
 
   ## check if user wants to simulate new number of cells
   if(ncell != dim(dat)[1]){
-    newCovariate <- as.data.frame(simuCovariateMat(dat,ncell))
+    newCovariate <- as.data.frame(simuCovariateMat(dat,ncell, parallelization, BPPARAM))
   }else{
     newCovariate <- NULL
   }
@@ -148,7 +156,9 @@ construct_data <- function(sce,
 
 ## Simulate covariate matrix
 simuCovariateMat <- function(covariate_mat,
-                             n_cell_new = 50000) {
+                             n_cell_new = 50000,
+                             parallelization = "mcmapply",
+                             BPPARAM = NULL) {
 
   n_cell_ori <- dim(covariate_mat)[1]
   n_covraite_ori <- dim(covariate_mat)[2]
@@ -168,9 +178,17 @@ simuCovariateMat <- function(covariate_mat,
     group_prop <-  table(df_all$discrete_group)/dim(df_all)[1]
     group_name <- names(group_prop)
     group_n_new <- stats::rmultinom(1, size = n_cell_new, prob = group_prop)
-    BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
+    paraFunc <- parallel::mcmapply
+
+    if(parallelization == "bpmapply"){
+      paraFunc <- BiocParallel::bpmapply
+    }
+    if(parallelization == "pbmcmapply"){
+      paraFunc <- pbmcapply::pbmcmapply
+    }
+
     if(if_numeric_exist) {
-      new_dat_list <- BiocParallel::bpmapply(FUN = function(df, n) {
+      dat_function <- {function(df, n) {
         df <- dplyr::select(df, -"discrete_group")
         df_numeric <- dplyr::select_if(df, is.numeric)
         df_factor <- dplyr::select_if(df, is.factor)
@@ -181,16 +199,27 @@ simuCovariateMat <- function(covariate_mat,
         new_dat[colnames(df_factor)] <- df_factor[1, ]
         new_dat
 
-      }, df = df_list, n = group_n_new, BPPARAM = BPPARAM,SIMPLIFY = FALSE)
+      }}
+
+      if(parallelization == "bpmapply"){
+        new_dat_list <- paraFunc(FUN = dat_function , df = df_list, n = group_n_new, BPPARAM = BPPARAM,SIMPLIFY = FALSE)
+      }else{
+        new_dat_list <- paraFunc(FUN = dat_function , df = df_list, n = group_n_new,SIMPLIFY = FALSE)
+      }
       covariate_new <- do.call("rbind", new_dat_list)
     }
     else {
-      new_dat_list <- BiocParallel::bpmapply(FUN = function(df, n) {
+      dat_function <- function(df, n) {
         df <- dplyr::select(df, -"discrete_group")
         df_factor <- dplyr::select_if(df, is.factor)
         df_onerow <- as.data.frame(df_factor[1, ])
         new_dat <- as.data.frame(df_onerow[rep(1, n), ])
-      }, df = df_list, n = group_n_new, BPPARAM = BPPARAM, SIMPLIFY = FALSE)
+      }
+      if(parallelization == "bpmapply"){
+          new_dat_list <- paraFunc(FUN = dat_function, df = df_list, n = group_n_new, BPPARAM = BPPARAM, SIMPLIFY = FALSE)
+        }else{
+          new_dat_list <- paraFunc(FUN = dat_function, df = df_list, n = group_n_new,SIMPLIFY = FALSE)
+        }
       covariate_new <- do.call("rbind", new_dat_list)
 
     }

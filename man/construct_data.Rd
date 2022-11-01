@@ -12,7 +12,9 @@ construct_data(
   spatial,
   other_covariates,
   ncell = dim(sce)[2],
-  corr_by
+  corr_by,
+  parallelization = "mcmapply",
+  BPPARAM = NULL
 )
 }
 \arguments{
@@ -33,6 +35,14 @@ multiple lineages. Default is NULL.}
 If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.}
 
 \item{corr_by}{A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.}
+
+\item{parallelization}{A string indicating the specific parallelization function to use.
+Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.}
+
+\item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
 A list with the components:

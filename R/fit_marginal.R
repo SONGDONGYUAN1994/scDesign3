@@ -13,6 +13,12 @@
 #' Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param n_cores An integer. The number of cores to use.
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
+#' @param parallelization A string indicating the specific parallelization function to use.
+#' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A list of fitted regression models. The length is equal to the total feature number.
 #'
@@ -24,7 +30,9 @@ fit_marginal <- function(data,
                          sigma_formula,
                          family_use,
                          n_cores,
-                         usebam) {
+                         usebam,
+                         parallelization = "mcmapply",
+                         BPPARAM = NULL) {
 
   count_mat <-  data$count_mat
   dat_cov <- data$dat
@@ -78,20 +86,16 @@ fit_marginal <- function(data,
   } else {
     sigma_formula <- stats::formula(paste0("~", sigma_formula))
   }
-  #
-  # print(mu_formula)
-  #pbmcapply::pbmc
-  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
-  BPPARAM$workers <- n_cores
-  model_fit <- suppressMessages(BiocParallel::bpmapply(function(gene,
-                                              family_gene,
-                                              dat_use,
-                                              mgcv_formula,
-                                              mu_formula,
-                                              sigma_formula,
-                                              predictor,
-                                              count_mat
-                                                             ) {
+
+  fit_model_func <- function(gene,
+                             family_gene,
+                             dat_use,
+                             mgcv_formula,
+                             mu_formula,
+                             sigma_formula,
+                             predictor,
+                             count_mat
+  ) {
     ## Add gene expr
     dat_use$gene <- count_mat[, gene]
 
@@ -309,16 +313,39 @@ fit_marginal <- function(data,
     }
 
     return(fit)
-  }, gene = feature_names,
-  family_gene = family_use,
-  MoreArgs = list(dat_use = dat_cov,
-  mgcv_formula = mgcv_formula,
-  mu_formula = mu_formula,
-  sigma_formula = sigma_formula,
-  predictor = predictor,
-  count_mat = count_mat), BPPARAM = BPPARAM,
-   SIMPLIFY = FALSE
-  ))
+  }
+
+  paraFunc <- parallel::mcmapply
+
+  if(parallelization == "bpmapply"){
+    paraFunc <- BiocParallel::bpmapply
+  }
+  if(parallelization == "pbmcmapply"){
+    paraFunc <- pbmcapply::pbmcmapply
+  }
+
+  if(parallelization == "bpmapply"){
+    BPPARAM$workers <- n_cores
+    model_fit <- suppressMessages(paraFunc(fit_model_func, gene = feature_names,
+                                           family_gene = family_use,
+                                           MoreArgs = list(dat_use = dat_cov,
+                                                           mgcv_formula = mgcv_formula,
+                                                           mu_formula = mu_formula,
+                                                           sigma_formula = sigma_formula,
+                                                           predictor = predictor,
+                                                           count_mat = count_mat),
+                                           SIMPLIFY = FALSE, BPPARAM = BPPARAM))
+  }else{
+    model_fit <- suppressMessages(paraFunc(fit_model_func, gene = feature_names,
+                                           family_gene = family_use,
+                                           MoreArgs = list(dat_use = dat_cov,
+                                                           mgcv_formula = mgcv_formula,
+                                                           mu_formula = mu_formula,
+                                                           sigma_formula = sigma_formula,
+                                                           predictor = predictor,
+                                                           count_mat = count_mat),
+                                           SIMPLIFY = FALSE))
+  }
 
   if(!is.null(model_fit$warning)) {
     #stop("Model has warning!")

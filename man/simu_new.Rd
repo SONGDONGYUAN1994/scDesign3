@@ -16,7 +16,9 @@ simu_new(
   nonnegative = TRUE,
   nonzerovar = TRUE,
   input_data,
-  new_covariate
+  new_covariate,
+  parallelization = "mcmapply",
+  BPPARAM = NULL
 )
 }
 \arguments{
@@ -44,6 +46,14 @@ Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.}
 \item{input_data}{A input count matrix.}
 
 \item{new_covariate}{A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}}.}
+
+\item{parallelization}{A string indicating the specific parallelization function to use.
+Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.}
+
+\item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
 A feature by cell matrix of the new simulated count (expression) matrix.

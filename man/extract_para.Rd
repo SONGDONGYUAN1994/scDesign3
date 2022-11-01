@@ -4,7 +4,15 @@
 \alias{extract_para}
 \title{Extract the parameters of each cell's distribution}
 \usage{
-extract_para(sce, marginal_list, n_cores, family_use, new_covariate)
+extract_para(
+  sce,
+  marginal_list,
+  n_cores,
+  family_use,
+  new_covariate,
+  parallelization = "mcmapply",
+  BPPARAM = NULL
+)
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object.}
@@ -17,6 +25,15 @@ extract_para(sce, marginal_list, n_cores, family_use, new_covariate)
 Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{new_covariate}{A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.}
+
+\item{parallelization}{A string indicating the specific parallelization function to use.
+Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.}
+
+\item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
+'}
 }
 \value{
 A list with the components:

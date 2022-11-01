@@ -16,7 +16,9 @@ fit_copula(
   pseudo_obs = FALSE,
   epsilon = 1e-06,
   family_set = c("gaussian", "indep"),
-  n_cores
+  n_cores,
+  parallelization = "mcmapply",
+  BPPARAM = NULL
 )
 }
 \arguments{
@@ -47,6 +49,14 @@ Default is FALSE.}
 \item{family_set}{A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").}
 
 \item{n_cores}{An integer. The number of cores to use.}
+
+\item{parallelization}{A string indicating the specific parallelization function to use.
+Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.}
+
+\item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
 A list with the components:

@@ -11,7 +11,9 @@ fit_marginal(
   sigma_formula,
   family_use,
   n_cores,
-  usebam
+  usebam,
+  parallelization = "mcmapply",
+  BPPARAM = NULL
 )
 }
 \arguments{
@@ -29,6 +31,14 @@ Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 \item{n_cores}{An integer. The number of cores to use.}
 
 \item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.}
+
+\item{parallelization}{A string indicating the specific parallelization function to use.
+Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.}
+
+\item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
 A list of fitted regression models. The length is equal to the total feature number.

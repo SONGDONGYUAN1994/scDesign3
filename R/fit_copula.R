@@ -21,6 +21,12 @@
 #' @param epsilon A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.
 #' @param family_set A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").
 #' @param n_cores An integer. The number of cores to use.
+#' @param parallelization A string indicating the specific parallelization function to use.
+#' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A list with the components:
 #' \describe{
@@ -46,7 +52,9 @@ fit_copula <- function(sce,
                        pseudo_obs = FALSE,
                        epsilon = 1e-6,
                        family_set = c("gaussian", "indep"),
-                       n_cores) {
+                       n_cores,
+                       parallelization = "mcmapply",
+                       BPPARAM = NULL) {
   # convert count matrix
   if (copula == "gaussian") {
     message("Convert Residuals to Multivariate Gaussian")
@@ -58,7 +66,8 @@ fit_copula <- function(sce,
       pseudo_obs = pseudo_obs,
       n_cores = n_cores,
       family_use = family_use,
-      epsilon = epsilon
+      epsilon = epsilon,
+      parallelization = parallelization
     )
     message("Converting End")
   } else{
@@ -71,7 +80,8 @@ fit_copula <- function(sce,
       pseudo_obs = pseudo_obs,
       family_use = family_use,
       n_cores = n_cores,
-      epsilon = epsilon
+      epsilon = epsilon,
+      parallelization = parallelization
     )
     message("Converting End")
   }
@@ -327,7 +337,8 @@ convert_n <- function(sce,
                       pseudo_obs = FALSE,
                       epsilon = 1e-6,
                       family_use,
-                      n_cores) {
+                      n_cores,
+                      parallelization) {
   ## Extract count matrix
   count_mat <-
     t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
@@ -335,9 +346,8 @@ convert_n <- function(sce,
   # n cell
   ncell <- dim(count_mat)[1]
 
-  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
-  BPPARAM$workers <- n_cores
-  mat <- BiocParallel::bpmapply(function(x, y) {
+
+  mat_function <- function(x, y) {
     fit <- marginal_list[[x]]
 
     if (methods::is(fit, "gamlss")) {
@@ -491,8 +501,23 @@ convert_n <- function(sce,
       lower.tail = TRUE,
       log.p = FALSE
     )
-  }, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
+  }
 
+  paraFunc <- parallel::mcmapply
+
+  if(parallelization == "bpmapply"){
+    paraFunc <- BiocParallel::bpmapply
+  }
+  if(parallelization == "pbmcmapply"){
+    paraFunc <- pbmcapply::pbmcmapply
+  }
+
+  if(parallelization == "bpmapply"){
+    BPPARAM$workers <- n_cores
+    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
+  }else{
+    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE)
+  }
   colnames(mat) <- rownames(sce)
   rownames(mat) <- colnames(sce)
 
@@ -514,7 +539,8 @@ convert_u <- function(sce,
                       pseudo_obs = FALSE,
                       epsilon = 1e-6,
                       n_cores,
-                      family_use) {
+                      family_use,
+                      parallelization) {
   ## Extract count matrix
   count_mat <-
     t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
@@ -522,9 +548,7 @@ convert_u <- function(sce,
   # n cell
   ncell <- dim(count_mat)[1]
 
-  BPPARAM <- BiocParallel::MulticoreParam(progressbar = TRUE)
-  BPPARAM$workers <- n_cores
-  mat <- BiocParallel::bpmapply(function(x, y) {
+  mat_function <- function(x, y) {
     fit <- marginal_list[[x]]
 
     if (methods::is(fit, "gamlss")) {
@@ -670,8 +694,23 @@ convert_u <- function(sce,
     }
 
     r
-  }, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
+  }
 
+  paraFunc <- parallel::mcmapply
+
+  if(parallelization == "bpmapply"){
+    paraFunc <- BiocParallel::bpmapply
+  }
+  if(parallelization == "pbmcmapply"){
+    paraFunc <- pbmcapply::pbmcmapply
+  }
+
+  if(parallelization == "bpmapply"){
+    BPPARAM$workers <- n_cores
+    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
+  }else{
+    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE)
+  }
   colnames(mat) <- rownames(sce)
   rownames(mat) <- colnames(sce)
 

@@ -24,7 +24,9 @@ scdesign3(
   family_set = c("gauss", "indep"),
   nonnegative = TRUE,
   nonzerovar = TRUE,
-  return_model = FALSE
+  return_model = FALSE,
+  parallelization = "mcmapply",
+  BPPARAM = NULL
 )
 }
 \arguments{
@@ -73,6 +75,14 @@ Default is FALSE.}
 \item{nonzerovar}{A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.}
 
 \item{return_model}{A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.}
+
+\item{parallelization}{A string indicating the specific parallelization function to use.
+Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.}
+
+\item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
 A list with the components:
