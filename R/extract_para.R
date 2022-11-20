@@ -17,7 +17,7 @@
 #' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 #' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
-#' '
+#' @param data A dataframe which is used when fitting the gamlss model
 #' @return A list with the components:
 #' \describe{
 #'   \item{\code{mean_mat}}{A cell by feature matrix of the mean parameter.}
@@ -32,7 +32,8 @@ extract_para <-  function(sce,
                           family_use,
                           new_covariate,
                           parallelization = "mcmapply",
-                          BPPARAM = NULL) {
+                          BPPARAM = NULL,
+                          data = NULL) {
 
   mat_function <-function(x, y) {
     fit <- marginal_list[[x]]
@@ -42,20 +43,20 @@ extract_para <-  function(sce,
         stats::predict(fit,
                        type = "response",
                        what = "mu",
-                       newdata = new_covariate)
+                       newdata = new_covariate, data = data)
       if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
         theta_vec = stats::predict(fit,
                                    type = "response",
                                    what = "sigma",
-                                   newdata = new_covariate) # this thete_vec is used for sigma_vec
+                                   newdata = new_covariate, data = data) # this thete_vec is used for sigma_vec
       } else if (y == "nb") {
         theta_vec <-
           stats::predict(fit,
                          type = "response",
                          what = "sigma",
-                         newdata = new_covariate)
+                         newdata = new_covariate, data = data)
         #theta_vec[theta_vec < 1e-3] <- 1e-3
       } else if (y == "zip") {
         theta_vec <- rep(NA, length(mean_vec))
@@ -63,18 +64,18 @@ extract_para <-  function(sce,
           stats::predict(fit,
                          type = "response",
                          what = "sigma",
-                         newdata = new_covariate)
+                         newdata = new_covariate, data = data)
       } else if (y == "zinb") {
         theta_vec <-
           stats::predict(fit,
                          type = "response",
                          what = "sigma",
-                         newdata = new_covariate)
+                         newdata = new_covariate, data = data)
         zero_vec <-
           stats::predict(fit,
                          type = "response",
                          what = "nu",
-                         newdata = new_covariate)
+                         newdata = new_covariate, data = data)
       } else {
         stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
       }
@@ -144,9 +145,9 @@ extract_para <-  function(sce,
 
   if(parallelization == "bpmapply"){
     BPPARAM$workers <- n_cores
-    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE)
+    mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE))
   }else{
-    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use,SIMPLIFY = FALSE)
+    mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use,SIMPLIFY = FALSE, mc.cores = n_cores))
   }
   mean_mat <- sapply(mat, function(x)
     x[, 1])

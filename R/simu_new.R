@@ -184,7 +184,7 @@ simu_new <- function(sce,
     BPPARAM$workers <- n_cores
     mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
-    mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE)
+    mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
  }
   new_count <- mat #simplify2array(mat)
 

@@ -116,7 +116,8 @@ scdesign3 <- function(sce,
     family_use = family_use,
     new_covariate = input_data$newCovariate,
     parallelization = parallelization,
-    BPPARAM = BPPARAM
+    BPPARAM = BPPARAM,
+    data = input_data$dat
   )
   message("Parameter
 Extraction End")

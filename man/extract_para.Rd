@@ -11,7 +11,8 @@ extract_para(
   family_use,
   new_covariate,
   parallelization = "mcmapply",
-  BPPARAM = NULL
+  BPPARAM = NULL,
+  data = NULL
 )
 }
 \arguments{
@@ -32,8 +33,9 @@ Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the
 
 \item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
-'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
-'}
+'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.}
+
+\item{data}{A dataframe which is used when fitting the gamlss model}
 }
 \value{
 A list with the components:

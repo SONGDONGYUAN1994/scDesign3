@@ -338,6 +338,7 @@ fit_marginal <- function(data,
   }else{
     model_fit <- suppressMessages(paraFunc(fit_model_func, gene = feature_names,
                                            family_gene = family_use,
+                                           mc.cores = n_cores,
                                            MoreArgs = list(dat_use = dat_cov,
                                                            mgcv_formula = mgcv_formula,
                                                            mu_formula = mu_formula,

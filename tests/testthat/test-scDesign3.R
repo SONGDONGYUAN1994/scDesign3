@@ -81,7 +81,8 @@ test_that("Run scDesign3", {
     marginal_list = my_marginal3,
     n_cores = 1,
     family_use = c(rep("nb", 5), rep("zip", 5)),
-    new_covariate = NULL
+    new_covariate = NULL,
+    data = my_data$dat
   )
 
   my_newcount <- simu_new(
