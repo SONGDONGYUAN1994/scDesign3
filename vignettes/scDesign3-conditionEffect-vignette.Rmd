@@ -41,6 +41,7 @@ knitr::opts_chunk$set(
 ```{r setup, message=FALSE}
 library(scDesign3)
 library(SingleCellExperiment)
+theme_set(theme_bw())
 ```
 
 ## Introduction
@@ -131,12 +132,14 @@ IFNB_copula <- fit_copula(
     input_data = IFNB_data$dat
   )
 ```
+In here, the condition effects on B cells are removed for all genes by modifying the estimated coefficients for all genes' marginal models.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 IFNB_marginal_null_B <- lapply(IFNB_marginal, function(x) {
   x$coefficients["cell_typeB:conditionSTIM"] <- 0-x$coefficients["conditionSTIM"]
   x
 })
 ```
+Then, we can generate the parameters using the altered marginal fits and simulate new data with the altered paremeters.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 IFNB_para_null_B <- extract_para(
     sce = example_sce,
@@ -160,9 +163,7 @@ IFNB_newcount_null_B <- simu_new(
     new_covariate = IFNB_data$new_covariate
   )
 ```
-
-## Visulization
-We first create two `SingleCellExperiment` objects using two count matrices generated above.
+Then, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
 ```{r, message=FALSE}
 simu_res_list <- lapply(list(simu_res$new_count,IFNB_newcount_null_B ), function(x){
   logcounts(example_sce) <- log1p(counts(example_sce))
@@ -173,7 +174,8 @@ simu_res_list <- lapply(list(simu_res$new_count,IFNB_newcount_null_B ), function
 })
 logcounts(example_sce) <- log1p(counts(example_sce))
 ```
-Then, we visualize the results.
+
+## Visulization
 ```{r, message=FALSE, fig.width=12}
 set.seed(123)
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 

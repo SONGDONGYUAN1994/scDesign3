@@ -33,6 +33,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, message=FALSE}
 library(scDesign3)
+theme_set(theme_bw())
 ```
 
 In this tutorial, we will demostrate how to simulate a new dataset using a one-shot function or a sequence of functions provided by our package.
@@ -73,7 +74,7 @@ example_simu <- scdesign3(
     nonzerovar = FALSE
   )
 ```
-Create `SingleCellExperiment` object.
+We create the `SingleCellExperiment` objects using the new count matrices generated above and store the `logcounts`.
 ```{r, message=FALSE}
 logcounts(example_sce) <- log1p(counts(example_sce))
 simu_sce <- example_sce
@@ -169,7 +170,7 @@ PANCREAS_para <- extract_para(
     new_covariate = PANCREAS_data$new_covariate
   )
 ```
-Create `SingleCellExperiment` object.
+Then, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
 ```{r, message=FALSE}
 logcounts(example_sce) <- log1p(counts(example_sce))
 simu_sce <- example_sce

@@ -14,16 +14,22 @@
 #' @param n_cores An integer. The number of cores to use.
 #' @param family_use A string of the marginal distribution.
 #' Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.
-#' @param nonnegative A logical variable. If TRUE, values < 0 will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
+#' @param nonnegative A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
 #' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.
 #' @param input_data A input count matrix.
 #' @param new_covariate A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}}.
+#' @param important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
+#' this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+#' for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+#' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
+#' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
+#' The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
-#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
-#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
-#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
+#' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A feature by cell matrix of the new simulated count (expression) matrix.
 #'
@@ -41,6 +47,7 @@ simu_new <- function(sce,
                      nonzerovar = TRUE,
                      input_data,
                      new_covariate,
+                     important_feature,
                      parallelization = "mcmapply",
                      BPPARAM = NULL){
   if(!is.null(quantile_mat) & !is.null(copula_list)) {
@@ -95,14 +102,21 @@ simu_new <- function(sce,
             #message("MVN Sampling End")
             rownames(new_mvu) <- curr_ncell_idx
           } else if (class(cor.mat)[1] == "vinecop") {
-
+            new_mvu <- matrix(0, nrow = curr_ncell, ncol = dim(sce)[1])
             #message("Sampling Vine Copula Starts")
-            new_mvu <- rvinecopulib::rvinecop(
+            mvu <- rvinecopulib::rvinecop(
               curr_ncell,
               vine = cor.mat,
               cores = n_cores,
               qrng = TRUE
             )
+            new_mvu[, which(important_feature)] <- mvu
+            if(length(which(important_feature)) != dim(sce)[1]){
+              cor.mat <- diag(rep(1, length(which(!important_feature))))
+              mvu2 <- sampleMVN(n = curr_ncell,
+                                Sigma = cor.mat)
+              new_mvu[, which(!important_feature)] <- mvu2
+            }
             #message("Sampling Vine Copula Ends")
             rownames(new_mvu) <- curr_ncell_idx
           } else if (ind) {

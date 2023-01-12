@@ -70,7 +70,7 @@ head(colData(example_sce))[,c("pseudotime1","pseudotime2","l1","l2")]
 ```
 
 ## Simulation
-Then, we can use this multiple-lineage dataset to generate new data.
+Then, we can use this multiple-lineage dataset to generate new data by setting the parameter `mu_formula` as two smooth terms for each lineage.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 set.seed(123)
 example_simu <- scdesign3(
@@ -99,7 +99,7 @@ Now we get the synthetic count matrix.
 dim(example_simu$new_count)
 corner(example_simu$new_count)
 ```
-Create `SingleCellExperiment` object.
+Then, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
 ```{r, message=FALSE}
 logcounts(example_sce) <- log1p(counts(example_sce))
 simu_sce <- example_sce

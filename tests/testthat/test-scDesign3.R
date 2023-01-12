@@ -95,7 +95,8 @@ test_that("Run scDesign3", {
     n_cores = 1,
     family_use = c(rep("nb", 5), rep("zip", 5)),
     input_data = my_data$dat,
-    new_covariate = my_data$new_covariate
+    new_covariate = my_data$new_covariate,
+    important_feature = my_copula$important_feature
   )
 
   my_simu <- scdesign3(

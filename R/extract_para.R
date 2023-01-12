@@ -6,17 +6,20 @@
 #' marginal models from \code{\link{fit_marginal}}.
 #'
 #' @param sce A \code{SingleCellExperiment} object.
-#' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}}.
+#' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}} for each gene in sce.
 #' @param n_cores An integer. The number of cores to use.
 #' @param family_use A string of the marginal distribution.
-#' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
-#' @param new_covariate A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.
+#' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
+#' 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+#' and 'gaussian distribution' respectively.
+#' @param new_covariate A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}} and the
+#' correlation group assignment for each cell in the column 'corr_group'.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
-#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
-#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
-#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
+#' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #' @param data A dataframe which is used when fitting the gamlss model
 #' @return A list with the components:
 #' \describe{

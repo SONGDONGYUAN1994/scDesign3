@@ -40,6 +40,7 @@ library(ggrepel)
 library(scran)
 library(dplyr)
 library(igraph)
+theme_set(theme_bw())
 ```
 ## Introduction
 In this tutorial, we will show the differences between using Gaussian copula and vine copula when simulate new data. Vine copula can better estimate the high-dimensional gene-gene correlation, however, the simulation with vine copula does takes more time than with Gaussian copula. If your reference dataset have more than **1000 genes**, we recommend you simulate data with Gaussian copula.

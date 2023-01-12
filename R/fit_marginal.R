@@ -6,19 +6,21 @@
 #' and fit the regression models for each feature based on users' specification.
 #'
 #' @param data An object from \code{\link{construct_data}}. ## Fix later
-#' @param predictor Default is gene. ## Fix later
+#' @param predictor The predictor for the gam/gamlss model. Default is gene. ## Fix later
 #' @param mu_formula A string of the mu parameter formula
 #' @param sigma_formula A string of the sigma parameter formula
 #' @param family_use A string or a vector of strings of the marginal distribution.
-#' Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
+#' Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
+#' 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+#' and 'gaussian distribution' respectively.
 #' @param n_cores An integer. The number of cores to use.
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
-#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
-#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
-#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
+#' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A list of fitted regression models. The length is equal to the total feature number.
 #'

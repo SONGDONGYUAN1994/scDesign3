@@ -16,6 +16,7 @@ fit_copula(
   pseudo_obs = FALSE,
   epsilon = 1e-06,
   family_set = c("gaussian", "indep"),
+  important_feature = rep(TRUE, dim(sce)[1]),
   n_cores,
   parallelization = "mcmapply",
   BPPARAM = NULL
@@ -27,7 +28,7 @@ fit_copula(
 \item{assay_use}{A string which indicates the assay you will use in the sce.
 Default is 'counts'.}
 
-\item{input_data}{The input data.}
+\item{input_data}{The input data, which is one of the output from \code{\link{construct_data}}.}
 
 \item{new_covariate}{A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.}
 
@@ -48,15 +49,22 @@ Default is FALSE.}
 
 \item{family_set}{A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").}
 
+\item{important_feature}{A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
+this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
+gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
+The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.}
+
 \item{n_cores}{An integer. The number of cores to use.}
 
 \item{parallelization}{A string indicating the specific parallelization function to use.
 Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
-'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.}
+\code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.}
 
-\item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+\item{BPPARAM}{A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
-'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.}
+\code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
 A list with the components:

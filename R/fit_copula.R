@@ -8,7 +8,7 @@
 #' @param sce A \code{SingleCellExperiment} object.
 #' @param assay_use A string which indicates the assay you will use in the sce.
 #' Default is 'counts'.
-#' @param input_data The input data.
+#' @param input_data The input data, which is one of the output from \code{\link{construct_data}}.
 #' @param new_covariate A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.
 #' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}}.
 #' @param family_use A string or a vector of strings of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
@@ -20,13 +20,19 @@
 #' Default is FALSE.
 #' @param epsilon A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.
 #' @param family_set A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").
+#' @param important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
+#' this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+#' for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+#' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
+#' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
+#' The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.
 #' @param n_cores An integer. The number of cores to use.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
-#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
-#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
-#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
+#' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A list with the components:
 #' \describe{
@@ -52,6 +58,7 @@ fit_copula <- function(sce,
                        pseudo_obs = FALSE,
                        epsilon = 1e-6,
                        family_set = c("gaussian", "indep"),
+                       important_feature = rep(TRUE, dim(sce)[1]),
                        n_cores,
                        parallelization = "mcmapply",
                        BPPARAM = NULL) {
@@ -86,6 +93,24 @@ fit_copula <- function(sce,
     message("Converting End")
   }
 
+  ## select important genes
+  if(is.vector(important_feature) & length(important_feature) !=1){
+    if(length(important_feature) != dim(sce)[1] | class(important_feature) != "logical"){
+      stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
+    }
+  }else{
+    if(important_feature=="auto"){
+      gene_zero_prop <- apply(counts(sce), 1, function(y){
+        sum(y < 1e-5) / dim(sce)[2]
+      })
+      important_feature = gene_zero_prop < 0.8 ## default zero proportion in scDesign2
+      names(important_feature) <- rownames(sce)
+    }else{
+      stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
+    }
+  }
+
+
   group_index <- unique(input_data$corr_group)
   corr_group <- as.data.frame(input_data$corr_group)
   colnames(corr_group) <- "corr_group"
@@ -104,7 +129,8 @@ fit_copula <- function(sce,
                                  corr_group,
                                  new_corr_group,
                                  ind,
-                                 n_cores) {
+                                 n_cores,
+                                 important_feature) {
       message(paste0("Copula group ", x, " starts"))
       curr_index <- which(corr_group[, 1] == x)
       if (is.null(new_covariate)) {
@@ -115,13 +141,13 @@ fit_copula <- function(sce,
         curr_ncell_idx <-
           paste0("Cell", which(new_corr_group[, 1] == x))
       }
-
       if (copula == "gaussian") {
         #message(paste0("Group ", group_index, " Start"))
         curr_mat <- newmat[curr_index, , drop = FALSE]
         #message("Cal MVN")
         cor.mat <- cal_cor(
           curr_mat,
+          important_feature = important_feature,
           if.sparse = FALSE,
           lambda = 0.05,
           tol = 1e-8,
@@ -147,6 +173,7 @@ fit_copula <- function(sce,
           message("Vine Copula Estimation Starts")
           start <- Sys.time()
           curr_mat <- newmat[curr_index, , drop = FALSE]
+          curr_mat <- curr_mat[,which(important_feature)]
           vine.fit <- rvinecopulib::vinecop(
             data = curr_mat,
             family_set = family_set,
@@ -196,7 +223,7 @@ fit_copula <- function(sce,
           cor.mat = cor.mat
         )
       )
-    }, sce = sce, newmat = newmat, ind = ind, n_cores = n_cores, corr_group = corr_group, new_corr_group = new_corr_group)
+    }, sce = sce, newmat = newmat, ind = ind, n_cores = n_cores, corr_group = corr_group, new_corr_group = new_corr_group, important_feature = important_feature)
 
   #newmvn <-
   #  do.call(rbind, lapply(newmvn.list, function(x)
@@ -227,7 +254,8 @@ fit_copula <- function(sce,
       #new_mvu = new_mvu,
       model_aic = model_aic,
       model_bic = model_bic,
-      copula_list = copula_list
+      copula_list = copula_list,
+      important_feature = important_feature
     )
   )
 }
@@ -235,6 +263,7 @@ fit_copula <- function(sce,
 
 ## Calculate the correlation matrix. If use sparse cor estimation, package spcov will be used (it can be VERY SLOW).
 cal_cor <- function(norm.mat,
+                    important_feature,
                     if.sparse = FALSE,
                     lambda = 0.05,
                     tol = 1e-8,
@@ -244,12 +273,17 @@ cal_cor <- function(norm.mat,
     return(cor.mat)
   }
   else {
-    cor.mat <- Rfast::cora(norm.mat)
+    cor.mat <- diag(rep(1, dim(norm.mat)[2]))
+    rownames(cor.mat) <- colnames(norm.mat)
+    colnames(cor.mat) <- colnames(norm.mat)
+    important.mat <- norm.mat[,which(important_feature)]
+    important_cor.mat <- Rfast::cora(important.mat)
     #s_d <- apply(norm.mat, 2, stats::sd)
-    s_d <- Rfast::colVars(norm.mat, std = TRUE, na.rm = TRUE)
+    s_d <- Rfast::colVars(important.mat, std = TRUE, na.rm = TRUE)
     if (any(0 == s_d)) {
-      cor.mat[is.na(cor.mat)] <- 0
+      important.mat[is.na(important.mat)] <- 0
     }
+    cor.mat[rownames(important_cor.mat), colnames(important_cor.mat)] <- important_cor.mat
   }
 
   n <- dim(cor.mat)[1]

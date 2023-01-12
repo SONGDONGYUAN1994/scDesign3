@@ -40,6 +40,7 @@ knitr::opts_chunk$set(
 ```{r setup, message=FALSE}
 library(scDesign3)
 library(ggplot2)
+theme_set(theme_bw())
 ```
 
 
@@ -48,7 +49,6 @@ In this tutorial, we will show how to use scDesign3 to simulate data with origin
 
 ## Read in the reference data
 The raw data is from the `SeuratData` package. The data is called `pbmcsca` in the package; it is PBMC Systematic Comparative Analysis dataset from the Broad Institute.
-
 ```{r, message=FALSE}
 example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AACFsTJvmzgBKicMsbFzxbyUa/BATCH_sce.rds?raw=1")))
 print(example_sce)
@@ -121,6 +121,7 @@ BATCH_copula <- fit_copula(
     input_data = BATCH_data$dat
   )
 ```
+In here, we remove  the batch effect by setting its coefficient to zero for all genes' marginal fits. Then, we use the new sets of coefficients to generate the parameters for all genes across all cells.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_marginal_null <- lapply(BATCH_marginal, function(x) {
   x$coefficients[length(x$coefficients)] <- 0
@@ -151,7 +152,7 @@ BATCH_newcount_null <- simu_new(
   )
 ```
 
-Additionally, we can alter the batch effect information and simulate new dataset with altered batch effect information.
+Additionally, we can alter the batch effect information by mannually change the estimated coefficient for batch effect in each gene's marginal model. Then, we can simulate new dataset with altered batch effect information.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 BATCH_marginal_alter <- lapply(BATCH_marginal, function(x) {
   x$coefficients[length(x$coefficients)] <- rnorm(1, mean = 5, sd = 2)
@@ -181,9 +182,7 @@ BATCH_newcount_alter <- simu_new(
     new_covariate = BATCH_data$new_covariate
   )
 ```
-
-## Visulization
-We first create three `SingleCellExperiment` objects using three count matrices generated above.
+We create three `SingleCellExperiment` objects using three count matrices generated above and store their `logcounts`.
 ```{r, message=FALSE}
 simu_res_list <- lapply(list(simu_res$new_count, BATCH_newcount_null, BATCH_newcount_alter), function(x){
   simu_sce <- example_sce
@@ -192,7 +191,8 @@ simu_res_list <- lapply(list(simu_res$new_count, BATCH_newcount_null, BATCH_newc
   return(simu_sce)
 })
 ```
-Then, we visualize the results.
+
+## Visulization
 ```{r, message=FALSE, fig.width=12}
 set.seed(123)
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 

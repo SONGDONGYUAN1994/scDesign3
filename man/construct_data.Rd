@@ -38,18 +38,18 @@ If an arbitrary number is provided, the fucntion will use Vine Copula to simulat
 
 \item{parallelization}{A string indicating the specific parallelization function to use.
 Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
-'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.}
+\code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.}
 
-\item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+\item{BPPARAM}{A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
-'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.}
+\code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
 A list with the components:
 \describe{
   \item{\code{count_mat}}{The expression matrix}
   \item{\code{dat}}{The original covariate matrix}
-  \item{\code{newCovariate}}{The simulated new covariate matrix}
+  \item{\code{newCovariate}}{The simulated new covariate matrix, is NULL if the parameter ncell is default}
 }
 }
 \description{

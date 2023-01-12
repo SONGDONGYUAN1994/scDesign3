@@ -17,6 +17,7 @@ simu_new(
   nonzerovar = TRUE,
   input_data,
   new_covariate,
+  important_feature,
   parallelization = "mcmapply",
   BPPARAM = NULL
 )
@@ -39,7 +40,7 @@ simu_new(
 \item{family_use}{A string of the marginal distribution.
 Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.}
 
-\item{nonnegative}{A logical variable. If TRUE, values < 0 will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
+\item{nonnegative}{A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
 
 \item{nonzerovar}{A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.}
 
@@ -47,13 +48,20 @@ Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{new_covariate}{A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}}.}
 
+\item{important_feature}{A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
+this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
+gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
+The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.}
+
 \item{parallelization}{A string indicating the specific parallelization function to use.
 Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
-'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.}
+\code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.}
 
-\item{BPPARAM}{A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+\item{BPPARAM}{A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
-'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.}
+\code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
 A feature by cell matrix of the new simulated count (expression) matrix.

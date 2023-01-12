@@ -5,6 +5,10 @@ author:
     affiliation:
     - Bioinformatics IDP, University of California, Los Angeles
     email: dongyuansong@ucla.edu
+  - name: Guanao Yan
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: gayan@g.ucla.edu
 output: 
   BiocStyle::html_document:
     self_contained: yes
@@ -19,6 +23,12 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}  
 ---
+```{css, echo=FALSE}
+pre {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+}
+```
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
@@ -41,7 +51,7 @@ In this tutorial, we show how to use scDesign3 to simulate the peak by cell matr
 
 ## Read in the reference data
 
-The raw data is from the [Signac](https://satijalab.org/signac/articles/pbmc_vignette.html), which is of human peripheral blood mononuclear cells (PBMCs) provided by 10x Genomics. We pre-select the differentially accessible peaks between clusters.
+The raw data is from the [Signac](https://stuartlab.org/signac/articles/pbmc_vignette.html), which is of human peripheral blood mononuclear cells (PBMCs) provided by 10x Genomics. We pre-select the differentially accessible peaks between clusters.
 
 ```{r, message=FALSE}
 example_sce <- readRDS((url("https://www.dropbox.com/s/e75uf5k5voni106/ATAC_sce.rds?raw=1")))

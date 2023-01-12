@@ -47,6 +47,7 @@ library(dplyr)
 library(scran)
 library(aricode)
 library(ggplot2)
+theme_set(theme_bw())
 ```
 
 ## Introduction

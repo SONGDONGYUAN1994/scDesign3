@@ -1,0 +1,132 @@
+---
+title: "Simulate CITE-seq data"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+  - name: Qingyang Wang
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: qw802@g.ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign3-CITEseq_vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+---
+
+
+```{css, echo=FALSE}
+pre {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+}
+```
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+library(scDesign3)
+library(SingleCellExperiment)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+## Introduction
+In this tutorial, we will show how to use scDesign3 to simulate CITE-seq data and illustrate the similarity between the inputted reference data and synthetic data.
+
+## Read in the reference data
+```{r, message=FALSE, warning=FALSE, results='hide'}
+example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AAA2ly7fk9Ge98YB3FbiMtR9a/CITE_sce.rds?raw=1")))
+print(example_sce)
+```
+
+## Simulation
+We input the reference data and use the one-shot `scdesign3()` function to simulate CITE-seq dat using discrete cell types as the covariates for fitting each gene's marginal distribution.
+```{r, message=FALSE, warning=FALSE, results='hide'}
+set.seed(123)
+example_simu <- scdesign3(
+    sce = example_sce,
+    assay_use = "counts",
+    celltype = "cell_type",
+    pseudotime = NULL,
+    spatial = NULL,
+    other_covariates = NULL,
+    mu_formula = "cell_type",
+    sigma_formula = "cell_type",
+    family_use = "nb",
+    n_cores = 2,
+    usebam = FALSE,
+    corr_formula = "1",
+    copula = "vine",
+    DT = TRUE,
+    pseudo_obs = FALSE,
+    return_model = FALSE,
+    nonzerovar = TRUE,
+    nonnegative = TRUE
+  )
+```
+After the simulation, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
+```{r, message=FALSE, warning=FALSE, results='hide'}
+logcounts(example_sce) <- log1p(counts(example_sce))
+simu_sce <- example_sce
+counts(simu_sce) <- example_simu$new_count
+logcounts(simu_sce) <- log1p(counts(simu_sce))
+```
+Then, we obtained the PCA and UMAP for both the inputted reference data and the synthetic data. These embeddings will be used for the visualization below.
+```{r, message=FALSE, warning=FALSE, results='hide'}
+ train_pca_fit <- irlba::prcomp_irlba(t(log1p(counts(example_sce))), 
+                                          center = TRUE, 
+                                          scale. = FALSE, 
+                                          n = 50)
+reducedDim(simu_sce, "PCA") <- predict(train_pca_fit, newdata= t(log1p(counts(simu_sce))))
+simu_pac_fit <- predict(train_pca_fit, newdata= t(logcounts(simu_sce)))
+train_umap_fit <- umap::umap(train_pca_fit$x, n_neighbors = 15, min_dist = 0.1)
+simu_umap_fit <-  predict(object = train_umap_fit, data= (reducedDim(simu_sce, "PCA")))
+colnames(simu_umap_fit ) <- c("UMAP1", "UMAP2")
+reducedDim(simu_sce, "UMAP") <- simu_umap_fit 
+train_umap <- train_umap_fit$layout
+rownames(train_umap) <- colnames(example_sce)
+colnames(train_umap) <- c("UMAP1", "UMAP2")
+```
+
+## Visualization
+To visualize the results, we  select six genes and reformat their UMAP embedding we got in the previous step.
+```{r, message=FALSE, warning=FALSE, results='hide'}
+keep_gene <- c("CD4",  "CD14", "CD19", "CD34", "CD3E", "CD8A")
+keep_adt <- c("ADT_CD4", "ADT_CD14", "ADT_CD19", "ADT_CD34", "ADT_CD3", "ADT_CD8")
+```
+```{r}
+expression_train <- as.matrix(logcounts(example_sce))[c(keep_gene ,keep_adt), ] %>% t()  %>% as_tibble() %>% bind_cols(train_umap) %>% dplyr::mutate(Method = "Train data")
+expression_scDesign3 <- as.matrix(logcounts(simu_sce))[c(keep_gene ,keep_adt), ] %>% t() %>% as_tibble() %>% bind_cols(simu_umap_fit) %>% dplyr::mutate(Method = "scDesign3")
+```
+```{r}
+CITE_dat <- bind_rows(expression_train, expression_scDesign3) %>% as_tibble() %>%
+            dplyr::mutate_at(vars(-c(UMAP1, UMAP2, Method)), funs(scales::rescale)) %>% tidyr::pivot_longer(-c("UMAP1", "UMAP2", "Method"), names_to = "Feature", values_to = "Expression") %>% dplyr::mutate(Type = if_else(str_detect(Feature, "ADT"), "Protein", "RNA")) %>% dplyr::mutate(Gene = str_replace(Feature, "ADT_", "")) %>% dplyr::mutate(Gene = if_else(Gene == "CD3E", "CD3", Gene))%>% dplyr::mutate(Gene = if_else(Gene == "CD8A", "CD8", Gene))%>% dplyr::filter(Gene %in% c("CD14", "CD3", "CD8", "CD19")) %>% dplyr::mutate(Gene = factor(Gene, levels = c("CD3", "CD8", "CD14", "CD19"))) %>% dplyr::mutate(Method = factor(Method, levels = c("Train data", "scDesign3")))
+head(CITE_dat)
+```
+Six genes' protein and RNA abundances are shown on the cell UMAP embeddings in the inputted reference data and the synthetic data below. 
+```{r, message=FALSE, warning=FALSE, results='hide'}
+CITE_dat  %>% ggplot(aes(x = UMAP1, y = UMAP2, color = Expression)) + geom_point(size = 0.1, alpha = 0.5) + scale_colour_gradientn(colors = viridis_pal(option = "A", direction = -1)(10), limits=c(0, 1)) + coord_fixed(ratio = 1) + facet_nested(Method ~ Gene + Type ) + theme(aspect.ratio = 1, legend.position = "bottom")  + theme(aspect.ratio = 1, legend.position = "right") + theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank())
+```

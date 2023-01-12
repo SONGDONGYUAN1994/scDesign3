@@ -74,7 +74,7 @@ out <- generate_dataset(
 example_sce <- out$dataset
 colData(example_sce)$pseudotime <- out$model$experiment$cell_info$time 
 ```
-Secondly, we perturb the generated time by percentage, ranging from 0% to 100%.
+Secondly, we perturb the pseudotime by generating random numbers from uniform distribution and replace various percentage of the original pseudotime by the random numbers. The percentage ranges from 0% to 100%.
 ```{r, message=FALSE}
 example_sce_list <- lapply(0:10, function(x) {
   perturb_prop <- x/10

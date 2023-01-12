@@ -25,15 +25,21 @@
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
 #' @param family_set A string or a string vector of the bivariate copula families. Default is c("gauss", "indep").
-#' @param nonnegative A logical variable. If TRUE, values < 0 will be converted to 0.Default is TRUE.
+#' @param important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
+#' this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+#' for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+#' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
+#' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
+#' The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.
+#' @param nonnegative A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
 #' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.
 #' @param return_model A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
-#' 'parallel','BiocParallel', and 'pbmcapply' respectively. The default value is 'mcmapply'.
-#' @param BPPARAM A 'MulticoreParam' object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
-#' 'MulticoreParam' object offered by the package 'BiocParallel. The default value is NULL.
+#' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A list with the components:
 #' \describe{
@@ -58,6 +64,7 @@ scdesign3 <- function(sce,
                       DT = TRUE,
                       pseudo_obs = FALSE,
                       family_set = c("gauss", "indep"),
+                      important_feature = rep(TRUE, dim(sce)[1]),
                       nonnegative = TRUE,
                       nonzerovar = TRUE,
                       return_model = FALSE,
@@ -103,6 +110,7 @@ scdesign3 <- function(sce,
     copula = copula,
     family_set = family_set,
     n_cores = n_cores,
+    important_feature = important_feature,
     parallelization = parallelization,
     BPPARAM = BPPARAM
   )
@@ -136,6 +144,7 @@ Extraction End")
     nonzerovar = nonzerovar,
     input_data = input_data$dat,
     new_covariate = input_data$newCovariate,
+    important_feature = copula_res$important_feature,
     parallelization = parallelization,
     BPPARAM = BPPARAM
   )
