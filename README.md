@@ -78,7 +78,7 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
     -   Simulate datasets with condition effect
 -   Model parameter
     -   scDesign3 introduction
-    -   Compare gaussian copula and vine copula
+    -   Compare Gaussian copula and Vine copula
 -   Model selection
     -   Evaluate clustering goodness-of-fit by scDesign3
     -   Evaluate pseudotime goodness-of-fit by scDesign3
