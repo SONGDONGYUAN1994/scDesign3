@@ -50,7 +50,9 @@ theme_set(theme_bw())
 ```
 
 ## Introduction
-In this tutorial, we will first use the R package `dyngen` to generate a dataset with ground truth \"pseudotime\". Then, we will perturb the ground truth pseudotime to worsen its quality and use scDesign3's BIC to examine pseudotime quality. 
+
+In this tutorial, we will show how to use scDesign3 to evaluate the pseudotime goodness-of-fit for different pseudotime labels. If the true labels are unavailable and we have little prior knowledge, the scDesign3 BIC can serve as an unsupervised metric.
+In this tutorial, we will first use the R package `dyngen` to generate a dataset with ground truth \"pseudotime\". Then, we will perturb the ground truth pseudotime to worsen its quality and use scDesign3's BIC to examine pseudotime goodness-of-fit. 
 
 ## Generation of reference dataset & Simulation
 We will first use `dyngen` to generate a dataset with ground truth "pseudotime".

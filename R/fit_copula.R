@@ -9,13 +9,13 @@
 #' @param assay_use A string which indicates the assay you will use in the sce.
 #' Default is 'counts'.
 #' @param input_data The input data, which is one of the output from \code{\link{construct_data}}.
-#' @param new_covariate A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.
+#' @param new_covariate A data.frame which contains covariates of targeted simulated data from \code{\link{construct_data}}.
 #' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}}.
 #' @param family_use A string or a vector of strings of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'vine'.
 #' @param DT A logic variable. If TRUE, perform the distributional transformation
 #' to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
-#' Default is TRUE.
+#' Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
 #' @param epsilon A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.

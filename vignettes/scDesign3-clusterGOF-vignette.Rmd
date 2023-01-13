@@ -1,5 +1,5 @@
 ---
-title: "Evaluate clustering quality by scDesign3"
+title: "Evaluate clustering goodness-of-fit by scDesign3"
 author: 
   - name: Dongyuan Song
     affiliation:
@@ -51,7 +51,7 @@ theme_set(theme_bw())
 ```
 
 ## Introduction
-In this tutorial, we will show how to use scDesign3 to evaluate the clustering quailty for different cell-type assignments.
+In this tutorial, we will show how to use scDesign3 to evaluate the clustering goodness-of-fit for different cell-type assignments. If the true labels are unavailable and we have little prior knowledge, the scDesign3 BIC can serve as an unsupervised metric.
 
 
 ## Read in the reference data
@@ -64,7 +64,7 @@ res_sub <- res %>% dplyr::filter(method %in% c("SC3", "Seurat", "PCAHC", "PCAKme
 res_sub_list <- res_sub %>% group_by(dataset, method, run, k, resolution) %>% group_split()
 ```
 
-For demonstration purpose, we use the `Zhengmix4eq` dataset in the package with top 100 highly varaible genes and the corresponding k-means clustering results with k = $2 ,\cdots, 10$.
+For demonstration purpose, we use the `Zhengmix4eq` dataset in the package with top 100 highly variable genes and the corresponding k-means clustering results with k = $2 ,\cdots, 10$.
 ```{r, message=FALSE}
 kmeans_res <- Filter(function(x){all(x$method == "PCAKmeans")}, res_sub_list)
 ncell <- ncol(Zhengmix4eq_sce)

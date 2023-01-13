@@ -1,9 +1,9 @@
 #' Perform the likelihood ratio test
 #'
-#' \code{perform_lrt} performs the likelihood ratio test to compare two marginal models.
+#' \code{perform_lrt} performs the likelihood ratio test to compare two list of marginal models.
 #'
 #' The function takes two lists of marginal models (by default, the first list is the alternative and the second is the null)
-#' from \code{\link{fit_marginal}}.
+#' from \code{\link{fit_marginal}}. Note that LRT only makes sense for nested models.
 #'
 #' @param alter_marginal A list of marginal models from the alternative hypothesis.
 #' @param null_marginal A list of marginal models from the null hypothesis. It must be strictly nested in the alternative model.

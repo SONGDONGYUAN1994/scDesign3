@@ -9,7 +9,7 @@
 #' @param pseudotime A string or a string vector of the name of pseudotime and (if exist)
 #' multiple lineages. Default is NULL.
 #' @param spatial A length two string vector of the names of spatial coordinates. Defualt is NULL.
-#' @param other_covariates A string or a string vector of the other covaraites you want to include in the data.
+#' @param other_covariates A string or a string vector of the other covariates you want to include in the data.
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 #' @param mu_formula A string of the mu parameter formula
 #' @param sigma_formula A string of the sigma parameter formula
@@ -21,7 +21,7 @@
 #' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'vine'.
 #' @param DT A logic variable. If TRUE, perform the distributional transformation
 #' to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
-#' Default is TRUE.
+#' Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
 #' @param family_set A string or a string vector of the bivariate copula families. Default is c("gauss", "indep").

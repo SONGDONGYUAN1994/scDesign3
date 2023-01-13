@@ -5,8 +5,8 @@
 #' The function takes the result from \code{\link{construct_data}} as the input,
 #' and fit the regression models for each feature based on users' specification.
 #'
-#' @param data An object from \code{\link{construct_data}}. ## Fix later
-#' @param predictor The predictor for the gam/gamlss model. Default is gene. ## Fix later
+#' @param data An object from \code{\link{construct_data}}.
+#' @param predictor A string of the predictor for the gam/gamlss model. Default is gene. This is essentially just a name.
 #' @param mu_formula A string of the mu parameter formula
 #' @param sigma_formula A string of the sigma parameter formula
 #' @param family_use A string or a vector of strings of the marginal distribution.
