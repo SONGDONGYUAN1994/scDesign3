@@ -148,7 +148,8 @@ BATCH_newcount_null <- simu_new(
     n_cores = 2,
     family_use = "nb",
     input_data = BATCH_data$dat,
-    new_covariate = BATCH_data$new_covariate
+    new_covariate = BATCH_data$new_covariate,
+    important_feature = BATCH_copula$important_feature
   )
 ```
 
@@ -179,7 +180,8 @@ BATCH_newcount_alter <- simu_new(
     n_cores = 2,
     family_use = "nb",
     input_data = BATCH_data$dat,
-    new_covariate = BATCH_data$new_covariate
+    new_covariate = BATCH_data$new_covariate,
+    important_feature = BATCH_copula$important_feature
   )
 ```
 We create three `SingleCellExperiment` objects using three count matrices generated above and store their `logcounts`.

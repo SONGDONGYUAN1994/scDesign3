@@ -33,10 +33,12 @@ pre {
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 library(scDesign3)
+library(SingleCellExperiment)
 library(dplyr)
 library(ggplot2)
 library(ggh4x)
-theme_bw()
+library(umap)
+theme_set(theme_bw())
 ```
 
 ```{r, include = FALSE}
@@ -62,6 +64,7 @@ We first combine the cell-level data from the scRNA-seq data and the DNA methyla
 coldata_bind <- bind_rows(as_tibble(colData(SCGEMRNA_sce)) %>% dplyr::mutate(Tech = "RNA"), as_tibble(colData(SCGEMMETH_sce)) %>% dplyr::mutate(Tech = "Methylation"))
 head(coldata_bind)
 ```
+
 ## Simulation
 We first use the step-by-step functions to fit genes' marginal models, copulas, and extract simulation parameters separately for the scRNA-seq data and the DNA methylation data.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
@@ -70,10 +73,10 @@ RNA_data <- scDesign3::construct_data(SCGEMRNA_sce, assay_use = "logcounts", cel
 METH_data <- scDesign3::construct_data(SCGEMMETH_sce, assay_use = "counts", celltype = "cell_type", pseudotime = NULL, spatial = c("UMAP1_integrated", "UMAP2_integrated"), other_covariates = NULL, corr_by = c("UMAP1_integrated", "UMAP2_integrated"))
 ```
 ```{r}
-RNA_marginal <- scDesign3::fit_marginal(data = RNA_data, predictor = "gene", mu_formula = "te(UMAP1_integrated, UMAP2_integrated, bs = 'cr', k = 10)", sigma_formula = "te(UMAP1_integrated, UMAP2_integrated, bs = 'cr', k = 5)", family_use = "gaussian", n_cores = 50, usebam = FALSE)
+RNA_marginal <- scDesign3::fit_marginal(data = RNA_data, predictor = "gene", mu_formula = "te(UMAP1_integrated, UMAP2_integrated, bs = 'cr', k = 10)", sigma_formula = "te(UMAP1_integrated, UMAP2_integrated, bs = 'cr', k = 5)", family_use = "gaussian", n_cores = 2, usebam = FALSE)
 ```
 ```{r}
-METH_marginal <- scDesign3::fit_marginal(data = METH_data, predictor = "gene", mu_formula = "te(UMAP1_integrated, UMAP2_integrated, bs = 'cr', k = 10)", sigma_formula = "1", family_use = "binomial", n_cores = 10, usebam = FALSE)
+METH_marginal <- scDesign3::fit_marginal(data = METH_data, predictor = "gene", mu_formula = "te(UMAP1_integrated, UMAP2_integrated, bs = 'cr', k = 10)", sigma_formula = "1", family_use = "binomial", n_cores = 2, usebam = FALSE)
 ```
 ```{r}
 RNA_copula <- scDesign3::fit_copula(
@@ -82,7 +85,7 @@ RNA_copula <- scDesign3::fit_copula(
     marginal_list = RNA_marginal,
     family_use = "gaussian",
     copula = "vine",
-    n_cores = 10,
+    n_cores = 2,
     new_covariate = NULL,
     input_data = RNA_data$dat
   )
@@ -93,7 +96,7 @@ METH_copula <- scDesign3::fit_copula(
     marginal_list = METH_marginal,
     family_use = "binomial",
     copula = "vine",
-    n_cores = 10,
+    n_cores = 2,
     new_covariate = NULL,
     input_data = METH_data$dat
   )
@@ -102,7 +105,7 @@ METH_copula <- scDesign3::fit_copula(
 RNA_para <- extract_para(
     sce = SCGEMRNA_sce,
     marginal_list = RNA_marginal,
-    n_cores = 1,
+    n_cores = 2,
     family_use = "gaussian",
     new_covariate = NULL
   )
@@ -110,7 +113,7 @@ RNA_para <- extract_para(
 METH_para <- extract_para(
     sce = SCGEMMETH_sce,
     marginal_list = METH_marginal,
-    n_cores = 1,
+    n_cores = 2,
     family_use = "binomial",
     new_covariate = NULL
   )
@@ -126,10 +129,11 @@ RNA_res <- simu_new(
     zero_mat = RNA_para$zero_mat,
     quantile_mat = NULL,
     copula_list = RNA_copula$copula_list,
-    n_cores = 10,
+    n_cores = 2,
     family_use = "gaussian",
     input_data = RNA_data$dat,
-    new_covariate = rbind(RNA_data$dat, METH_data$dat)
+    new_covariate = rbind(RNA_data$dat, METH_data$dat),
+    important_feature = RNA_copula$important_feature
   )
 METH_res <- simu_new(
     sce = SCGEMMETH_sce,
@@ -138,10 +142,11 @@ METH_res <- simu_new(
     zero_mat = METH_para$zero_mat,
     quantile_mat = NULL,
     copula_list = METH_copula$copula_list,
-    n_cores = 10,
+    n_cores = 2,
     family_use = "binomial",
     input_data = METH_data$dat,
-    new_covariate = rbind(RNA_data$dat, METH_data$dat)
+    new_covariate = rbind(RNA_data$dat, METH_data$dat),
+    important_feature = METH_copula$important_feature
   )
 ```
 
@@ -159,6 +164,20 @@ plot(count_combine_umap)
 SCGEMNEW_sce <- SingleCellExperiment::SingleCellExperiment(list(logcounts = count_combine))
 reducedDims(SCGEMNEW_sce) <- list(PCA = count_combine_pca$x, UMAP = count_combine_umap)
 
+```
+
+```{r}
+SCGEMRNA_umap <- umap::umap(colData(SCGEMRNA_sce) %>% as_tibble() %>% dplyr::select(paste0("X", 1:5)), n_neighbors=30, min_dist=0.7)
+SCGEMRNA_umap <- SCGEMRNA_umap$layout
+colnames(SCGEMRNA_umap) <- c("UMAP1", "UMAP2")
+reducedDim(SCGEMRNA_sce, "UMAP") <- SCGEMRNA_umap
+```
+
+```{r}
+SCGEMMETH_umap <- umap::umap(colData(SCGEMMETH_sce) %>% as_tibble() %>% dplyr::select(paste0("X", 1:5)), n_neighbors=30, min_dist=0.7)
+SCGEMMETH_umap <- SCGEMMETH_umap$layout
+colnames(SCGEMMETH_umap) <- c("UMAP1", "UMAP2")
+reducedDim(SCGEMMETH_sce, "UMAP") <- SCGEMMETH_umap
 ```
 ```{r}
 dat_RNA <- SCGEMRNA_umap %>% as_tibble() %>% dplyr::mutate(Method = "Real data: RNA")

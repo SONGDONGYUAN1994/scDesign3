@@ -1,5 +1,5 @@
 ---
-title: "Evaluate pseudotime quality by scDesign3"
+title: "Evaluate pseudotime goodness-of-fit by scDesign3"
 author: 
   - name: Dongyuan Song
     affiliation:
@@ -58,7 +58,7 @@ In this tutorial, we will first use the R package `dyngen` to generate a dataset
 We will first use `dyngen` to generate a dataset with ground truth "pseudotime".
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 set.seed(123)
-backbone <- backbone_linear()
+backbone <- backbone_linear_simple()
 config <-
   initialise_model(
     backbone = backbone,
@@ -76,6 +76,21 @@ out <- generate_dataset(
 example_sce <- out$dataset
 colData(example_sce)$pseudotime <- out$model$experiment$cell_info$time 
 ```
+
+```{r}
+set.seed(1)
+
+backbone <- backbone_linear()
+config <- 
+  initialise_model(
+    backbone = backbone,
+    num_tfs = nrow(backbone$module_info),
+    num_targets = 50,
+    num_hks = 50,
+    verbose = FALSE
+  )
+```
+
 Secondly, we perturb the pseudotime by generating random numbers from uniform distribution and replace various percentage of the original pseudotime by the random numbers. The percentage ranges from 0% to 100%.
 ```{r, message=FALSE}
 example_sce_list <- lapply(0:10, function(x) {
@@ -106,7 +121,7 @@ scDesign3_result <- lapply(example_sce_list, function(x) {
     sigma_formula = "1",
     corr_formula = "ind",
     copula = "gaussian",
-    n_cores = 10
+    n_cores = 2
   )
   return(res)
 })

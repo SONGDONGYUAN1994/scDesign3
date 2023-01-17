@@ -43,7 +43,14 @@ knitr::opts_chunk$set(
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 library(scDesign3)
 library(SingleCellExperiment)
+library(dplyr)
 library(ggplot2)
+library(stringr)
+library(tidyr)
+library(scales)
+library(ggh4x)
+library(ggrepel)
+library(ggpubr)
 theme_set(theme_bw())
 ```
 
@@ -54,6 +61,15 @@ In this tutorial, we will show how to use scDesign3 to simulate CITE-seq data an
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AAA2ly7fk9Ge98YB3FbiMtR9a/CITE_sce.rds?raw=1")))
 print(example_sce)
+```
+To save computational time, we only use the top 100 genes and six more genes with protein and RNA abundance information.
+```{r}
+keep_gene <- c("CD4",  "CD14", "CD19", "CD34", "CD3E", "CD8A")
+keep_adt <- c("ADT_CD4", "ADT_CD14", "ADT_CD19", "ADT_CD34", "ADT_CD3", "ADT_CD8")
+keep <- c(keep_gene, keep_adt)
+idx <- which(rownames(example_sce) %in% keep)
+idx <- c(1:100,idx)
+example_sce <- example_sce[idx,]
 ```
 
 ## Simulation

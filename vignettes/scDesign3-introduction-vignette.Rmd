@@ -33,6 +33,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, message=FALSE}
 library(scDesign3)
+library(ggplot2)
 theme_set(theme_bw())
 ```
 
@@ -167,7 +168,8 @@ PANCREAS_para <- extract_para(
     n_cores = 1,
     family_use = "nb",
     input_data = PANCREAS_data$dat,
-    new_covariate = PANCREAS_data$new_covariate
+    new_covariate = PANCREAS_data$new_covariate,
+    important_feature = PANCREAS_copula$important_feature
   )
 ```
 Then, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
