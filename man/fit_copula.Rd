@@ -30,7 +30,7 @@ Default is 'counts'.}
 
 \item{input_data}{The input data, which is one of the output from \code{\link{construct_data}}.}
 
-\item{new_covariate}{A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.}
+\item{new_covariate}{A data.frame which contains covariates of targeted simulated data from \code{\link{construct_data}}.}
 
 \item{marginal_list}{A list of fitted regression models from \code{\link{fit_marginal}}.}
 
@@ -40,7 +40,7 @@ Default is 'counts'.}
 
 \item{DT}{A logic variable. If TRUE, perform the distributional transformation
 to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
-Default is TRUE.}
+Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.}
 
 \item{pseudo_obs}{A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 Default is FALSE.}

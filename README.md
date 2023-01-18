@@ -2,7 +2,7 @@
 
 ------------------------------------------------------------------------
 
-The R package **scDesign3** is an all-in-one single-cell data simulation tool by using reference datasets with different cell states (cell types, trajectories or and spatial coordinates), different modalities (gene expression, chromatin accessibility, protein abundance, DNA methylation,etc), and complex experimental designs. The transparent parameters enable users to alter models as needed; the model evaluation metrics (AIC, BIC) and convenient visualization function help users select models. The following illustration figure summarizes the usage of scDesign3:
+The R package **scDesign3** is an all-in-one single-cell data simulation tool by using reference datasets with different cell states (cell types, trajectories or and spatial coordinates), different modalities (gene expression, chromatin accessibility, protein abundance, DNA methylation, etc), and complex experimental designs. The transparent parameters enable users to alter models as needed; the model evaluation metrics (AIC, BIC) and convenient visualization function help users select models. The following illustration figure summarizes the usage of scDesign3:
 
 ![](man/figures/scDesign3_illustration.png){width="600"}
 
@@ -12,7 +12,7 @@ To find out more details about **scDesign3**, you can check out our preprint on 
 
 ## Installation
 
-To install the development version from github, please run:
+To install the development version from GitHub, please run:
 
 ``` r
 if (!require("devtools", quietly = TRUE))
@@ -20,11 +20,11 @@ if (!require("devtools", quietly = TRUE))
 devtools::install_github("SONGDONGYUAN1994/scDesign3")
 ```
 
-We are now working on submitting it to Bioconductor, and will provide the link once online.
+We are now working on submitting it to Bioconductor and will provide the link once online.
 
 ## Quick Start
 
-The following code is an quick example for running our simulator. The function `scdesign3()` takes in a `SinglecellExperiment` object with the cell covariates(such as cell types, pesudotime, or spatial coordinates) stored in the `colData` of the `SinglecellExperiment` object. For more details of the `SinlgeCellExperiment` object, please check on its [Bioconductor link](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+The following code is a quick example of running our simulator. The function `scdesign3()` takes in a `SinglecellExperiment` object with the cell covariates(such as cell types, pesudotime, or spatial coordinates) stored in the `colData` of the `SinglecellExperiment` object. For more details on the `SinlgeCellExperiment` object, please check on its [Bioconductor link](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 
 ``` r
 example_simu <- scdesign3(

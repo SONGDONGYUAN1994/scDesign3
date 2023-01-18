@@ -45,6 +45,9 @@
 #' \describe{
 #'   \item{\code{new_count}}{A matrix of the new simulated count (expression) matrix.}
 #'   \item{\code{new_covariate}}{A data.frame of the new covariate matrix.}
+#'   \item{\code{model_aic}}{The model AIC.}
+#'   \item{\code{marginal_list}}{A list of marginal regression models if return_model = TRUE.}
+#'   \item{\code{corr_list}}{A list of correlation models (conditional copulas) if return_model = TRUE.}
 #' }
 #' @export scdesign3
 scdesign3 <- function(sce,

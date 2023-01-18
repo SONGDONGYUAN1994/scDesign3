@@ -43,7 +43,7 @@ multiple lineages. Default is NULL.}
 
 \item{spatial}{A length two string vector of the names of spatial coordinates. Defualt is NULL.}
 
-\item{other_covariates}{A string or a string vector of the other covaraites you want to include in the data.}
+\item{other_covariates}{A string or a string vector of the other covariates you want to include in the data.}
 
 \item{ncell}{The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).}
 
@@ -64,7 +64,7 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{DT}{A logic variable. If TRUE, perform the distributional transformation
 to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
-Default is TRUE.}
+Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.}
 
 \item{pseudo_obs}{A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 Default is FALSE.}
@@ -97,6 +97,9 @@ A list with the components:
 \describe{
   \item{\code{new_count}}{A matrix of the new simulated count (expression) matrix.}
   \item{\code{new_covariate}}{A data.frame of the new covariate matrix.}
+  \item{\code{model_aic}}{The model AIC.}
+  \item{\code{marginal_list}}{A list of marginal regression models if return_model = TRUE.}
+  \item{\code{corr_list}}{A list of correlation models (conditional copulas) if return_model = TRUE.}
 }
 }
 \description{

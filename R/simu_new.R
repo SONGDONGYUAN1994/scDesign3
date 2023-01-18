@@ -152,6 +152,7 @@ simu_new <- function(sce,
     if (y == "binomial") {
       qfvec <- stats::qbinom(p = para_mat[, 3], prob = para_mat[, 1], size = 1)
     } else if (y == "poisson") {
+
       qfvec <- stats::qpois(p = para_mat[, 3], lambda = para_mat[, 1])
     } else if (y == "gaussian") {
       qfvec <-

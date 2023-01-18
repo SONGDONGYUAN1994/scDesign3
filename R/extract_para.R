@@ -107,6 +107,7 @@ extract_para <-  function(sce,
           y <- "nb"
         }
 
+
         mean_vec <-
           stats::predict(fit, type = "response", newdata = new_covariate)
         if (y == "poisson" | y == "binomial") {

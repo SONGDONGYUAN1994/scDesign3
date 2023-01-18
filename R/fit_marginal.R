@@ -196,7 +196,9 @@ fit_marginal <- function(data,
         #dat$pseudotime <- pseudotime
         #print(mu_formula)
         #print(head(dat))
-        gamlss.fit <-         tryCatch({
+        gamlss.fit <-
+
+          tryCatch({
           res <- gamlss::gamlss(
             formula = mu_formula,
             sigma.formula = sigma_formula,

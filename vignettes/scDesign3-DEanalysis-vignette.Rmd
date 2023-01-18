@@ -1,5 +1,5 @@
 ---
-title: "DE Analysis with scDesign3"
+title: "Benchmarking DE Analysis with scDesign3"
 author: 
   - name: Dongyuan Song
     affiliation:
@@ -61,7 +61,8 @@ library(scales)
 library(tidyr)
 theme_set(theme_bw())
 ```
-In this tutorial, we will demonstrate how to use scDesign3 to generate negative control and benchmark methods for identifying differentially expressed(DE) genes between discrete cell types or continuous trajectory from scRNA-seq data, and identifying spatially variable genes (SVG) from spatial transcriptomics data.
+
+In this tutorial, we will demonstrate how to use scDesign3 to generate negative control and benchmark methods for identifying differentially expressed (DE) genes between discrete cell types or continuous trajectory from scRNA-seq data, and identifying spatially variable genes (SVG) from spatial transcriptomics data. Please note that here we only did a very brief benchmarking on a few methods for illustration purpose, not for formal comparison.
 
 ## Identification of DE genes between discrete cell types
 
@@ -75,7 +76,7 @@ The top 200 highly variable genes are kept for generating synthetic data.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 ngene <- 200
 logcounts(Zhengmix4eq_sce) <- log1p(counts(Zhengmix4eq_sce))
-dec.pbmc <- modelGeneVar(Zhengmix4eq_sce)
+dec.seurat_obj <- modelGeneVar(Zhengmix4eq_sce)
 chosen <- getTopHVGs(Zhengmix4eq_sce, n = ngene)
 example_sce <- Zhengmix4eq_sce[chosen,]
 ```
@@ -135,7 +136,9 @@ example_para <- extract_para(
     new_covariate = NULL
   )
 ```
-Here, we examine the `mean_mat`, which is one of the outputs from the previous function `extract_para()`. For each gene, we calculate the difference in the between the maximum mean parameter and minimum mean parameter across all cells. We select genes which the gene's mean difference across cells are in the top 50 largest differences. We regard these genes as DE genes. Then, we manually set the mean parameters of the rest genes to be the same across all cells. We regard all genes with the same mean parameter across cells as non-DE genes.
+
+Here, we examine the `mean_mat`, which is one of the outputs from the previous function `extract_para()`. For each gene, we calculate the difference in the between the maximum mean parameter and minimum mean parameter across all cells. We select genes which the gene's mean difference across cells are in the top 50 largest differences. We regard these genes as DE genes. Then, we manually set the mean parameters of the rest genes to be the same across all cells. We regard all genes with the same mean parameter across cells as non-DE genes. Of course, this is a very flexible step and users may choose other ideas to modify the mean matrix.
+
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 diff <- apply(example_para$mean_mat, 2, function(x){max(x)-min(x)})
 diff_ordered <- order(diff, decreasing = TRUE)
@@ -168,42 +171,43 @@ example_para$mean_mat[,non_de_idx] <- non_de_mat
 ```
 
 ### DE Test
-Then, we follow [Seurat's pipeline](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) to preprocess the simulated data.
+Then, we follow [Seurat's pipeline](https://satijalab.org/seurat/articles/seurat_obj3k_tutorial.html) to preprocess the simulated data.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-pbmc <- CreateSeuratObject(counts = example_newcount, project = "pbmc", min.cells = 0, min.features = 0)
-pbmc[["percent.mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
-pbmc <- NormalizeData(pbmc, normalization.method = "LogNormalize", scale.factor = 10000)
-pbmc <- FindVariableFeatures(pbmc, selection.method = "vst",nfeatures = 200)
-all.genes <- rownames(pbmc)
-pbmc <- ScaleData(pbmc, features = all.genes)
-pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
-pbmc <- JackStraw(pbmc, num.replicate = 100)
-pbmc <- ScoreJackStraw(pbmc, dims = 1:20)
+seurat_obj <- CreateSeuratObject(counts = example_newcount, project = "seurat_obj", min.cells = 0, min.features = 0)
+seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "^MT-")
+seurat_obj <- NormalizeData(seurat_obj, normalization.method = "LogNormalize", scale.factor = 10000)
+seurat_obj <- FindVariableFeatures(seurat_obj, selection.method = "vst",nfeatures = 200)
+all.genes <- rownames(seurat_obj)
+seurat_obj <- ScaleData(seurat_obj, features = all.genes)
+seurat_obj <- RunPCA(seurat_obj, features = VariableFeatures(object = seurat_obj))
+seurat_obj <- JackStraw(seurat_obj, num.replicate = 100)
+seurat_obj <- ScoreJackStraw(seurat_obj, dims = 1:20)
 ```
 Since we already have the ground truth cell type annotations for our simulated dataset, we can directly use the cell type annotations we have instead of running `FindClusters` from `Seurat` to avoid the double-dipping issue.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-pbmc <- FindNeighbors(pbmc, dims = 1:10)
+seurat_obj <- FindNeighbors(seurat_obj, dims = 1:10)
 ct <- colData(example_sce)$cell_type
 names(ct) <- colnames(example_sce)
-pbmc[["cell_type"]] <- ct
-Idents(pbmc) <- "cell_type"
-pbmc <- RunUMAP(pbmc, dims = 1:10)
+seurat_obj[["cell_type"]] <- ct
+Idents(seurat_obj) <- "cell_type"
+seurat_obj <- RunUMAP(seurat_obj, dims = 1:10)
 ```
 
 Then, we follow [Seurat's tutorial](https://satijalab.org/seurat/articles/de_vignette.html) to conduct DE test.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-test <- c("wilcox", "bimod", "t","poisson","negbinom","LR","MAST","DESeq2")
-qvals <- matrix(0, nrow = dim(pbmc)[1], ncol = length(test))
+test <- c("wilcox", "bimod", "t", "poisson", "negbinom", "LR", "MAST", "DESeq2")
+qvals <- matrix(0, nrow = dim(seurat_obj)[1], ncol = length(test))
 for (x in 1:length(test)) {
-  markers <- FindMarkers(pbmc, ident.1 = "b.cells", ident.2 = "regulatory.t", test.use = test[x],
+  markers <- FindMarkers(seurat_obj, ident.1 = "b.cells", ident.2 = "regulatory.t", test.use = test[x],
                          logfc.threshold = 0, min.pct = 0, min.cells.feature = 1, min.cells.group = 1)
-  qvals[,x] <- p.adjust(markers[rownames(pbmc),"p_val"], method = "BH", length(rownames(pbmc)))
+  qvals[,x] <- p.adjust(markers[rownames(seurat_obj),"p_val"], method = "BH", length(rownames(seurat_obj)))
 }
 colnames(qvals) <- test
-rownames(qvals) <- rownames(pbmc)
+rownames(qvals) <- rownames(seurat_obj)
 ```
 
 Since we manually created non-DE genes in the `extra_para()` step, now we can calculate the actual false discovery proportion(FDP) and power of the DE tests we conducted above with various target FDR threshold.
+
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 targetFDR <- c(seq(0.01,0.1,by=0.01),seq(0.2,0.5,by=0.1))
 de <-de_idx
@@ -264,7 +268,7 @@ print(example_sce)
 ```
 To save computational time, we only use the top 200 genes.
 ```{r}
-example_sce <- example_sce[1:200,]
+example_sce <- example_sce[1:200, ]
 ```
 ### Simulation
 We use the step-by-step functions instead of the one-shot function to generate synthetic data since these step-by-step functions allow us to alter estimated parameters and generate new data based on our desired parameters.
@@ -359,7 +363,7 @@ rownames(qvals) <- rownames(simu_sce)
 ```
 
 ####  Monocle3 
-We follow the [tutorial](https://cole-trapnell-lab.github.io/monocle3/docs/differential/) from `Monocle 3` to conduct the DE test and obtain the p-values after BH correction.
+We follow the [tutorial](https://cole-trapnell-lab.github.io/monocle3/docs/differential/) from `Monocle3` to conduct the DE test and obtain the p-values after BH correction.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 rowdata <- rowData(simu_sce)
 rowdata$gene_short_name <- rownames(rowData(simu_sce))
@@ -373,13 +377,11 @@ fit <- fit_coefs %>% dplyr::filter(term == "pseudotime") %>% dplyr::select(p_val
 fit
 qvals[fit$gene,"Monocle3-DE"] <- fit$q_value
 ```
-
-
 #### tradeSeq
 We follow the [tutorial](https://statomics.github.io/tradeSeq/articles/tradeSeq.html) from `tradeSeq` to conduct the DE test and obtain the p-values after BH correction.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 pseudo <- colData(simu_sce)$pseudotime
-icMat <- evaluateK(counts = counts(simu_sce), pseudotime  = pseudo, cellWeights = rep(1, dim(simu_sce)[2]),k = 3:10, nGenes = 100,verbose = FALSE, plot = TRUE)
+icMat <- evaluateK(counts = counts(simu_sce), pseudotime  = pseudo, cellWeights = rep(1, dim(simu_sce)[2]), k = 3:10, nGenes = 100, verbose = FALSE, plot = TRUE)
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 res_tradeSeq <- fitGAM(counts = as.matrix(assays(simu_sce)$counts), pseudotime = pseudo, cellWeights = rep(1, length(pseudo)),nknots = 10)
@@ -389,7 +391,7 @@ qvals[assoRes$gene,"tradeSeq"] <- assoRes$qvalue
 ```
 
 #### NBAMseq
-We follow the [tutorial](https://statomics.github.io/tradeSeq/articles/tradeSeq.html) from `NBAMseq` to conduct the DE test and obtain the p-values after BH correction.
+We follow the [tutorial](https://www.bioconductor.org/packages/release/bioc/vignettes/NBAMSeq/inst/doc/NBAMSeq-vignette.html) from `NBAMseq` to conduct the DE test and obtain the p-values after BH correction.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 countdata <- counts(simu_sce)
 coldata <- colData(simu_sce)
@@ -402,7 +404,7 @@ qvals[rownames(res1),"NBAMseq"] = res1$padj
 ```
 
 #### PseudotimeDE
-We follow the [tutorial](https://statomics.github.io/tradeSeq/articles/tradeSeq.html) from `tradeSeq` to conduct the DE test and obtain the p-values after BH correction.
+We follow the [tutorial](https://htmlpreview.github.io/?https://rpubs.com/dongyuansong/842884) from `PseudotimeDE` to conduct the DE test and obtain the p-values after BH correction. Here to save computational time, we use the fix-mode of PseudotimeDE.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 ori_tbl <- tibble(cell = colnames(simu_sce), pseudotime = colData(simu_sce)$pseudotime)
 res <- runPseudotimeDE(gene.vec = rownames(simu_sce),
@@ -412,7 +414,8 @@ res <- runPseudotimeDE(gene.vec = rownames(simu_sce),
                                      model = "nb")
 qvals[res$gene,"PseudotimeDE"] <- p.adjust(res$fix.pv, method = "BH", length(res$gene))
 ```
-Since `tradeSeq`'s result contains many NA, we convert the NA to 1 first.
+
+Since `tradeSeq`'s result contains some NA, we convert the NA to 1 first.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 qvals[is.na(qvals)] <- 1
 print(head(qvals))
@@ -446,6 +449,7 @@ for (t in 1:length(test)) {
   }
 }
 ```
+
 Lastly, we visualize the Target FDR vs Actual FDP and Target FDR vs Power below.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 fdp_long <- melt(fdp_mat)
@@ -468,7 +472,6 @@ power_plot <- ggplot(power_long) +
 power_plot
 ```
 
-
 ## Identication of Spatially Variable Genes (SVG) in spatial transcriptomic data
 ### Read in the reference data
 The raw data is from the [Seurat](https://satijalab.org/seurat/articles/spatial_vignette.html), which is a dataset generated with the Visium technology from 10x Genomics. We pre-select the top spatial variable genes.
@@ -476,7 +479,6 @@ The raw data is from the [Seurat](https://satijalab.org/seurat/articles/spatial_
 example_sce <- readRDS((url("https://www.dropbox.com/s/v1uazcl2glirmfe/VISIUM_sce.rds?raw=1")))
 print(example_sce)
 ```
-
 To save time, we subset the top 200 genes.
 ```{r, message=FALSE}
 example_sce <- example_sce[1:200, ]
@@ -514,6 +516,7 @@ example_marginal <- fit_marginal(
     usebam = FALSE
   )
 ```
+
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 example_copula <- fit_copula(
     sce = example_sce,
@@ -526,6 +529,7 @@ example_copula <- fit_copula(
     input_data = example_data$dat
   )
 ```
+
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 example_para <- extract_para(
     sce = example_sce,
@@ -535,7 +539,7 @@ example_para <- extract_para(
     new_covariate = NULL
   )
 ```
-Here, we examine the `mean_mat`, which is one of the outputs from the previous function `extract_para()`. For each gene, we calculate the difference in the between the maximum mean parameter and minimum mean parameter across all cells. We select genes which the gene's mean difference across cells are in the top 10 largest differences. We regard these genes as spatially variable genes (SVGs). Then, we manually set the mean parameters of the rest genes to be the same across all cells. We regard all genes with the same mean parameter across cells as non-svg genes.
+Here, we examine the `mean_mat`, which is one of the outputs from the previous function `extract_para()`. For each gene, we calculate the deviance explained by spatial locations in each regression model, and select the top 50. We regard these genes as spatially variable genes (SVGs). Then, we manually set the mean parameters of the rest genes to be the same across all cells. We regard all genes with the same mean parameter across cells as non-SVG genes.
 ```{r,message=FALSE, warning=FALSE, results='hide'}
 dev_explain <- sapply(example_marginal, function(x){
   sum = summary(x)
@@ -554,7 +558,7 @@ non_de_mat <- apply(example_para$mean_mat[,non_de_idx], 2, function(x){
 example_para$mean_mat[,non_de_idx] <- non_de_mat
 ```
 
-Here is another way to select SVG based on Moran's I.
+Another way to select SVG based on Moran's I.
 ```{r}
 # num_de <- 50
 # loc = colData(simu_sce)[,c("spatial1","spatial2")]
@@ -570,7 +574,6 @@ Here is another way to select SVG based on Moran's I.
 # })
 # example_para$mean_mat[,non_de_idx] <- non_de_mat
 ```
-
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
  example_newcount <- simu_new(
@@ -605,10 +608,11 @@ expre = lapply(de_genes, function(x){
   })
 long = do.call(rbind, expre)
 long = as.data.frame(long)
+colnames(long) <- "Expression"
 long$gene = do.call(c, lapply(de_genes, function(x){rep(x,dim(expre[[1]])[1])}))
 long$x = rep(loc[,1],5)
 long$y = rep(loc[,2],5)
-as_tibble(long) %>% ggplot() +geom_point(aes(x=x,y=y,color=V1), size = 0.1)+facet_grid(~gene)+ scale_colour_gradientn(colors = viridis_pal(option = "magma")(10), limits=c(0, 1)) + coord_fixed(ratio = 1) +  theme_gray()
+as_tibble(long, rownames = "Cell") %>% ggplot(aes(x = x, y = y, color = Expression)) +geom_point(size = 0.1)+facet_grid(~gene)+ scale_colour_gradientn(colors = viridis_pal(option = "magma")(10), limits=c(0, 1)) + coord_fixed(ratio = 1) + theme(axis.text.x = element_text(angle = 45))
 ```
 
 We also rescale the log count of 5 synthetic non-SVG here to the 0 to 1 scale and visualize them below.
@@ -622,14 +626,12 @@ expre = lapply(non_de_genes, function(x){
   })
 long = do.call(rbind, expre)
 long = as.data.frame(long)
+colnames(long) <- "Expression"
 long$gene = do.call(c, lapply(non_de_genes, function(x){rep(x,dim(expre[[1]])[1])}))
 long$x = rep(loc[,1],5)
 long$y = rep(loc[,2],5)
-as_tibble(long) %>% ggplot() +geom_point(aes(x=x,y=y,color=V1), size = 0.5)+facet_grid(~gene)+ scale_colour_gradientn(colors = viridis_pal(option = "magma")(10), limits=c(0, 1)) + coord_fixed(ratio = 1) +  theme_gray()
+as_tibble(long, rownames = "Cell") %>% ggplot(aes(x = x, y = y, color = Expression)) +geom_point(size = 0.1)+facet_grid(~gene)+ scale_colour_gradientn(colors = viridis_pal(option = "magma")(10), limits=c(0, 1)) + coord_fixed(ratio = 1) + theme(axis.text.x = element_text(angle = 45))
 ```
-
-
-
 ### SVG identification
 Now, we use the simulated data to benchmark the performance of two SVG identification methods: [spatialDE](https://www.nature.com/articles/nmeth.4636), [SPARK](https://www.nature.com/articles/s41592-019-0701-7), and [SPARK-X](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02404-0). The p-values from the two methods after Benjamini-Hochberg(BH) corretion will be stored in `qvals` in the following code.
 ```{r, message=FALSE, warning=FALSE, results='hide'}

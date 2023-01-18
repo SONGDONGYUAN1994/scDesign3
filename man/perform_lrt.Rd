@@ -15,9 +15,9 @@ perform_lrt(alter_marginal, null_marginal)
 A data.frame of the LRT result.
 }
 \description{
-\code{perform_lrt} performs the likelihood ratio test to compare two marginal models.
+\code{perform_lrt} performs the likelihood ratio test to compare two list of marginal models.
 }
 \details{
 The function takes two lists of marginal models (by default, the first list is the alternative and the second is the null)
-from \code{\link{fit_marginal}}.
+from \code{\link{fit_marginal}}. Note that LRT only makes sense for nested models.
 }

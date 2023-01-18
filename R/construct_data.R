@@ -29,6 +29,7 @@
 #'   \item{\code{dat}}{The original covariate matrix}
 #'   \item{\code{newCovariate}}{The simulated new covariate matrix, is NULL if the parameter ncell is default}
 #' }
+
 #'
 #' @export construct_data
 construct_data <- function(sce,

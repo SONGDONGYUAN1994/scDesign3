@@ -49,8 +49,7 @@ knitr::opts_chunk$set(
 ```
 
 ## Introduction
-In this tutorial, we will show how to use scDesign3 to simulate multi-omics (RNA expression + DNA methylation) data by learning from real data that only have a single modality.
-
+In this tutorial, we will show how to use scDesign3 to simulate multi-omics (RNA expression + DNA methylation) data by learning from real data that only have a single modality. The example data and aligned low-dimensional embeddings are from [Pamona](https://github.com/caokai1073/Pamona).
 
 ## Read in the reference data
 ```{r, message=FALSE, warning=FALSE, results='hide'}
@@ -59,7 +58,9 @@ SCGEMRNA_sce <-readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AADEKgmZ
 print(SCGEMMETH_sce)
 print(SCGEMRNA_sce)
 ```
+
 We first combine the cell-level data from the scRNA-seq data and the DNA methylation data.
+
 ```{r}
 coldata_bind <- bind_rows(as_tibble(colData(SCGEMRNA_sce)) %>% dplyr::mutate(Tech = "RNA"), as_tibble(colData(SCGEMMETH_sce)) %>% dplyr::mutate(Tech = "Methylation"))
 head(coldata_bind)
@@ -72,6 +73,9 @@ set.seed(1234)
 RNA_data <- scDesign3::construct_data(SCGEMRNA_sce, assay_use = "logcounts", celltype = "cell_type", pseudotime = NULL, spatial = c("UMAP1_integrated", "UMAP2_integrated"), other_covariates = NULL, corr_by = c("UMAP1_integrated", "UMAP2_integrated"))
 METH_data <- scDesign3::construct_data(SCGEMMETH_sce, assay_use = "counts", celltype = "cell_type", pseudotime = NULL, spatial = c("UMAP1_integrated", "UMAP2_integrated"), other_covariates = NULL, corr_by = c("UMAP1_integrated", "UMAP2_integrated"))
 ```
+
+Note here we actually treat the 2D aligned UMAPs as a kind of "pseudo"-spatial data. We use the tensor regression spline to fit two ref datasets seperately.
+
 ```{r}
 RNA_marginal <- scDesign3::fit_marginal(data = RNA_data, predictor = "gene", mu_formula = "te(UMAP1_integrated, UMAP2_integrated, bs = 'cr', k = 10)", sigma_formula = "te(UMAP1_integrated, UMAP2_integrated, bs = 'cr', k = 5)", family_use = "gaussian", n_cores = 2, usebam = FALSE)
 ```
@@ -158,8 +162,6 @@ count_combine_pca <- irlba::prcomp_irlba(t(count_combine), 5)
 
 count_combine_umap <- umap::umap(count_combine_pca$x, n_neighbors=30, min_dist=0.7)$layout
 colnames(count_combine_umap) <- c("UMAP1", "UMAP2")
-
-plot(count_combine_umap)
 
 SCGEMNEW_sce <- SingleCellExperiment::SingleCellExperiment(list(logcounts = count_combine))
 reducedDims(SCGEMNEW_sce) <- list(PCA = count_combine_pca$x, UMAP = count_combine_umap)

@@ -17,9 +17,9 @@ fit_marginal(
 )
 }
 \arguments{
-\item{data}{An object from \code{\link{construct_data}}. ## Fix later}
+\item{data}{An object from \code{\link{construct_data}}.}
 
-\item{predictor}{The predictor for the gam/gamlss model. Default is gene. ## Fix later}
+\item{predictor}{A string of the predictor for the gam/gamlss model. Default is gene. This is essentially just a name.}
 
 \item{mu_formula}{A string of the mu parameter formula}
 

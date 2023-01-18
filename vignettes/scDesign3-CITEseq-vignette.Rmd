@@ -88,7 +88,7 @@ example_simu <- scdesign3(
     family_use = "nb",
     n_cores = 2,
     usebam = FALSE,
-    corr_formula = "1",
+    corr_formula = "cell_type",
     copula = "vine",
     DT = TRUE,
     pseudo_obs = FALSE,
