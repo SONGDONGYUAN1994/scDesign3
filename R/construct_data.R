@@ -125,12 +125,12 @@ construct_data <- function(sce,
       mclust_mod <- mclust::Mclust(corr_group, G = 1:5)
       corr_group <- mclust_mod$classification
 
-      corr_group2 <- newCovariate[,group]
+      corr_group2 <- newCovariate[, group]
       corr_group2 <- mclust::predict.Mclust(mclust_mod, newdata = corr_group2)$classification
 
     } else {
       corr_group <- SummarizedExperiment::colData(sce)[, group]
-      corr_group2 <- newCovariate[,group]
+      corr_group2 <- newCovariate[, group]
     }
     newCovariate$corr_group <- corr_group2
   }else{

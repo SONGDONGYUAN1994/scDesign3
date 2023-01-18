@@ -18,10 +18,10 @@ test_that("Run scDesign3", {
     sce = example_sce,
     assay_use = "counts",
     celltype = "cell_type",
-    pseudotime = NULL,
+    pseudotime = "pseudotime",
     spatial = NULL,
     other_covariates = NULL,
-    corr_by = "cell_type",
+    corr_by = "pseudotime",
     ncell = 10000
   )
 
