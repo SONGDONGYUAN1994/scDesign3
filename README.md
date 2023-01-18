@@ -83,8 +83,8 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
     -   Evaluate clustering goodness-of-fit by scDesign3
     -   Evaluate pseudotime goodness-of-fit by scDesign3
 -   Model alteration
-    -   Simulate datasets with batch effect
-    -   Simulate datasets with condition effect
+    -   Simulate datasets with/without batch effect
+    -   Simulate datasets with/without condition effect
     -   Simulate datasets for DE test
 
 ## Contact
