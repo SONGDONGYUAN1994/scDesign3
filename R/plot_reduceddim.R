@@ -42,10 +42,10 @@ plot_reduceddim <- function(ref_sce,
   }
 
   if(!is.null(shape_by)){
-    if(!(shape_by %in% colnames(colData(ref_sce)))) {
+    if(!(shape_by %in% colnames(SummarizedExperiment::colData(ref_sce)))) {
       stop("The shape_by in not in your ref_sce's colData. Please double check the variable name for shape_by.")
     }
-    shape_by_check <- sapply(sce_list, function(x){shape_by %in% colnames(colData(x))})
+    shape_by_check <- sapply(sce_list, function(x){shape_by %in% colnames(SummarizedExperiment::colData(x))})
     if(!all(shape_by_check)){
       stop("The shape_by in not in your sce_list's colData. Please double check the variable name for shape_by.")
     }

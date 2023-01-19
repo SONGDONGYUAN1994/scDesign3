@@ -16,15 +16,12 @@ Depends: R (>= 3.6.0)
 biocViews:
 Imports:
     dplyr,
-    tidyr,
-    tidyselect,
     tibble,
     stats,
     methods,
     mgcv,
     gamlss,
     gamlss.dist,
-    gamlss.add,
     SummarizedExperiment,
     SingleCellExperiment,
     mclust,
@@ -37,7 +34,7 @@ Imports:
     ggplot2,
     irlba,
     viridis,
-    BiocStyle
+    BiocParallel
 Suggests:
     magrittr,
     Seurat,
@@ -49,7 +46,36 @@ Suggests:
     testthat (>= 3.0.0),
     RefManageR,
     dyngen,
-    sessioninfo
+    cowplot,
+    ggraph,
+    ggrastr,
+    gridExtra,
+    reshape2,
+    scales,
+    spatialDE,
+    DESeq2,
+    DuoClustering2018,
+    NBAMSeq,
+    PseudotimeDE,
+    SPARK,
+    SeuratObject,
+    aricode,
+    ggh4x,
+    ggpubr,
+    ggrepel,
+    igraph,
+    monocle3,
+    scater,
+    scran,
+    stringr,
+    tidygraph,
+    tradeSeq,
+    useful,
+    sessioninfo,
+    gamlss.add,
+    BiocStyle,
+    tidyr,
+    tidyselect
 URL: https://github.com/SONGDONGYUAN1994/scDesign3
 BugReports: https://github.com/SONGDONGYUAN1994/scDesign3/issues
 RoxygenNote: 7.2.3

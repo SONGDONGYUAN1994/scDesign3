@@ -170,8 +170,8 @@ example_para$mean_mat[,non_de_idx] <- non_de_mat
   )
 ```
 
-### DE Test
-Then, we follow [Seurat's pipeline](https://satijalab.org/seurat/articles/seurat_obj3k_tutorial.html) to preprocess the simulated data.
+### DE genes identification
+Then, we follow [Seurat's pipeline](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) to preprocess the simulated data.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 seurat_obj <- CreateSeuratObject(counts = example_newcount, project = "seurat_obj", min.cells = 0, min.features = 0)
 seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "^MT-")
@@ -259,9 +259,9 @@ power_plot <- ggplot(power_long) +
 power_plot
 ```
 
-## Identication of DE genes along a trajectory
+## Identification of DE genes along a trajectory
 ### Read in the reference data
-The raw data is from the [scvelo](https://scvelo.readthedocs.io/scvelo.datasets.pancreas/), which describes pancreatic endocrinogenesis. We pre-select the top 1000 highly variable genes and filter out some cell types to ensure a **single trajectory**.
+The raw data is from the [scvelo](https://scvelo.readthedocs.io/en/stable/scvelo.datasets.pancreas/), which describes pancreatic endocrinogenesis. We pre-select the top 1000 highly variable genes and filter out some cell types to ensure a **single trajectory**.
 ```{r}
 example_sce <- readRDS((url("https://www.dropbox.com/s/p1mvl5osxp55sot/PANCREAS_sce.rds?raw=1")))
 print(example_sce)
@@ -355,7 +355,7 @@ logcounts(simu_sce) <- log1p(counts(simu_sce))
 ```
 
 ### DE genes identification
-Now, we use the simulated data to benchmark the performance of two DEG identification methods: [Monocle3](https://www.nature.com/articles/nmeth.4636), [tradeSeq](https://www.nature.com/articles/s41467-020-14766-3), [NBAMseq](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-020-3506-x), and [PseudotimeDE](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02341-y). The p-values from the two methods after Benjamini-Hochberg(BH) corretion will be stored in `qvals` in the following code.
+Now, we use the simulated data to benchmark the performance of four DEG identification methods. The p-values from the two methods after Benjamini-Hochberg(BH) corretion will be stored in `qvals` in the following code.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 qvals <- matrix(0, ncol = 4, nrow = dim(simu_sce)[1])
 colnames(qvals) <- c("Monocle3-DE","tradeSeq","NBAMseq","PseudotimeDE")
@@ -472,7 +472,9 @@ power_plot <- ggplot(power_long) +
 power_plot
 ```
 
-## Identication of Spatially Variable Genes (SVG) in spatial transcriptomic data
+
+## Identification of Spatially Variable Genes (SVG) in spatial transcriptomic data
+
 ### Read in the reference data
 The raw data is from the [Seurat](https://satijalab.org/seurat/articles/spatial_vignette.html), which is a dataset generated with the Visium technology from 10x Genomics. We pre-select the top spatial variable genes.
 ```{r, message=FALSE}
@@ -632,8 +634,9 @@ long$x = rep(loc[,1],5)
 long$y = rep(loc[,2],5)
 as_tibble(long, rownames = "Cell") %>% ggplot(aes(x = x, y = y, color = Expression)) +geom_point(size = 0.1)+facet_grid(~gene)+ scale_colour_gradientn(colors = viridis_pal(option = "magma")(10), limits=c(0, 1)) + coord_fixed(ratio = 1) + theme(axis.text.x = element_text(angle = 45))
 ```
+
 ### SVG identification
-Now, we use the simulated data to benchmark the performance of two SVG identification methods: [spatialDE](https://www.nature.com/articles/nmeth.4636), [SPARK](https://www.nature.com/articles/s41592-019-0701-7), and [SPARK-X](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02404-0). The p-values from the two methods after Benjamini-Hochberg(BH) corretion will be stored in `qvals` in the following code.
+Now, we use the simulated data to benchmark the performance of three SVG identification methods. The p-values from the two methods after Benjamini-Hochberg(BH) correction will be stored in `qvals` in the following code.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 qvals <- matrix(0, ncol = 3, nrow = dim(simu_sce)[1])
 colnames(qvals) <- c("spatialDE","SPARK","SPARK-X")
@@ -674,7 +677,7 @@ spark@lib_size <- apply(spark@counts, 2, sum)
 spark <- spark.vc(spark, 
                    covariates = NULL, 
                    lib_size = spark@lib_size, 
-                   num_core = 5,
+                   num_core = 2,
                    verbose = F)
 spark <- spark.test(spark, 
                      check_positive = T, 

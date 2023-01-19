@@ -95,12 +95,12 @@ fit_copula <- function(sce,
 
   ## select important genes
   if(is.vector(important_feature) & length(important_feature) !=1){
-    if(length(important_feature) != dim(sce)[1] | class(important_feature) != "logical"){
+    if(length(important_feature) != dim(sce)[1] | !methods::is(important_feature,"logical")){
       stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
     }
   }else{
     if(important_feature=="auto"){
-      gene_zero_prop <- apply(counts(sce), 1, function(y){
+      gene_zero_prop <- apply(SingleCellExperiment::counts(sce), 1, function(y){
         sum(y < 1e-5) / dim(sce)[2]
       })
       important_feature = gene_zero_prop < 0.8 ## default zero proportion in scDesign2
@@ -316,7 +316,7 @@ cal_cor <- function(norm.mat,
 sampleMVN <- function(n,
                       Sigma) {
   mvnrv <-
-    rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma)
+    mvtnorm::rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma)
   mvnrvq <- apply(mvnrv, 2, stats::pnorm)
 
   return(mvnrvq)
@@ -356,7 +356,7 @@ rmvnorm <- function(n, mean = rep(0, nrow(sigma)), sigma = diag(length(mean)),
     R[, order(attr(R, "pivot"))]
   }
 
-  retval <- matrix(rnorm(as.double(n) * ncol(sigma)), nrow = n, byrow = !pre0.9_9994) %*%  R
+  retval <- matrix(stats::rnorm(as.double(n) * ncol(sigma)), nrow = n, byrow = !pre0.9_9994) %*%  R
   retval <- sweep(retval, 2, mean, "+")
   colnames(retval) <- names(mean)
   retval

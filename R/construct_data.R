@@ -230,7 +230,6 @@ simuCovariateMat <- function(covariate_mat,
     covariate_new <- rvinecopulib::rvine(n_cell_new, fit_kde)
   }
 
-  colnames(covariate_new) <- colnames(covariate_mat)
   rownames(covariate_new) <- paste0("Cell", seq_len(n_cell_new))
   return(covariate_new)
 }
