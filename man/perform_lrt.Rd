@@ -19,5 +19,47 @@ A data.frame of the LRT result.
 }
 \details{
 The function takes two lists of marginal models (by default, the first list is the alternative and the second is the null)
-from \code{\link{fit_marginal}}. Note that LRT only makes sense for nested models.
+from \code{\link{fit_marginal}}. Note that LRT only makes sense for NESTED models.
+}
+\examples{
+data(example_sce)
+my_data <- construct_data(
+sce = example_sce,
+assay_use = "counts",
+celltype = "cell_type",
+pseudotime = "pseudotime",
+spatial = NULL,
+other_covariates = NULL,
+corr_by = "cell_type"
+)
+
+my_data2 <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = "pseudotime",
+  spatial = NULL,
+  other_covariates = NULL,
+  corr_by = "pseudotime",
+  ncell = 10000
+)
+
+my_marginal1 <- fit_marginal(
+  data = my_data,
+  mu_formula = "1",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 1,
+  usebam = FALSE
+)
+my_marginal2 <- fit_marginal(
+  data = my_data,
+  mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 1,
+  usebam = FALSE
+)
+my_pvalue <- perform_lrt(my_marginal2, my_marginal1)
+
 }

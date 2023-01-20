@@ -60,3 +60,17 @@ This function takes a \code{SingleCellExperiment} object as the input.
 Based on users' choice, it constructs the matrix of covaraites
 (explainary variables) and the expression matrix (e.g., count matrix for scRNA-seq).
 }
+\examples{
+  data(example_sce)
+  my_data <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = "pseudotime",
+  spatial = NULL,
+  other_covariates = NULL,
+  corr_by = "1"
+  )
+
+
+}

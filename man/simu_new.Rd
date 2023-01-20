@@ -73,3 +73,55 @@ A feature by cell matrix of the new simulated count (expression) matrix.
 The function takes the new covariate (if use) from \code{\link{construct_data}},
 parameter matricies from \code{\link{extract_para}} and multivariate Unifs from \code{\link{fit_copula}}.
 }
+\examples{
+  data(example_sce)
+  my_data <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = "pseudotime",
+  spatial = NULL,
+  other_covariates = NULL,
+  corr_by = "1"
+  )
+  my_marginal <- fit_marginal(
+  data = my_data,
+  mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 1,
+  usebam = FALSE
+  )
+  my_copula <- fit_copula(
+  sce = example_sce,
+  assay_use = "counts",
+  marginal_list = my_marginal,
+  family_use = c(rep("nb", 5), rep("zip", 5)),
+  copula = "vine",
+  n_cores = 1,
+  new_covariate = NULL,
+  input_data = my_data$dat
+  )
+  my_para <- extract_para(
+    sce = example_sce,
+    marginal_list = my_marginal,
+    n_cores = 1,
+    family_use = c(rep("nb", 5), rep("zip", 5)),
+    new_covariate = NULL,
+    data = my_data$dat
+  )
+  my_newcount <- simu_new(
+  sce = example_sce,
+  mean_mat = my_para$mean_mat,
+  sigma_mat = my_para$sigma_mat,
+  zero_mat = my_para$zero_mat,
+  quantile_mat = NULL,
+  copula_list = my_copula$copula_list,
+  n_cores = 1,
+  family_use = c(rep("nb", 5), rep("zip", 5)),
+  input_data = my_data$dat,
+  new_covariate = my_data$new_covariate,
+  important_feature = my_copula$important_feature
+  )
+
+}

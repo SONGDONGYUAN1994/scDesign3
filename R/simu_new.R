@@ -32,6 +32,56 @@
 #' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A feature by cell matrix of the new simulated count (expression) matrix.
+#' @examples
+#'   data(example_sce)
+#'   my_data <- construct_data(
+#'   sce = example_sce,
+#'   assay_use = "counts",
+#'   celltype = "cell_type",
+#'   pseudotime = "pseudotime",
+#'   spatial = NULL,
+#'   other_covariates = NULL,
+#'   corr_by = "1"
+#'   )
+#'   my_marginal <- fit_marginal(
+#'   data = my_data,
+#'   mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+#'   sigma_formula = "1",
+#'   family_use = "nb",
+#'   n_cores = 1,
+#'   usebam = FALSE
+#'   )
+#'   my_copula <- fit_copula(
+#'   sce = example_sce,
+#'   assay_use = "counts",
+#'   marginal_list = my_marginal,
+#'   family_use = c(rep("nb", 5), rep("zip", 5)),
+#'   copula = "vine",
+#'   n_cores = 1,
+#'   new_covariate = NULL,
+#'   input_data = my_data$dat
+#'   )
+#'   my_para <- extract_para(
+#'     sce = example_sce,
+#'     marginal_list = my_marginal,
+#'     n_cores = 1,
+#'     family_use = c(rep("nb", 5), rep("zip", 5)),
+#'     new_covariate = NULL,
+#'     data = my_data$dat
+#'   )
+#'   my_newcount <- simu_new(
+#'   sce = example_sce,
+#'   mean_mat = my_para$mean_mat,
+#'   sigma_mat = my_para$sigma_mat,
+#'   zero_mat = my_para$zero_mat,
+#'   quantile_mat = NULL,
+#'   copula_list = my_copula$copula_list,
+#'   n_cores = 1,
+#'   family_use = c(rep("nb", 5), rep("zip", 5)),
+#'   input_data = my_data$dat,
+#'   new_covariate = my_data$new_covariate,
+#'   important_feature = my_copula$important_feature
+#'   )
 #'
 #' @export simu_new
 
@@ -93,7 +143,7 @@ simu_new <- function(sce,
         if(curr_ncell == 0) {
           new_mvu <- NULL
         } else {
-          if (class(cor.mat)[1] == "matrix") {
+          if (methods::is(cor.mat, "matrix")) {
             #message(paste0("Group ", group_index, " Start"))
 
             #message("Sample MVN")
@@ -101,7 +151,7 @@ simu_new <- function(sce,
                                  Sigma = cor.mat)
             #message("MVN Sampling End")
             rownames(new_mvu) <- curr_ncell_idx
-          } else if (class(cor.mat)[1] == "vinecop") {
+          } else if (methods::is(cor.mat, "vinecop")) {
             new_mvu <- matrix(0, nrow = curr_ncell, ncol = dim(sce)[1])
             #message("Sampling Vine Copula Starts")
             mvu <- rvinecopulib::rvinecop(

@@ -52,3 +52,24 @@ A list of fitted regression models. The length is equal to the total feature num
 The function takes the result from \code{\link{construct_data}} as the input,
 and fit the regression models for each feature based on users' specification.
 }
+\examples{
+  data(example_sce)
+  my_data <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = "pseudotime",
+  spatial = NULL,
+  other_covariates = NULL,
+  corr_by = "1"
+  )
+  my_marginal <- fit_marginal(
+  data = my_data,
+  mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 1,
+  usebam = FALSE
+  )
+
+}

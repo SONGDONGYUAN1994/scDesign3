@@ -23,6 +23,25 @@
 #' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A list of fitted regression models. The length is equal to the total feature number.
+#' @examples
+#'   data(example_sce)
+#'   my_data <- construct_data(
+#'   sce = example_sce,
+#'   assay_use = "counts",
+#'   celltype = "cell_type",
+#'   pseudotime = "pseudotime",
+#'   spatial = NULL,
+#'   other_covariates = NULL,
+#'   corr_by = "1"
+#'   )
+#'   my_marginal <- fit_marginal(
+#'   data = my_data,
+#'   mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+#'   sigma_formula = "1",
+#'   family_use = "nb",
+#'   n_cores = 1,
+#'   usebam = FALSE
+#'   )
 #'
 #' @export fit_marginal
 #'

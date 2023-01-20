@@ -105,3 +105,26 @@ A list with the components:
 \description{
 \code{scdesign3} takes the input data, fits the model and
 }
+\examples{
+data(example_sce)
+my_simu <- scdesign3(
+sce = example_sce,
+assay_use = "counts",
+celltype = "cell_type",
+pseudotime = "pseudotime",
+spatial = NULL,
+other_covariates = NULL,
+mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
+family_use = c(rep("nb", 5), rep("zip", 5)),
+n_cores = 2,
+usebam = FALSE,
+corr_formula = "pseudotime",
+copula = "vine",
+DT = TRUE,
+pseudo_obs = FALSE,
+ncell = 1000,
+return_model = FALSE
+)
+
+}

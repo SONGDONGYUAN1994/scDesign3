@@ -82,3 +82,35 @@ A list with the components:
 This function takes the result from \code{\link{fit_marginal}} as the input and
 and fit the copula model on the residuals.
 }
+\examples{
+  data(example_sce)
+  my_data <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = "pseudotime",
+  spatial = NULL,
+  other_covariates = NULL,
+  corr_by = "1"
+  )
+  my_marginal <- fit_marginal(
+  data = my_data,
+  mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 1,
+  usebam = FALSE
+  )
+  my_copula <- fit_copula(
+  sce = example_sce,
+  assay_use = "counts",
+  marginal_list = my_marginal,
+  family_use = c(rep("nb", 5), rep("zip", 5)),
+  copula = "vine",
+  n_cores = 1,
+  new_covariate = NULL,
+  input_data = my_data$dat
+  )
+
+
+}
