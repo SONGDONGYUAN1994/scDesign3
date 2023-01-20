@@ -678,10 +678,10 @@ spark <- spark.vc(spark,
                    covariates = NULL, 
                    lib_size = spark@lib_size, 
                    num_core = 2,
-                   verbose = F)
+                   verbose = FALSE)
 spark <- spark.test(spark, 
-                     check_positive = T, 
-                     verbose = F)
+                     check_positive = TRUE, 
+                     verbose = FALSE)
 qvals[,"SPARK"] <- spark@res_mtest$adjusted_pvalue
 ```
 
