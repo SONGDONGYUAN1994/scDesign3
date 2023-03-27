@@ -51,3 +51,5 @@ src/*.dll
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^~/Package/scDesign3_vignette$
+^/home/qingyang/Package/scDesign3_vignette$

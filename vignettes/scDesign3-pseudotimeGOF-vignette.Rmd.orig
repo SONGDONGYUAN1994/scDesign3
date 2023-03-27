@@ -56,7 +56,7 @@ In this tutorial, we will first use the R package `dyngen` to generate a dataset
 
 ## Generation of reference dataset & Simulation
 We will first use `dyngen` to generate a dataset with ground truth "pseudotime".
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 set.seed(123)
 backbone <- backbone_linear_simple()
 config <-
@@ -77,22 +77,8 @@ example_sce <- out$dataset
 colData(example_sce)$pseudotime <- out$model$experiment$cell_info$time 
 ```
 
-```{r}
-set.seed(1)
-
-backbone <- backbone_linear()
-config <- 
-  initialise_model(
-    backbone = backbone,
-    num_tfs = nrow(backbone$module_info),
-    num_targets = 50,
-    num_hks = 50,
-    verbose = FALSE
-  )
-```
-
 Secondly, we perturb the pseudotime by generating random numbers from uniform distribution and replace various percentage of the original pseudotime by the random numbers. The percentage ranges from 0% to 100%.
-```{r, message=FALSE}
+```{r, message=FALSE, eval=TRUE}
 example_sce_list <- lapply(0:10, function(x) {
   perturb_prop <- x/10
   n_cell <- round(dim(example_sce)[2]*perturb_prop)
@@ -108,7 +94,7 @@ example_sce_list <- lapply(0:10, function(x) {
 ```
 
 Thirdly, we run the function `scdesign3` on datasets with perturbed pseudotime.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 scDesign3_result <- lapply(example_sce_list, function(x) {
   res <-  scdesign3(
     sce = x,
@@ -127,6 +113,7 @@ scDesign3_result <- lapply(example_sce_list, function(x) {
 })
 ```
 
+
 ## Visualization
 After the simulation, we can plot the BIC values from our function `scdesign3` vs calculated $r^2$ between the original pseudotime and perturbed pseudotime.
 ```{r, message=FALSE}
@@ -134,7 +121,7 @@ bic_list <- lapply(scDesign3_result, function(x){return(x$model_bic)})
 bic_df <- data.frame(matrix(unlist(bic_list), nrow = length(bic_list), byrow = TRUE))
 colnames(bic_df) <- names(bic_list[[1]])
 r2 <- sapply(example_sce_list, function(x){
-  cor(colData(example_sce)$pseudotime, colData(x)$pseudotime)^2
+  cor(colData(example_sce_list[[1]])$pseudotime, colData(x)$pseudotime)^2
 })
 metric <- tibble(bic = bic_df$bic.marginal, r2 = r2, Method = paste0("perturb ",seq(0,100,by = 10), "%"))
 p_pseudotime_metric <- metric %>% ggplot(aes(x = r2, y = bic,label = Method)) + geom_point() + theme_bw() + theme(aspect.ratio = 1,
@@ -145,3 +132,4 @@ p_pseudotime_metric
 ```
 
 
+  

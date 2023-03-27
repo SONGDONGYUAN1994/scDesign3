@@ -6,6 +6,7 @@
 #' parameter matricies from \code{\link{extract_para}} and multivariate Unifs from \code{\link{fit_copula}}.
 #'
 #' @param sce A \code{SingleCellExperiment} object.
+#' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.
 #' @param mean_mat A cell by feature matrix of the mean parameter.
 #' @param sigma_mat A cell by feature matrix of the sigma parameter.
 #' @param zero_mat A cell by feature matrix of the zero-inflation parameter.
@@ -86,6 +87,7 @@
 #' @export simu_new
 
 simu_new <- function(sce,
+                     assay_use = "counts",
                      mean_mat,
                      sigma_mat,
                      zero_mat,
@@ -266,7 +268,7 @@ simu_new <- function(sce,
   }
 
   if(nonzerovar) {
-    row_vars <- Rfast::rowVars(new_count)
+    row_vars <- matrixStats::rowVars(new_count)
     if(sum(row_vars == 0) > 0) {
       message("Some genes have zero variance. Replace a random one with 1.")
       row_vars_index <- which(row_vars == 0)
@@ -275,6 +277,10 @@ simu_new <- function(sce,
         new_count[i, sample(col_index, 1)] <- 1
       }
     }
+  }
+
+  if(dynutils::is_sparse(SummarizedExperiment::assay(sce, assay_use))){
+    new_count<- Matrix::Matrix(new_count, sparse = TRUE)
   }
 
   return(new_count)

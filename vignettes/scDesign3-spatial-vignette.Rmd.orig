@@ -37,7 +37,6 @@ knitr::opts_chunk$set(
 library(scDesign3)
 library(SingleCellExperiment)
 library(ggplot2)
-library(magrittr)
 library(dplyr)
 library(viridis)
 theme_set(theme_bw())
@@ -61,7 +60,7 @@ example_sce <- example_sce[1:10, ]
 
 ## Simulation
 Then, we can use this spatial dataset to generate new data by setting the parameter `mu_formula` as a smooth terms for the spatial coordinates.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 set.seed(123)
 example_simu <- scdesign3(
     sce = example_sce,
@@ -84,12 +83,13 @@ example_simu <- scdesign3(
   )
 ```
 Then, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
-```{r, message=FALSE}
+```{r, message=FALSE, eval=TRUE}
 logcounts(example_sce) <- log1p(counts(example_sce))
 simu_sce <- example_sce
 counts(simu_sce) <- example_simu$new_count
 logcounts(simu_sce) <- log1p(counts(simu_sce))
 ```
+
 
 ## Visualization
 We reformat the reference data and the synthetic data to visualize a few genes' expressions and the spatial locations.
@@ -98,5 +98,5 @@ VISIUM_dat_test <- data.frame(t(log1p(counts(example_sce)))) %>% as_tibble() %>%
 VISIUM_dat_scDesign3 <- data.frame(t(log1p(counts(simu_sce)))) %>% as_tibble() %>% dplyr::mutate(X = colData(simu_sce)$spatial1, Y = colData(simu_sce)$spatial2) %>% tidyr::pivot_longer(-c("X", "Y"), names_to = "Gene", values_to = "Expression") %>% dplyr::mutate(Method = "scDesign3")
 VISIUM_dat <- bind_rows(VISIUM_dat_test, VISIUM_dat_scDesign3) %>% dplyr::mutate(Method = factor(Method, levels = c("Reference", "scDesign3")))
 
-VISIUM_dat %>% dplyr::filter(Gene %in% rownames(example_sce)[1:5]) %>% ggplot(aes(x = X, y = Y, color = Expression)) + geom_point(size = 0.5) + scale_colour_gradientn(colors = viridis_pal(option = "magma")(10), limits=c(0, 8)) + coord_fixed(ratio = 1) + facet_grid(Method ~ Gene )+ theme_gray()
+VISIUM_dat %>% filter(Gene %in% rownames(example_sce)[1:5]) %>% ggplot(aes(x = X, y = Y, color = Expression)) + geom_point(size = 0.5) + scale_colour_gradientn(colors = viridis_pal(option = "magma")(10), limits=c(0, 8)) + coord_fixed(ratio = 1) + facet_grid(Method ~ Gene )+ theme_gray()
 ```

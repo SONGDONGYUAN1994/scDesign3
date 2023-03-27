@@ -53,7 +53,7 @@ example_sce <- example_sce[1:100, ]
 
 ## Simulation
 The function `scdesign3()` is a one-shot function that can generate new dataset.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 set.seed(123)
 example_simu <- scdesign3(
     sce = example_sce,
@@ -76,7 +76,7 @@ example_simu <- scdesign3(
   )
 ```
 We create the `SingleCellExperiment` objects using the new count matrices generated above and store the `logcounts`.
-```{r, message=FALSE}
+```{r, message=FALSE, eval=TRUE}
 logcounts(example_sce) <- log1p(counts(example_sce))
 simu_sce <- example_sce
 counts(simu_sce) <- example_simu$new_count
@@ -84,8 +84,7 @@ logcounts(simu_sce) <- log1p(counts(simu_sce))
 ```
 
 ## Visualization
-```{r, message=FALSE}
-set.seed(123)
+```{r, message=FALSE, eval=TRUE}
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 
                                   sce_list = list(simu_sce), 
                                   name_vec = c("Reference", "scDesign3"),
@@ -93,6 +92,10 @@ compare_figure <- plot_reduceddim(ref_sce = example_sce,
                                   if_plot = TRUE, 
                                   color_by = "pseudotime", 
                                   n_pc = 20)
+```
+To save time, the `ggplot` objects based on the reference and simulated data's UMAP embedding are pre-saved.
+```{r}
+compare_figure <- readRDS("~/scDesign3_vignette/intro_ggplot1.rds")
 plot(compare_figure$p_umap)
 ```
 
@@ -100,8 +103,9 @@ plot(compare_figure$p_umap)
 
 ## Step-by-step functions
 Alternatively, you can run through the following steps to generate the new dataset. The code below does exactly the same thing as the one-shot function above.
+
 1. Construct the input dataset.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 PANCREAS_data <- construct_data(
     sce = example_sce,
     assay_use = "counts",
@@ -113,7 +117,7 @@ PANCREAS_data <- construct_data(
   )
 ```
 2. Fit regression models for each feature based on your specification.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 PANCREAS_marginal <- fit_marginal(
     data = PANCREAS_data,
     predictor = "gene",
@@ -125,7 +129,7 @@ PANCREAS_marginal <- fit_marginal(
   )
 ```
 3. Fit a copula, obtain AIC and BIC.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 PANCREAS_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -147,7 +151,7 @@ PANCREAS_copula <- fit_copula(
 * a zero matrix which is:
   + a cell-by-gene matrix of zero probabilities for zero-inflated negative binomial and zero-inflated poisson distributions
   + a zero matrix for negative binomial, Gaussian, and poisson distributions
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 PANCREAS_para <- extract_para(
     sce = example_sce,
     marginal_list = PANCREAS_marginal,
@@ -157,7 +161,7 @@ PANCREAS_para <- extract_para(
   )
 ```
 5. Simulate the new count matrix.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
  PANCREAS_newcount <- simu_new(
     sce = example_sce,
     mean_mat = PANCREAS_para$mean_mat,
@@ -173,7 +177,7 @@ PANCREAS_para <- extract_para(
   )
 ```
 Then, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
-```{r, message=FALSE}
+```{r, message=FALSE, eval=TRUE}
 logcounts(example_sce) <- log1p(counts(example_sce))
 simu_sce <- example_sce
 counts(simu_sce) <- PANCREAS_newcount
@@ -181,8 +185,7 @@ logcounts(simu_sce) <- log1p(counts(simu_sce))
 ```
 
 ## Visualization
-```{r, message=FALSE}
-set.seed(123)
+```{r, message=FALSE, eval=TRUE}
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 
                                   sce_list = list(simu_sce), 
                                   name_vec = c("Reference", "scDesign3"),

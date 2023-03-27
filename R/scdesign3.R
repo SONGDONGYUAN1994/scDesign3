@@ -158,6 +158,7 @@ Extraction End")
   message("Start Generate New Data")
   new_count <- simu_new(
     sce = sce,
+    assay_use= assay_use,
     mean_mat = para_list$mean_mat,
     sigma_mat = para_list$sigma_mat,
     zero_mat = para_list$zero_mat,

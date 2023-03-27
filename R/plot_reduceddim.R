@@ -37,7 +37,7 @@ plot_reduceddim <- function(ref_sce,
 
   mat_ref <- t(as.matrix(SummarizedExperiment::assay(ref_sce, assay_use)))
 
-  if(sum(Rfast::colVars(mat_ref) == 0) > 0) {
+  if(sum(matrixStats::colVars(mat_ref) == 0) > 0) {
     stop("The ref dataset contains 0 variance features. Please remove them.")
   }
 

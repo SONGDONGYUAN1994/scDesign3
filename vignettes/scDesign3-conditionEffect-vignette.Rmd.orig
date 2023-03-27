@@ -74,7 +74,8 @@ head(colData(example_sce))
 ```
 ## Simulation
 First, we will simulate new data with the condition effects.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 simu_res <- scdesign3(
     sce = example_sce,
     assay_use = "counts",
@@ -99,7 +100,7 @@ simu_res <- scdesign3(
 ```
 
 Then, we can also simulate a new dataset with condition effects on B cells removed.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 IFNB_data <- construct_data(
   sce = example_sce,
   assay_use = "counts",
@@ -110,7 +111,7 @@ IFNB_data <- construct_data(
   corr_by = "cell_type"
 )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 IFNB_marginal <- fit_marginal(
   data = IFNB_data,
   predictor = "gene",
@@ -121,7 +122,7 @@ IFNB_marginal <- fit_marginal(
   usebam = FALSE
 )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 IFNB_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -134,14 +135,14 @@ IFNB_copula <- fit_copula(
   )
 ```
 In here, the condition effects on B cells are removed for all genes by modifying the estimated coefficients for all genes' marginal models.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 IFNB_marginal_null_B <- lapply(IFNB_marginal, function(x) {
   x$coefficients["cell_typeB:conditionSTIM"] <- 0-x$coefficients["conditionSTIM"]
   x
 })
 ```
 Then, we can generate the parameters using the altered marginal fits and simulate new data with the altered paremeters.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 IFNB_para_null_B <- extract_para(
     sce = example_sce,
     marginal_list = IFNB_marginal_null_B,
@@ -150,7 +151,7 @@ IFNB_para_null_B <- extract_para(
     new_covariate = NULL
   )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 IFNB_newcount_null_B <- simu_new(
     sce = example_sce,
     mean_mat = IFNB_para_null_B$mean_mat,
@@ -166,7 +167,7 @@ IFNB_newcount_null_B <- simu_new(
   )
 ```
 Then, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
-```{r, message=FALSE}
+```{r, message=FALSE, eval=TRUE}
 simu_res_list <- lapply(list(simu_res$new_count,IFNB_newcount_null_B ), function(x){
   logcounts(example_sce) <- log1p(counts(example_sce))
   simu_sce <- example_sce
@@ -178,8 +179,7 @@ logcounts(example_sce) <- log1p(counts(example_sce))
 ```
 
 ## Visulization
-```{r, message=FALSE, fig.width=12}
-set.seed(123)
+```{r, message=FALSE, fig.width=12, eval=TRUE}
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 
                                   sce_list = simu_res_list, 
                                   name_vec = c("Reference", "w/ Condition", "Modified Condition"),
@@ -190,6 +190,7 @@ compare_figure <- plot_reduceddim(ref_sce = example_sce,
                                   n_pc = 20)
 plot(compare_figure$p_umap)
 ```
+
 
 
 

@@ -55,8 +55,7 @@ construct_data <- function(sce,
                           BPPARAM = NULL) {
   ## Extract expression matrix
   count_mat <-
-    t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
-
+      t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
   ## Extract col data
   coldata_mat <- data.frame(SummarizedExperiment::colData(sce))
 

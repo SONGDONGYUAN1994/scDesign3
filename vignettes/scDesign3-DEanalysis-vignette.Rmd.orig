@@ -92,7 +92,8 @@ head(colData(example_sce))
 
 ### Simulation
 We use the step-by-step functions instead of the one-shot function to generate synthetic data since these step-by-step functions allow us to alter estimated parameters and generate new data based on our desired parameters.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(1)
 example_data <- construct_data(
     sce = example_sce,
     assay_use = "counts",
@@ -104,7 +105,7 @@ example_data <- construct_data(
   )
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 example_marginal <- fit_marginal(
     data = example_data,
     predictor = "gene",
@@ -115,7 +116,7 @@ example_marginal <- fit_marginal(
     usebam = FALSE
   )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 example_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -127,7 +128,7 @@ example_copula <- fit_copula(
     input_data = example_data$dat
   )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 example_para <- extract_para(
     sce = example_sce,
     marginal_list = example_marginal,
@@ -139,7 +140,7 @@ example_para <- extract_para(
 
 Here, we examine the `mean_mat`, which is one of the outputs from the previous function `extract_para()`. For each gene, we calculate the difference in the between the maximum mean parameter and minimum mean parameter across all cells. We select genes which the gene's mean difference across cells are in the top 50 largest differences. We regard these genes as DE genes. Then, we manually set the mean parameters of the rest genes to be the same across all cells. We regard all genes with the same mean parameter across cells as non-DE genes. Of course, this is a very flexible step and users may choose other ideas to modify the mean matrix.
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 diff <- apply(example_para$mean_mat, 2, function(x){max(x)-min(x)})
 diff_ordered <- order(diff, decreasing = TRUE)
 diff <- diff[diff_ordered]
@@ -154,7 +155,7 @@ non_de_mat <- apply(example_para$mean_mat[,non_de_idx], 2, function(x){
 example_para$mean_mat[,non_de_idx] <- non_de_mat
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
  example_newcount <- simu_new(
     sce = example_sce,
     mean_mat = example_para$mean_mat,
@@ -172,7 +173,7 @@ example_para$mean_mat[,non_de_idx] <- non_de_mat
 
 ### DE genes identification
 Then, we follow [Seurat's pipeline](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) to preprocess the simulated data.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 seurat_obj <- CreateSeuratObject(counts = example_newcount, project = "seurat_obj", min.cells = 0, min.features = 0)
 seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "^MT-")
 seurat_obj <- NormalizeData(seurat_obj, normalization.method = "LogNormalize", scale.factor = 10000)
@@ -184,7 +185,7 @@ seurat_obj <- JackStraw(seurat_obj, num.replicate = 100)
 seurat_obj <- ScoreJackStraw(seurat_obj, dims = 1:20)
 ```
 Since we already have the ground truth cell type annotations for our simulated dataset, we can directly use the cell type annotations we have instead of running `FindClusters` from `Seurat` to avoid the double-dipping issue.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 seurat_obj <- FindNeighbors(seurat_obj, dims = 1:10)
 ct <- colData(example_sce)$cell_type
 names(ct) <- colnames(example_sce)
@@ -194,7 +195,7 @@ seurat_obj <- RunUMAP(seurat_obj, dims = 1:10)
 ```
 
 Then, we follow [Seurat's tutorial](https://satijalab.org/seurat/articles/de_vignette.html) to conduct DE test.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 test <- c("wilcox", "bimod", "t", "poisson", "negbinom", "LR", "MAST", "DESeq2")
 qvals <- matrix(0, nrow = dim(seurat_obj)[1], ncol = length(test))
 for (x in 1:length(test)) {
@@ -208,7 +209,7 @@ rownames(qvals) <- rownames(seurat_obj)
 
 Since we manually created non-DE genes in the `extra_para()` step, now we can calculate the actual false discovery proportion(FDP) and power of the DE tests we conducted above with various target FDR threshold.
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide',eval=TRUE}
 targetFDR <- c(seq(0.01,0.1,by=0.01),seq(0.2,0.5,by=0.1))
 de <-de_idx
 fdp_mat <- matrix(0, nrow = length(targetFDR), ncol = length(test))
@@ -237,6 +238,8 @@ for (t in 1:length(test)) {
 
 
 ```
+
+
 Lastly, we visualize the Target FDR vs Actual FDP and Target FDR vs Power below.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 fdp_long <- melt(fdp_mat)
@@ -272,7 +275,8 @@ example_sce <- example_sce[1:200, ]
 ```
 ### Simulation
 We use the step-by-step functions instead of the one-shot function to generate synthetic data since these step-by-step functions allow us to alter estimated parameters and generate new data based on our desired parameters.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(1)
 PANCREAS_data <- construct_data(
     sce = example_sce,
     assay_use = "counts",
@@ -283,7 +287,7 @@ PANCREAS_data <- construct_data(
     corr_by = "1"
   )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 PANCREAS_marginal <- fit_marginal(
     data = PANCREAS_data,
     predictor = "gene",
@@ -294,7 +298,7 @@ PANCREAS_marginal <- fit_marginal(
     usebam = FALSE
   )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 PANCREAS_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -306,7 +310,7 @@ PANCREAS_copula <- fit_copula(
     input_data = PANCREAS_data$dat
   )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 PANCREAS_para <- extract_para(
     sce = example_sce,
     marginal_list = PANCREAS_marginal,
@@ -316,7 +320,7 @@ PANCREAS_para <- extract_para(
   )
 ```
 Here, we examine the `mean_mat`, which is one of the outputs from the previous function `extract_para()`. For each gene, we calculate the difference in the between the maximum mean parameter and minimum mean parameter across all cells. We select genes which the gene's mean difference across cells are in the top 50 largest differences. We regard these genes as DE genes(DEG). Then, we manually set the mean parameters of the rest genes to be the same across all cells. We regard all genes with the same mean parameter across cells as non-DE genes.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 diff <- apply(PANCREAS_para$mean_mat, 2, function(x){max(x)-min(x)})
 diff_ordered <- order(diff, decreasing = TRUE)
 diff <- diff[diff_ordered]
@@ -331,8 +335,7 @@ non_de_mat <- apply(PANCREAS_para$mean_mat[,non_de_idx], 2, function(x){
 PANCREAS_para$mean_mat[,non_de_idx] <- non_de_mat
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
-set.seed(123)
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
  PANCREAS_newcount <- simu_new(
     sce = example_sce,
     mean_mat = PANCREAS_para$mean_mat,
@@ -347,7 +350,7 @@ set.seed(123)
     important_feature = PANCREAS_copula$important_feature
   )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 logcounts(example_sce) <- log1p(counts(example_sce))
 simu_sce <- example_sce
 counts(simu_sce) <-  PANCREAS_newcount
@@ -356,7 +359,7 @@ logcounts(simu_sce) <- log1p(counts(simu_sce))
 
 ### DE genes identification
 Now, we use the simulated data to benchmark the performance of four DEG identification methods. The p-values from the two methods after Benjamini-Hochberg(BH) corretion will be stored in `qvals` in the following code.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 qvals <- matrix(0, ncol = 4, nrow = dim(simu_sce)[1])
 colnames(qvals) <- c("Monocle3-DE","tradeSeq","NBAMseq","PseudotimeDE")
 rownames(qvals) <- rownames(simu_sce)
@@ -364,7 +367,7 @@ rownames(qvals) <- rownames(simu_sce)
 
 ####  Monocle3 
 We follow the [tutorial](https://cole-trapnell-lab.github.io/monocle3/docs/differential/) from `Monocle3` to conduct the DE test and obtain the p-values after BH correction.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 rowdata <- rowData(simu_sce)
 rowdata$gene_short_name <- rownames(rowData(simu_sce))
 coldata <- colData(simu_sce)
@@ -379,11 +382,11 @@ qvals[fit$gene,"Monocle3-DE"] <- fit$q_value
 ```
 #### tradeSeq
 We follow the [tutorial](https://statomics.github.io/tradeSeq/articles/tradeSeq.html) from `tradeSeq` to conduct the DE test and obtain the p-values after BH correction.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 pseudo <- colData(simu_sce)$pseudotime
 icMat <- evaluateK(counts = counts(simu_sce), pseudotime  = pseudo, cellWeights = rep(1, dim(simu_sce)[2]), k = 3:10, nGenes = 100, verbose = FALSE, plot = TRUE)
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 res_tradeSeq <- fitGAM(counts = as.matrix(assays(simu_sce)$counts), pseudotime = pseudo, cellWeights = rep(1, length(pseudo)),nknots = 10)
 assoRes <- associationTest(res_tradeSeq, lineages = FALSE)
 assoRes <- assoRes %>% as_tibble(rownames = "gene") %>% dplyr::mutate(qvalue = p.adjust(pvalue, method = "BH"))
@@ -392,20 +395,20 @@ qvals[assoRes$gene,"tradeSeq"] <- assoRes$qvalue
 
 #### NBAMseq
 We follow the [tutorial](https://www.bioconductor.org/packages/release/bioc/vignettes/NBAMSeq/inst/doc/NBAMSeq-vignette.html) from `NBAMseq` to conduct the DE test and obtain the p-values after BH correction.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 countdata <- counts(simu_sce)
 coldata <- colData(simu_sce)
 design = ~s(pseudotime)
 gsd = NBAMSeqDataSet(countData = countdata, colData = coldata, design = design)
 gsd = NBAMSeq(gsd) 
-res1 = results(gsd, name = "pseudotime")
+res1 = NBAMSeq::results(gsd, name = "pseudotime")
 head(res1)
 qvals[rownames(res1),"NBAMseq"] = res1$padj
 ```
 
 #### PseudotimeDE
 We follow the [tutorial](https://htmlpreview.github.io/?https://rpubs.com/dongyuansong/842884) from `PseudotimeDE` to conduct the DE test and obtain the p-values after BH correction. Here to save computational time, we use the fix-mode of PseudotimeDE.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 ori_tbl <- tibble(cell = colnames(simu_sce), pseudotime = colData(simu_sce)$pseudotime)
 res <- runPseudotimeDE(gene.vec = rownames(simu_sce),
                                      ori.tbl = ori_tbl,
@@ -416,12 +419,12 @@ qvals[res$gene,"PseudotimeDE"] <- p.adjust(res$fix.pv, method = "BH", length(res
 ```
 
 Since `tradeSeq`'s result contains some NA, we convert the NA to 1 first.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 qvals[is.na(qvals)] <- 1
 print(head(qvals))
 ```
 Since we manually created non-DE genes in the `extra_para()` step, now we can calculate the actual false discovery proportion(FDP) and power of the DE tests we conducted above with various target FDR threshold.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 test = colnames(qvals)
 targetFDR <- c(seq(0.01,0.1,by=0.01),seq(0.2,0.5,by=0.1))
 de <- colnames(PANCREAS_para$mean_mat[,de_idx])
@@ -449,6 +452,7 @@ for (t in 1:length(test)) {
   }
 }
 ```
+
 
 Lastly, we visualize the Target FDR vs Actual FDP and Target FDR vs Power below.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
@@ -485,7 +489,7 @@ To save time, we subset the top 200 genes.
 ```{r, message=FALSE}
 example_sce <- example_sce[1:200, ]
 ```
-We remove the mitochondrial genes since this is a prepreocessing step in SPARK-X, which is one of the method we will use to identify spatially varaible genes.
+We remove the mitochondrial genes since this is a preprocessing step in SPARK-X, which is one of the method we will use to identify spatially variable genes.
 ```{r}
 mt_idx<- grep("mt-",rownames(example_sce))
 if(length(mt_idx)!=0){
@@ -495,7 +499,8 @@ if(length(mt_idx)!=0){
 
 ### Simulation
 We use the step-by-step functions instead of the one-shot function to generate synthetic data since these step-by-step functions allow us to alter estimated parameters and generate new data based on our desired parameters.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(1)
 example_data <- construct_data(
     sce = example_sce,
     assay_use = "counts",
@@ -507,7 +512,7 @@ example_data <- construct_data(
   )
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 example_marginal <- fit_marginal(
     data = example_data,
     predictor = "gene",
@@ -519,7 +524,7 @@ example_marginal <- fit_marginal(
   )
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 example_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -532,7 +537,7 @@ example_copula <- fit_copula(
   )
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 example_para <- extract_para(
     sce = example_sce,
     marginal_list = example_marginal,
@@ -542,7 +547,7 @@ example_para <- extract_para(
   )
 ```
 Here, we examine the `mean_mat`, which is one of the outputs from the previous function `extract_para()`. For each gene, we calculate the deviance explained by spatial locations in each regression model, and select the top 50. We regard these genes as spatially variable genes (SVGs). Then, we manually set the mean parameters of the rest genes to be the same across all cells. We regard all genes with the same mean parameter across cells as non-SVG genes.
-```{r,message=FALSE, warning=FALSE, results='hide'}
+```{r,message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 dev_explain <- sapply(example_marginal, function(x){
   sum = summary(x)
   return(sum$dev.expl)
@@ -577,7 +582,7 @@ Another way to select SVG based on Moran's I.
 # example_para$mean_mat[,non_de_idx] <- non_de_mat
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
  example_newcount <- simu_new(
     sce = example_sce,
     mean_mat = example_para$mean_mat,
@@ -592,12 +597,13 @@ Another way to select SVG based on Moran's I.
     important_feature = rep(TRUE, dim(example_sce)[1])
   )
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, eval=TRUE}
 logcounts(example_sce) <- log1p(counts(example_sce))
-simu_sce <- example_sce
+simu_sce <- example_sce 
 counts(simu_sce) <- example_newcount
 logcounts(simu_sce) <- log1p(counts(simu_sce))
 ```
+
 
 We rescale the log count of 5 synthetic SVG here to the 0 to 1 scale and visualize them below. 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
@@ -637,7 +643,7 @@ as_tibble(long, rownames = "Cell") %>% ggplot(aes(x = x, y = y, color = Expressi
 
 ### SVG identification
 Now, we use the simulated data to benchmark the performance of three SVG identification methods. The p-values from the two methods after Benjamini-Hochberg(BH) correction will be stored in `qvals` in the following code.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 qvals <- matrix(0, ncol = 3, nrow = dim(simu_sce)[1])
 colnames(qvals) <- c("spatialDE","SPARK","SPARK-X")
 rownames(qvals) <- rownames(simu_sce)
@@ -645,7 +651,7 @@ rownames(qvals) <- rownames(simu_sce)
 
 #### spatialDE
 We follow the [tutorial](https://www.bioconductor.org/packages/release/bioc/vignettes/spatialDE/inst/doc/spatialDE.html) from `spatialDE` to conduct the hypothesis test and obtain the p-values after BH correction.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 count <- counts(simu_sce)
 sample_info <- colData(simu_sce)[, c("spatial1","spatial2")]
 sample_info <- as.data.frame(sample_info)
@@ -663,7 +669,7 @@ qvals[,"spatialDE"] <- results_spatialDE[rownames(simu_sce),"qval"]
 
 #### SPARK
 We then follow the [tutorial](https://xzhoulab.github.io/SPARK/02_SPARK_Example/) from `SPARK` to conduct the hypothesis test and obtain the p-values after BH correction.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 rawcount <- counts(simu_sce)
 info <- as.data.frame(colData(simu_sce)[, c("spatial1","spatial2")])
 colnames(info) <- c("x","y")
@@ -687,7 +693,7 @@ qvals[,"SPARK"] <- spark@res_mtest$adjusted_pvalue
 
 #### SPARK-X
 We then follow the [tutorial](https://xzhoulab.github.io/SPARK/02_SPARK_Example/) from `SPARK-X` to conduct the hypothesis test and obtain the p-values after BH correction.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 sp_count <- counts(simu_sce)
 info <- as.data.frame(colData(simu_sce)[, c("spatial1","spatial2")])
 colnames(info) <- c("x","y")
@@ -704,7 +710,7 @@ qvals[,"SPARK-X"] <-sparkX$res_mtest$adjustedPval
 ```
 
 Since we manually created non-SVG in the `extra_para()` step, now we can calculate the actual false discovery proportion(FDP) and power of the tests we conducted above with various target FDR threshold.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 test = colnames(qvals)
 targetFDR <- c(0.01,0.05,0.1,0.2,0.5)
 de <- de_idx
@@ -744,6 +750,7 @@ for (t in 1:length(test)) {
   }
 }
 ```
+
 Lastly, we visualize the Target FDR vs Actual FDP and Target FDR vs Power below.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 fdp_long <- melt(fdp_mat)

@@ -6,6 +6,7 @@
 \usage{
 simu_new(
   sce,
+  assay_use = "counts",
   mean_mat,
   sigma_mat,
   zero_mat,
@@ -24,6 +25,8 @@ simu_new(
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object.}
+
+\item{assay_use}{A string which indicates the assay you will use in the sce. Default is 'counts'.}
 
 \item{mean_mat}{A cell by feature matrix of the mean parameter.}
 

@@ -124,8 +124,8 @@ fit_copula <- function(sce,
   }
 
   ## select important genes
-  if(is.vector(important_feature) & length(important_feature) !=1){
-    if(length(important_feature) != dim(sce)[1] | !methods::is(important_feature,"logical")){
+  if(is.vector(important_feature) & methods::is(important_feature,"logical")){
+    if(length(important_feature) != dim(sce)[1]){
       stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
     }
   }else{
@@ -183,6 +183,7 @@ fit_copula <- function(sce,
           tol = 1e-8,
           ind = ind
         )
+
         #message("Sample MVN")
         #new_mvu <- sampleMVN(n = curr_ncell,
         #                     Sigma = cor.mat)
@@ -277,6 +278,7 @@ fit_copula <- function(sce,
     x$cor.mat)
   names(copula_list) <- group_index
 
+
   #new_mvu <- as.data.frame(newmvn)
 
   return(
@@ -307,9 +309,9 @@ cal_cor <- function(norm.mat,
     rownames(cor.mat) <- colnames(norm.mat)
     colnames(cor.mat) <- colnames(norm.mat)
     important.mat <- norm.mat[,which(important_feature)]
-    important_cor.mat <- Rfast::cora(important.mat)
+    important_cor.mat <- corrlation(important.mat)
     #s_d <- apply(norm.mat, 2, stats::sd)
-    s_d <- Rfast::colVars(important.mat, std = TRUE, na.rm = TRUE)
+    s_d <- matrixStats::colSds(important.mat,na.rm = TRUE)
     if (any(0 == s_d)) {
       important.mat[is.na(important.mat)] <- 0
     }
@@ -341,6 +343,8 @@ cal_cor <- function(norm.mat,
 
   cor.mat
 }
+
+
 
 ### Sample MVN based on cor
 sampleMVN <- function(n,
@@ -405,7 +409,8 @@ convert_n <- function(sce,
                       parallelization) {
   ## Extract count matrix
   count_mat <-
-    t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
+      t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
+
 
   # n cell
   ncell <- dim(count_mat)[1]
@@ -607,7 +612,9 @@ convert_u <- function(sce,
                       parallelization) {
   ## Extract count matrix
   count_mat <-
-    t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
+      t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
+
+
 
   # n cell
   ncell <- dim(count_mat)[1]
@@ -836,3 +843,11 @@ cal_bic <- function(norm.mat,
 
   copula.bic
 }
+
+## Similar to the cora function from "Rfast" but uses different functions to calculate column means and row sums.
+corrlation <- function(x) {
+  mat <- t(x) - matrixStats::colMeans2(x)
+  mat <- mat / sqrt(matrixStats::rowSums2(mat^2))
+  tcrossprod(mat)
+}
+

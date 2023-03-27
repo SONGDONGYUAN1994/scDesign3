@@ -40,6 +40,7 @@ library(ggrepel)
 library(scran)
 library(dplyr)
 library(igraph)
+library(rvinecopulib)
 theme_set(theme_bw())
 ```
 ## Introduction
@@ -63,16 +64,11 @@ chosen <- getTopHVGs(stats, n = 100)
 Zhengmix4eq_sce_sub <- Zhengmix4eq_sce[chosen, ]
 ```
 
-Before simulation, we store two dimension reduction results in the `SingleCellExperiment` object.
-```{r, message=FALSE, warning = FALSE}
-Zhengmix4eq_sce_sub <- runPCA(Zhengmix4eq_sce_sub)
-Zhengmix4eq_sce_sub <- runUMAP(Zhengmix4eq_sce_sub)
-
-```
 
 ## Simulation
 We then use `scdesign3` to simulate two new datasets using Gaussian copula and vine copula respectively.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 Zhengmix4eq_simu_sce_gaussian <- scdesign3(sce = Zhengmix4eq_sce_sub, 
                             celltype = 'cell_type', 
                             pseudotime = NULL, 
@@ -88,7 +84,7 @@ Zhengmix4eq_simu_sce_gaussian <- scdesign3(sce = Zhengmix4eq_sce_sub,
                             pseudo_obs = TRUE, return_model = TRUE)
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 Zhengmix4eq_simu_sce_vine <- scdesign3(sce = Zhengmix4eq_sce_sub, 
                             celltype = 'cell_type', 
                             pseudotime = NULL, 
@@ -109,7 +105,7 @@ Zhengmix4eq_simu_sce_vine <- scdesign3(sce = Zhengmix4eq_sce_sub,
 For the simulation result using Gaussian copula, the return object contains a `corr_list` which is the gene-gene correlation matrices for each group that user specified, in this case, the groups are cell types. For the simulation result using vine copula, the `corr_list` gives the vine structure for each group that user specified, in this case, the groups are cell types. We then reformat the two `corr_list` and visualize them.
 
 We first visualize the `corr_list` returned when we use Gaussian copula.
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 Zhengmix4eq_corr_list <- Zhengmix4eq_simu_sce_gaussian$corr_list
 
 names(Zhengmix4eq_corr_list) <- c("b.cells", "naive.cytotoxic", "cd14.monocytes", "regulatory.t")
@@ -128,12 +124,12 @@ Zhengmix4eq_corr_list <- lapply(Zhengmix4eq_corr_list, function(x) {
   }))
   cor_dat$Method <- factor(cor_dat$Method, levels = c("cd14.monocytes",  "b.cells","regulatory.t",  "naive.cytotoxic"))
 ```
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 cor_dat <- cor_dat %>% dplyr::mutate(Method = if_else(Method == "b.cells", "B cell", if_else(Method == "cd14.monocytes", "CD14+ monocyte", if_else(Method == "regulatory.t", "Regulatory T cell", "Naive cytotoxic T cell")))) %>% dplyr::mutate(Method = factor(Method, levels = c("CD14+ monocyte", "B cell", "Regulatory T cell", "Naive cytotoxic T cell")))
 ```
 
 
-```{r, fig.width=12, message=FALSE}
+```{r, fig.width=12, message=FALSE, warning=FALSE}
 corr_p <- cor_dat %>% ggplot(
                         aes(Var2, Var1, fill = value))+
       facet_wrap(~Method, nrow = 1) + #, labeller = label_parsed
@@ -152,17 +148,17 @@ corr_p <- cor_dat %>% ggplot(
 corr_p
 ```
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 vine_list <- Zhengmix4eq_simu_sce_vine$corr_list
 ```
-```{r, fig.width=12,fig.show='hide', message=FALSE, warning=FALSE}
+```{r, fig.width=12, message=FALSE, warning=FALSE, fig.show='hide'}
 plt1 <- plot(vine_list[[3]], tree = 1, var_names = "use")+ theme(aspect.ratio = 1, title = element_blank())
 plt2 <- plot(vine_list[[1]], tree = 1, var_names = "use")+ theme(aspect.ratio = 1, title = element_blank())
 plt3 <- plot(vine_list[[4]], tree = 1, var_names = "use")+ theme(aspect.ratio = 1, title = element_blank())
 plt4 <- plot(vine_list[[2]], tree = 1, var_names = "use")+ theme(aspect.ratio = 1, title = element_blank())
 ```
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 degree_thresh <- 3
 
 igr_obj1 <- get("g", plt1$plot_env)[[1]]
@@ -231,31 +227,8 @@ p4 <- ggraph::ggraph(igr_obj4, "igraph",
 vine_dat <- list(igr_obj1, igr_obj2, igr_obj3, igr_obj4)
 ```
 
-
-```{r, message=FALSE}
-p_vine_list <- lapply(vine_dat, function(x) {
-  degree_thresh = 4
-  degree_indicator = igraph::degree(x) > degree_thresh
-  #print(igraph::degree(x) )
-  p <- ggraph::ggraph(x, "igraph",
-      algorithm = "tree", circular = TRUE
-    ) + ggraph::geom_edge_link(colour = "#C0C0C0")+
-      ggraph::geom_node_point(col = "#56B4E9", size = 2) +
-      ggplot2::theme_void()+ ggraph::geom_node_text(ggplot2::aes(filter = degree_indicator, label = name),
-        fontface = "bold",
-        repel = TRUE, check_overlap = TRUE, size = 3.0
-      ) + theme(aspect.ratio = 1,
-                panel.background = element_blank(),
-        panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA, size=0.5))
-})
-p_vine_copula <- cowplot::plot_grid(plotlist = p_vine_list , nrow = 1, align = "hv", axis = "lr")
-```
-
 We then visualize the `corr_list` returned when we use vine copula. Comparing with the visualization above, the plots below give more direct visualization about which genes are connected in the vine structure and show gene networks.
-```{r, fig.width=12, message=FALSE}
+```{r, fig.width=12, message=FALSE, warning=FALSE}
 p_vine <- cowplot::plot_grid(p1, p2, p3, p4, nrow = 1, align = "hv")
 p_vine
 ```

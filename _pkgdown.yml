@@ -6,7 +6,6 @@ articles:
 - title: Articles
   navbar: ~
   contents:
-  - scDesign3
   - scDesign3-introduction-vignette
   - scDesign3-copulaCompare-vignette
   - scDesign3-multipleLineages-vignette

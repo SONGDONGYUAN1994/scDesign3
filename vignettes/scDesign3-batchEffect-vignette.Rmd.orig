@@ -40,6 +40,7 @@ knitr::opts_chunk$set(
 ```{r setup, message=FALSE}
 library(scDesign3)
 library(ggplot2)
+library(SingleCellExperiment)
 theme_set(theme_bw())
 ```
 
@@ -66,7 +67,8 @@ head(colData(example_sce))
 
 ## Simulation
 We can simulate a new data with batch effect information.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 simu_res <- scdesign3(sce = example_sce, 
                               assay_use = "counts", 
                               celltype = "cell_type", 
@@ -87,7 +89,7 @@ simu_res <- scdesign3(sce = example_sce,
 
 
 We can also remove the batch effect and generate new data.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_data <- construct_data(
   sce = example_sce,
   assay_use = "counts",
@@ -98,7 +100,7 @@ BATCH_data <- construct_data(
   corr_by = "1"
 )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_marginal <- fit_marginal(
   data = BATCH_data,
   predictor = "gene",
@@ -109,7 +111,7 @@ BATCH_marginal <- fit_marginal(
   usebam = FALSE
 )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -122,13 +124,13 @@ BATCH_copula <- fit_copula(
   )
 ```
 In here, we remove  the batch effect by setting its coefficient to zero for all genes' marginal fits. Then, we use the new sets of coefficients to generate the parameters for all genes across all cells.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_marginal_null <- lapply(BATCH_marginal, function(x) {
   x$coefficients[length(x$coefficients)] <- 0
   x
 })
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_para_null <- extract_para(
     sce = example_sce,
     marginal_list = BATCH_marginal_null,
@@ -137,7 +139,7 @@ BATCH_para_null <- extract_para(
     new_covariate = NULL
   )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_newcount_null <- simu_new(
     sce = example_sce,
     mean_mat = BATCH_para_null$mean_mat,
@@ -154,13 +156,13 @@ BATCH_newcount_null <- simu_new(
 ```
 
 Additionally, we can alter the batch effect information by mannually change the estimated coefficient for batch effect in each gene's marginal model. Then, we can simulate new dataset with altered batch effect information.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_marginal_alter <- lapply(BATCH_marginal, function(x) {
   x$coefficients[length(x$coefficients)] <- rnorm(1, mean = 5, sd = 2)
   x
 })
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_para_alter <- extract_para(
     sce = example_sce,
     marginal_list = BATCH_marginal_alter,
@@ -169,7 +171,7 @@ BATCH_para_alter <- extract_para(
     new_covariate = NULL
   )
 ```
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_newcount_alter <- simu_new(
     sce = example_sce,
     mean_mat = BATCH_para_alter$mean_mat,
@@ -185,7 +187,7 @@ BATCH_newcount_alter <- simu_new(
   )
 ```
 We create three `SingleCellExperiment` objects using three count matrices generated above and store their `logcounts`.
-```{r, message=FALSE}
+```{r, message=FALSE, eval=TRUE}
 simu_res_list <- lapply(list(simu_res$new_count, BATCH_newcount_null, BATCH_newcount_alter), function(x){
   simu_sce <- example_sce
   counts(simu_sce) <- x
@@ -195,8 +197,7 @@ simu_res_list <- lapply(list(simu_res$new_count, BATCH_newcount_null, BATCH_newc
 ```
 
 ## Visulization
-```{r, message=FALSE, fig.width=12}
-set.seed(123)
+```{r, message=FALSE, fig.width=12, eval=TRUE}
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 
                                   sce_list = simu_res_list, 
                                   name_vec = c("Reference", "w/ Batch", "w/o Batch","Aritifical Batch"),
@@ -207,3 +208,4 @@ compare_figure <- plot_reduceddim(ref_sce = example_sce,
                                   n_pc = 20)
 plot(compare_figure$p_umap)
 ```
+
