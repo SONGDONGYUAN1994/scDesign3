@@ -12,7 +12,7 @@
 #' @param new_covariate A data.frame which contains covariates of targeted simulated data from \code{\link{construct_data}}.
 #' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}}.
 #' @param family_use A string or a vector of strings of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
-#' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'vine'.
+#' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.
 #' @param DT A logic variable. If TRUE, perform the distributional transformation
 #' to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
 #' Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.
@@ -320,26 +320,27 @@ cal_cor <- function(norm.mat,
 
   n <- dim(cor.mat)[1]
 
-  if (if.sparse) {
-    ifposd <- matrixcalc::is.positive.definite(cor.mat, tol = tol)
-    if (!ifposd) {
-      warning("Cor matrix is not positive defnite! Add tol to the diagnol.")
-      #diag(cor.mat) <- diag(cor.mat) + tol
-    }
-    ## Call spcov
-    lambda_matrix <- matrix(rep(1, n ^ 2), nrow = n) * lambda
-    diag(lambda_matrix) <- 0
-    scor <- spcov::spcov(
-      cor.mat,
-      cor.mat,
-      lambda = lambda_matrix,
-      step.size  = 100,
-      trace = 1,
-      n.inner.steps = 200,
-      thr.inner = tol
-    )
-    cor.mat <- scor$Sigma
-  }
+  ### We currently gave up this because the sparse corr calclulation is too slow.
+  # if (if.sparse) {
+  #   ifposd <- matrixcalc::is.positive.definite(cor.mat, tol = tol)
+  #   if (!ifposd) {
+  #     warning("Cor matrix is not positive defnite! Add tol to the diagnol.")
+  #     #diag(cor.mat) <- diag(cor.mat) + tol
+  #   }
+  #   ## Call spcov
+  #   lambda_matrix <- matrix(rep(1, n ^ 2), nrow = n) * lambda
+  #   diag(lambda_matrix) <- 0
+  #   scor <- spcov::spcov(
+  #     cor.mat,
+  #     cor.mat,
+  #     lambda = lambda_matrix,
+  #     step.size  = 100,
+  #     trace = 1,
+  #     n.inner.steps = 200,
+  #     thr.inner = tol
+  #   )
+  #   cor.mat <- scor$Sigma
+  # }
 
   cor.mat
 }

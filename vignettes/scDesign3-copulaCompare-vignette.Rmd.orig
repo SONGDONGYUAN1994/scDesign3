@@ -1,6 +1,6 @@
 ---
 title: "Compare gaussian copula and vine copula"
-author: 
+author:
   - name: Dongyuan Song
     affiliation:
     - Bioinformatics IDP, University of California, Los Angeles
@@ -9,7 +9,7 @@ author:
     affiliation:
     - Department of Statistics, University of California, Los Angeles
     email: qw802@g.ucla.edu
-output: 
+output:
   BiocStyle::html_document:
     self_contained: yes
     toc: true
@@ -61,6 +61,10 @@ For demonstration purpose, we use the `Zhengmix4eq` dataset in the package with 
 ```{r, message=FALSE}
 stats <- modelGeneVar(Zhengmix4eq_sce)
 chosen <- getTopHVGs(stats, n = 100)
+### Filter out some HKGs.
+chosen <- chosen[!stringr::str_starts(chosen, "RP")]
+chosen <- chosen[!stringr::str_starts(chosen, "TMSB")]
+chosen <- chosen[!chosen %in% c("B2M", "MALAT1", "ACTB", "ACTG1", "GAPDH", "FTL", "FTH1")]
 Zhengmix4eq_sce_sub <- Zhengmix4eq_sce[chosen, ]
 ```
 
@@ -69,34 +73,34 @@ Zhengmix4eq_sce_sub <- Zhengmix4eq_sce[chosen, ]
 We then use `scdesign3` to simulate two new datasets using Gaussian copula and vine copula respectively.
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 set.seed(123)
-Zhengmix4eq_simu_sce_gaussian <- scdesign3(sce = Zhengmix4eq_sce_sub, 
-                            celltype = 'cell_type', 
-                            pseudotime = NULL, 
-                            spatial = NULL, 
-                            other_covariates = NULL, 
-                            corr_formula = "cell_type", 
-                            mu_formula = "cell_type", 
-                            sigma_formula = "cell_type", 
-                            n_cores = 2, 
-                            copula = "gaussian", 
-                            assay_use = "normcounts", 
-                            family_use = "nb", 
+Zhengmix4eq_simu_sce_gaussian <- scdesign3(sce = Zhengmix4eq_sce_sub,
+                            celltype = 'cell_type',
+                            pseudotime = NULL,
+                            spatial = NULL,
+                            other_covariates = NULL,
+                            corr_formula = "cell_type",
+                            mu_formula = "cell_type",
+                            sigma_formula = "cell_type",
+                            n_cores = 2,
+                            copula = "gaussian",
+                            assay_use = "normcounts",
+                            family_use = "nb",
                             pseudo_obs = TRUE, return_model = TRUE)
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
-Zhengmix4eq_simu_sce_vine <- scdesign3(sce = Zhengmix4eq_sce_sub, 
-                            celltype = 'cell_type', 
-                            pseudotime = NULL, 
-                            spatial = NULL, 
-                            other_covariates = NULL, 
-                            corr_formula = "cell_type", 
-                            mu_formula = "cell_type", 
-                            sigma_formula = "cell_type", 
-                            n_cores = 2, 
-                            copula = "vine", 
-                            assay_use = "normcounts", 
-                            family_use = "nb", 
+Zhengmix4eq_simu_sce_vine <- scdesign3(sce = Zhengmix4eq_sce_sub,
+                            celltype = 'cell_type',
+                            pseudotime = NULL,
+                            spatial = NULL,
+                            other_covariates = NULL,
+                            corr_formula = "cell_type",
+                            mu_formula = "cell_type",
+                            sigma_formula = "cell_type",
+                            n_cores = 2,
+                            copula = "vine",
+                            assay_use = "normcounts",
+                            family_use = "nb",
                             pseudo_obs = TRUE, return_model = TRUE)
 ```
 
@@ -134,8 +138,8 @@ corr_p <- cor_dat %>% ggplot(
                         aes(Var2, Var1, fill = value))+
       facet_wrap(~Method, nrow = 1) + #, labeller = label_parsed
       geom_tile() +
-      scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-                           midpoint = 0, limit = c(-1, 1), space = "Lab", 
+      scale_fill_gradient2(low = "blue", high = "red", mid = "white",
+                           midpoint = 0, limit = c(-1, 1), space = "Lab",
                            name="Pearson\nCorrelation") +
       theme(panel.spacing.x=unit(0, "lines"),panel.spacing.y=unit(1, "lines"),
         legend.position = "right",
@@ -172,7 +176,7 @@ p1 <- ggraph::ggraph(igr_obj1, "igraph",
         repel = TRUE, check_overlap = TRUE, size = 3
       )+ theme(aspect.ratio = 1,
                 panel.background = element_blank(),
-        panel.grid.major = element_blank(), 
+        panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
@@ -188,7 +192,7 @@ p2 <- ggraph::ggraph(igr_obj2, "igraph",
         repel = TRUE, check_overlap = TRUE, size = 3
       )+ theme(aspect.ratio = 1,
                 panel.background = element_blank(),
-        panel.grid.major = element_blank(), 
+        panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
@@ -204,7 +208,7 @@ p3 <- ggraph::ggraph(igr_obj3, "igraph",
         repel = TRUE, check_overlap = TRUE, size = 3
       )+ theme(aspect.ratio = 1,
                 panel.background = element_blank(),
-        panel.grid.major = element_blank(), 
+        panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
@@ -220,7 +224,7 @@ p4 <- ggraph::ggraph(igr_obj4, "igraph",
         repel = TRUE, check_overlap = TRUE, size = 3
       ) + theme(aspect.ratio = 1,
                 panel.background = element_blank(),
-        panel.grid.major = element_blank(), 
+        panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"),
         panel.border = element_rect(colour = "black", fill=NA, size=0.5))

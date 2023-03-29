@@ -1,13 +1,13 @@
 Package: scDesign3
 Type: Package
 Title: A unified framework of realistic in silico data generation and statistical model inference for single-cell and spatial omics
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: 
     c(person("Dongyuan", "Song", , "dongyuansong@ucla.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-1114-1215")),
     person("Qingyang", "Wang", , "qw802@g.ucla.edu",  role = c("aut"),
            comment = c(ORCID = "0000-0002-1051-609X")))
-Description: scDesign3 is an all-in-one statistical simulator to generate realistic single-cell and spatial omics data, including various cell states, experimental designs, and feature modalities, by learning interpretable parameters from real datasets. Furthermore, using a unified probabilistic model for single-cell and spatial omics data, scDesign3 can infer biologically meaningful parameters, assess the goodness-of-fit of cell clusters and trajectories, and generate in silico negative and positive controls for benchmarking computational tools.
+Description: We present a statistical simulator, scDesign3, to generate realistic single-cell and spatial omics data, including various cell states, experimental designs, and feature modalities, by learning interpretable parameters from real data. Using a unified probabilistic model for single-cell and spatial omics data, scDesign3 infers biologically meaningful parameters; assesses the goodness-of-fit of inferred cell clusters, trajectories, and spatial locations; and generates in silico negative and positive controls for benchmarking computational tools.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
@@ -33,45 +33,15 @@ Imports:
     viridis,
     BiocParallel,
     matrixStats,
-    matrixcalc,
-    spcov,
-    dynutils,
     Matrix
 Suggests:
-    DuoClustering2018,
-    scater,
-    tidygraph,
-    ggrepel,
-    scran,
     igraph,
-    useful,
-    gridExtra,
-    tidyr,
-    scales,
-    ggh4x,
-    stringr,
-    aricode,
-    dyngen,
-    Seurat,
-    SeuratObject,
-    monocle3,
-    DESeq2,
-    NBAMSeq,
-    PseudotimeDE,
-    tradeSeq,
-    reshape2,
-    spatialDE,
-    SPARK,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
     RefManageR,
     sessioninfo,
-    BiocStyle,
-    cowplot,
-    ggpubr,
-    ggraph,
-    ggrastr
+    BiocStyle
 biocViews:
     Software,
     SingleCell,

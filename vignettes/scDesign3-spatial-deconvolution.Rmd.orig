@@ -1,0 +1,259 @@
+---
+title: "Simulate spot-resolution spatial data for cell-type deconvolution"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+  - name: Qingyang Wang
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: qw802@g.ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign3-spatial_vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>",
+    crop = NULL ## Related to https://stat.ethz.ch/pipermail/bioc-devel/2020-April/016656.html
+)
+```
+
+
+```{r, message=FALSE}
+library(scDesign3)
+library(SingleCellExperiment)
+library(ggplot2)
+library(dplyr)
+library(viridis)
+library(IOBR)
+library(scatterpie)
+theme_set(theme_bw())
+```
+
+## Introduction
+In this tutorial, we show how to use scDesign3 to simulate the spot-resolution spatial data, which each spot is a mix of cells from different cell types.
+
+## Read in the reference data
+
+The paired scRNA-seq and spatial data were used in [CARD](https://www.nature.com/articles/s41587-022-01273-7). We pre-select the top cell-type marker genes.
+
+```{r, message=FALSE}
+MOBSC_sce <- readRDS((url("https://www.dropbox.com/s/650bsdt2gmkcvs5/MOBSC_sce.rds?raw=1")))
+MOBSP_sce <- readRDS((url("https://www.dropbox.com/s/czvptdt4vzi7q9m/MOBSP_sce.rds?raw=1")))
+print(MOBSC_sce)
+print(MOBSP_sce)
+```
+```{r}
+cell_type <- unique(colData(MOBSC_sce)$cellType)
+```
+
+## Simulation
+We first use scDesign3 to estimate the cell-type reference from scRNA-seq data.
+```{r}
+MOBSC_data <- construct_data(
+  sce = MOBSC_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = NULL,
+  spatial = NULL,
+  other_covariates = NULL,
+  corr_by = "1"
+)
+
+MOBSC_marginal <- fit_marginal(
+  data = MOBSC_data,
+  predictor = "gene",
+  mu_formula = "cell_type",
+  sigma_formula = "cell_type",
+  family_use = "nb",
+  n_cores = 2,
+  usebam = FALSE,
+  parallelization = "pbmcmapply"
+
+)
+
+MOBSC_copula <- fit_copula(
+  sce = MOBSC_sce,
+  assay_use = "counts",
+  marginal_list = MOBSC_marginal,
+  family_use = "nb",
+  copula = "gaussian",
+  n_cores = 2,
+  new_covariate = NULL,
+  input_data = MOBSC_data$dat
+)
+
+MOBSC_para <- extract_para(
+  sce = MOBSC_sce,
+  marginal_list = MOBSC_marginal,
+  n_cores = 2,
+  family_use = "nb",
+  new_covariate = NULL
+)
+
+MOBSC_newcount <- simu_new(
+  sce = MOBSC_sce,
+  mean_mat = MOBSC_para$mean_mat,
+  sigma_mat = MOBSC_para$sigma_mat,
+  zero_mat = MOBSC_para$zero_mat,
+  quantile_mat = NULL,
+  copula_list = MOBSC_copula$copula_list,
+  n_cores = 2,
+  family_use = "nb",
+  input_data = MOBSC_data$dat,
+  new_covariate = MOBSC_data$new_covariate
+)
+```
+
+```{r}
+MOBSP_data <- construct_data(
+  sce = MOBSP_sce,
+  assay_use = "counts",
+  celltype = NULL,
+  pseudotime = NULL,
+  spatial = c("spatial1", "spatial2"),
+  other_covariates = NULL,
+  corr_by = "1"
+)
+
+MOBSP_marginal <- fit_marginal(
+  data = MOBSP_data,
+  predictor = "gene",
+  mu_formula = "s(spatial1, spatial2, bs = 'gp', k = 50, m = c(1, 2, 1))",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 2,
+  usebam = FALSE, 
+  parallelization = "pbmcmapply"
+  
+)
+
+MOBSP_copula <- fit_copula(
+  sce = MOBSP_sce,
+  assay_use = "counts",
+  marginal_list = MOBSP_marginal,
+  family_use = "nb",
+  copula = "gaussian",
+  n_cores = 2,
+  new_covariate = NULL,
+  input_data = MOBSP_data$dat
+)
+
+MOBSP_para <- extract_para(
+  sce = MOBSP_sce,
+  marginal_list = MOBSP_marginal,
+  n_cores = 2,
+  family_use = "nb",
+  new_covariate = NULL
+)
+```
+
+Now we get the fitted models for scRNA-seq and spatial data. We need to extract their mean parameters (i.e., expected expression values).
+```{r}
+MOBSC_sig_matrix <- sapply(cell_type, function(x) {
+  rowMeans(t(MOBSC_para$mean_mat)[, colData(MOBSC_sce)$cellType %in% x])
+})
+
+MOBSP_matrix <- (t(MOBSP_para$mean_mat))
+```
+
+We use CIBERSORT to decompose each spot's expected expression into cell-type proportions. This step is to set the true cell-type proportions. Please note you can also use other decomposition methods or set the proportion mannully if you have your own design.
+```{r}
+sig_matrix <- as.data.frame(MOBSC_sig_matrix)
+mixture_file <- as.data.frame(MOBSP_matrix)
+
+proportion_mat <- IOBR::CIBERSORT(sig_matrix, mixture_file, QN = FALSE, absolute = FALSE, perm = 10)
+proportion_mat <- proportion_mat[, 1:4]
+```
+
+We can visualzie the proportions by pie-chart.
+```{r, fig.width=3}
+colors_cell_type <- c("#E69F00", "#56B4E9", "#009E73", 
+                       "#0072B2")
+d_pie <- as_tibble(colData(MOBSP_sce), rownames = "cell") %>% bind_cols(as_tibble(proportion_mat)) %>% dplyr::mutate(region = seq_len(dim(MOBSP_sce)[2])) %>% dplyr::mutate(X= spatial1, Y = spatial2)
+
+p_pie_plot <- ggplot() + geom_scatterpie(aes(x=X, y=Y, group=region), data=d_pie ,
+                           cols = cell_type, color=NA) + coord_fixed(ratio = 1) + 
+                                scale_fill_manual(values = colors_cell_type) + coord_equal()+ theme_bw() + theme(legend.position = "left")  + theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank())+ guides(fill=guide_legend(title="Cell type"))
+p_pie_plot
+```
+Then we can simulate new spatial data where each spot is the sum of 50 cells/5 (therefore on average 10 cells per spot). Increasing the number of cells will make the spatial data smoother (closer to the expected spatial expression).
+```{r}
+set.seed(123)
+MOBSCSIM_sce <- MOBSC_sce
+counts(MOBSCSIM_sce) <- MOBSC_newcount
+
+MOBSP_new_mixture <- (apply(proportion_mat, 1, function(x) {
+  n = 50
+  rowSums(sapply(cell_type, function(y) {
+    index <- sample(which(colData(MOBSCSIM_sce)$cell_type==y), size = n, replace = FALSE)
+    rowSums(MOBSC_newcount[, index])*x[y]
+  }))
+}))
+
+MOBSP_new_mixture <- MOBSP_new_mixture/5
+
+### Ceiling to integer
+MOBSP_new_mixture <- ceiling(MOBSP_new_mixture)
+
+MOBSPMIX_sce <- MOBSP_sce
+counts(MOBSPMIX_sce) <- as.matrix(MOBSP_new_mixture)
+```
+
+Finally, we can check the simulated results. We use four cell-type marker genes as the example.
+```{r, fig.width=5}
+MOBSC_sig_matrix <- sapply(cell_type, function(x) {
+  rowMeans(t(MOBSC_para$mean_mat)[, colData(MOBSC_sce)$cellType %in% x])
+})
+MOBSP_sc_mixture <- tcrossprod(as.matrix(MOBSC_sig_matrix), as.matrix(proportion_mat))
+
+rownames(MOBSP_sc_mixture) <- rownames(MOBSP_new_mixture)
+
+location <- colData(MOBSP_sce)
+MOBSP_real_tbl <- as_tibble(t(log1p(counts(MOBSP_sce)))) %>% dplyr::mutate(X = location$spatial1,
+                                             Y = location$spatial2) %>%
+  tidyr::pivot_longer(-c("X", "Y"), names_to = "Gene", values_to = "Expression") %>% dplyr::mutate(Method = "Real data")
+
+MOBSP_real_tbl <- transform(MOBSP_real_tbl, Expression=ave(Expression, Gene, FUN=scales::rescale))
+
+
+MOBSP_mixture_tbl <- as_tibble(t(log1p(MOBSP_new_mixture))) %>% dplyr::mutate(X = location$spatial1,
+                                             Y = location$spatial2) %>%
+  tidyr::pivot_longer(-c("X", "Y"), names_to = "Gene", values_to = "Expression") %>% dplyr::mutate(Method = "scDesign3")
+
+MOBSP_mixture_tbl <- transform(MOBSP_mixture_tbl, Expression=ave(Expression, Gene, FUN=scales::rescale))
+
+MOBSP_tbl <- bind_rows(list(MOBSP_real_tbl, MOBSP_mixture_tbl))
+
+MOBSC_marker <- c("Penk", "Apold1", "Cdhr1", "S100a5")
+
+p_MOB_prop <- MOBSP_tbl %>% dplyr::filter(Gene %in% MOBSC_marker) %>% dplyr::mutate(Gene = factor(Gene, levels = MOBSC_marker)) %>% ggplot(aes(x = X, y = Y, color = Expression))  + ggrastr::rasterize(geom_point(size = 1), dpi = 300) + scale_colour_gradientn(colors = viridis_pal(option = "B", direction = -1)(10), limits=c(0, 1)) + coord_fixed(ratio = 1) + facet_grid(Method ~ Gene ) + theme_bw() + theme(legend.position = "right")  + theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank())
+p_MOB_prop
+```
+

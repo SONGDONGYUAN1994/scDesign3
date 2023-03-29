@@ -18,7 +18,7 @@ scdesign3(
   n_cores = 2,
   usebam = FALSE,
   corr_formula,
-  copula = "vine",
+  copula = "gaussian",
   DT = TRUE,
   pseudo_obs = FALSE,
   family_set = c("gauss", "indep"),
@@ -60,7 +60,7 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{corr_formula}{A string of the correlation structure.}
 
-\item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'vine'.}
+\item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.}
 
 \item{DT}{A logic variable. If TRUE, perform the distributional transformation
 to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).

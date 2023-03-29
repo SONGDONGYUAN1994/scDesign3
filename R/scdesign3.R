@@ -18,7 +18,7 @@
 #' @param n_cores An integer. The number of cores to use.
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
 #' @param corr_formula A string of the correlation structure.
-#' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'vine'.
+#' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.
 #' @param DT A logic variable. If TRUE, perform the distributional transformation
 #' to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
 #' Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.
@@ -85,7 +85,7 @@ scdesign3 <- function(sce,
                       n_cores = 2,
                       usebam = FALSE,
                       corr_formula,
-                      copula = "vine",
+                      copula = "gaussian",
                       DT = TRUE,
                       pseudo_obs = FALSE,
                       family_set = c("gauss", "indep"),
