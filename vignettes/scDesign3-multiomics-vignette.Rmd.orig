@@ -237,3 +237,10 @@ p_merge_modals <- ggplot(SCGEM_dat, aes(UMAP1, UMAP2, colour = Method)) + ggrast
   mapping = aes(x = Inf, y = -Inf, label = label), vjust = -6, hjust = 1, color = "black", size = 3)
 p_merge_modals
 ```
+
+
+
+## Session information
+```{r}
+sessionInfo()
+```

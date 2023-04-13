@@ -240,3 +240,9 @@ p_vine <- cowplot::plot_grid(p1 + ggtitle("CD14+ monocyte"), p2 + ggtitle("B cel
 p_vine
 ```
 
+
+
+## Session information
+```{r}
+sessionInfo()
+```

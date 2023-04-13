@@ -351,7 +351,7 @@ cal_cor <- function(norm.mat,
 sampleMVN <- function(n,
                       Sigma) {
   mvnrv <-
-    mvtnorm::rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma)
+    rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma)
   mvnrvq <- apply(mvnrv, 2, stats::pnorm)
 
   return(mvnrvq)

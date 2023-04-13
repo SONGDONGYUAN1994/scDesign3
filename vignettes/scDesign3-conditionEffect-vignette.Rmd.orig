@@ -162,7 +162,7 @@ IFNB_newcount_null_B <- simu_new(
     n_cores = 2,
     family_use = "nb",
     input_data = IFNB_data$dat,
-    new_covariate = IFNB_data$new_covariate,
+    new_covariate = IFNB_data$newCovariate,
     important_feature = IFNB_copula$important_feature
   )
 ```
@@ -193,4 +193,7 @@ plot(compare_figure$p_umap)
 
 
 
-
+## Session information
+```{r}
+sessionInfo()
+```

@@ -150,7 +150,7 @@ BATCH_newcount_null <- simu_new(
     n_cores = 2,
     family_use = "nb",
     input_data = BATCH_data$dat,
-    new_covariate = BATCH_data$new_covariate,
+    new_covariate = BATCH_data$newCovariate,
     important_feature = BATCH_copula$important_feature
   )
 ```
@@ -182,7 +182,7 @@ BATCH_newcount_alter <- simu_new(
     n_cores = 2,
     family_use = "nb",
     input_data = BATCH_data$dat,
-    new_covariate = BATCH_data$new_covariate,
+    new_covariate = BATCH_data$newCovariate,
     important_feature = BATCH_copula$important_feature
   )
 ```
@@ -209,3 +209,8 @@ compare_figure <- plot_reduceddim(ref_sce = example_sce,
 plot(compare_figure$p_umap)
 ```
 
+
+## Session information
+```{r}
+sessionInfo()
+```

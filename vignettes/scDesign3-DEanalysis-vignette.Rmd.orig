@@ -166,7 +166,7 @@ example_para$mean_mat[,non_de_idx] <- non_de_mat
     n_cores = 1,
     family_use = "nb",
     input_data = example_data$dat,
-    new_covariate = example_data$new_covariate,
+    new_covariate = example_data$newCovariate,
     important_feature = example_copula$important_feature
   )
 ```
@@ -346,7 +346,7 @@ PANCREAS_para$mean_mat[,non_de_idx] <- non_de_mat
     n_cores = 1,
     family_use = "nb",
     input_data = PANCREAS_data$dat,
-    new_covariate = PANCREAS_data$new_covariate,
+    new_covariate = PANCREAS_data$newCovariate,
     important_feature = PANCREAS_copula$important_feature
   )
 ```
@@ -593,7 +593,7 @@ Another way to select SVG based on Moran's I.
     n_cores = 1,
     family_use = "nb",
     input_data = example_data$dat,
-    new_covariate = example_data$new_covariate,
+    new_covariate = example_data$newCovariate,
     important_feature = rep(TRUE, dim(example_sce)[1])
   )
 ```
@@ -771,4 +771,10 @@ power_plot <- ggplot(power_long) +
   geom_point(aes(x=`Target FDR`, y=Power,color=test_method))+
   theme(aspect.ratio = 1)
 power_plot
+```
+
+
+## Session information
+```{r}
+sessionInfo()
 ```

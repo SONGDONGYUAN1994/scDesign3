@@ -69,8 +69,10 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
 
 -   Data simulation
     -   scDesign3 introduction
+    -   Simulate datasets with cell library siz
     -   Simulate datasets with multiple lineages
     -   Simulate spatial transcriptomic data
+    -   Simulate spot-resolution spatial data for cell-type deconvolution
     -   Simulate single-cell ATAC-seq data
     -   Simulate CITE-seq data
     -   Simulate multi-omics data from multiple single-omic datasets
@@ -78,6 +80,7 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
     -   Simulate datasets with condition effect
 -   Model parameter
     -   scDesign3 introduction
+    -   scDesign3 marginal distribution for genes
     -   Compare Gaussian copula and Vine copula
 -   Model selection
     -   Evaluate clustering goodness-of-fit by scDesign3

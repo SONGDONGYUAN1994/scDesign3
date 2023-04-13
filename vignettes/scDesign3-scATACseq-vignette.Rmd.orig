@@ -124,3 +124,7 @@ plot(compare_figure$p_umap)
 ```
 
 
+## Session information
+```{r}
+sessionInfo()
+```

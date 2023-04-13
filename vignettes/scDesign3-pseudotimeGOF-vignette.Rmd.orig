@@ -132,4 +132,9 @@ p_pseudotime_metric
 ```
 
 
+## Session information
+```{r}
+sessionInfo()
+```
+
   

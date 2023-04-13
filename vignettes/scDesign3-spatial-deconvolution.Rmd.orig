@@ -63,7 +63,7 @@ cell_type <- unique(colData(MOBSC_sce)$cellType)
 
 ## Simulation
 We first use scDesign3 to estimate the cell-type reference from scRNA-seq data.
-```{r}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 MOBSC_data <- construct_data(
   sce = MOBSC_sce,
   assay_use = "counts",
@@ -115,11 +115,11 @@ MOBSC_newcount <- simu_new(
   n_cores = 2,
   family_use = "nb",
   input_data = MOBSC_data$dat,
-  new_covariate = MOBSC_data$new_covariate
+  new_covariate = MOBSC_data$newCovariate
 )
 ```
 
-```{r}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 MOBSP_data <- construct_data(
   sce = MOBSP_sce,
   assay_use = "counts",
@@ -181,7 +181,7 @@ proportion_mat <- proportion_mat[, 1:4]
 ```
 
 We can visualzie the proportions by pie-chart.
-```{r, fig.width=3}
+```{r, fig.width=3, message=FALSE, warning=FALSE}
 colors_cell_type <- c("#E69F00", "#56B4E9", "#009E73", 
                        "#0072B2")
 d_pie <- as_tibble(colData(MOBSP_sce), rownames = "cell") %>% bind_cols(as_tibble(proportion_mat)) %>% dplyr::mutate(region = seq_len(dim(MOBSP_sce)[2])) %>% dplyr::mutate(X= spatial1, Y = spatial2)
@@ -197,6 +197,8 @@ p_pie_plot <- ggplot() + geom_scatterpie(aes(x=X, y=Y, group=region), data=d_pie
     axis.ticks.y=element_blank())+ guides(fill=guide_legend(title="Cell type"))
 p_pie_plot
 ```
+
+
 Then we can simulate new spatial data where each spot is the sum of 50 cells/5 (therefore on average 10 cells per spot). Increasing the number of cells will make the spatial data smoother (closer to the expected spatial expression).
 ```{r}
 set.seed(123)
@@ -257,3 +259,8 @@ p_MOB_prop <- MOBSP_tbl %>% dplyr::filter(Gene %in% MOBSC_marker) %>% dplyr::mut
 p_MOB_prop
 ```
 
+
+## Session information
+```{r}
+sessionInfo()
+```

@@ -143,3 +143,10 @@ CITE_dat  %>% ggplot(aes(x = UMAP1, y = UMAP2, color = Expression)) + geom_point
     axis.text.y=element_blank(),
     axis.ticks.y=element_blank())
 ```
+
+
+
+## Session information
+```{r}
+sessionInfo()
+```

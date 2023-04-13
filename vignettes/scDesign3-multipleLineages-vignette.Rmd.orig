@@ -125,3 +125,10 @@ grid.arrange(compare_figure$p_umap, compare_figure2$p_umap)
 ```
 
 
+
+
+## Session information
+```{r}
+sessionInfo()
+```
+

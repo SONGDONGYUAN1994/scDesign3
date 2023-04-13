@@ -172,7 +172,7 @@ PANCREAS_para <- extract_para(
     n_cores = 1,
     family_use = "nb",
     input_data = PANCREAS_data$dat,
-    new_covariate = PANCREAS_data$new_covariate,
+    new_covariate = PANCREAS_data$newCovariate,
     important_feature = PANCREAS_copula$important_feature
   )
 ```
@@ -194,4 +194,10 @@ compare_figure <- plot_reduceddim(ref_sce = example_sce,
                                   color_by = "pseudotime", 
                                   n_pc = 20)
 plot(compare_figure$p_umap)
+```
+
+
+## Session information
+```{r}
+sessionInfo()
 ```

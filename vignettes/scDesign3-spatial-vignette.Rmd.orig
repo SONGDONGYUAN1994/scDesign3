@@ -100,3 +100,9 @@ VISIUM_dat <- bind_rows(VISIUM_dat_test, VISIUM_dat_scDesign3) %>% dplyr::mutate
 
 VISIUM_dat %>% filter(Gene %in% rownames(example_sce)[1:5]) %>% ggplot(aes(x = X, y = Y, color = Expression)) + geom_point(size = 0.5) + scale_colour_gradientn(colors = viridis_pal(option = "magma")(10), limits=c(0, 8)) + coord_fixed(ratio = 1) + facet_grid(Method ~ Gene )+ theme_gray()
 ```
+
+
+## Session information
+```{r}
+sessionInfo()
+```
