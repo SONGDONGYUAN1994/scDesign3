@@ -83,7 +83,7 @@ fit_copula <- function(sce,
                        new_covariate = NULL,
                        marginal_list,
                        family_use,
-                       copula = 'vine',
+                       copula = 'gaussian',
                        DT = TRUE,
                        pseudo_obs = FALSE,
                        epsilon = 1e-6,
@@ -130,7 +130,7 @@ fit_copula <- function(sce,
     }
   }else{
     if(important_feature=="auto"){
-      gene_zero_prop <- apply(SingleCellExperiment::counts(sce), 1, function(y){
+      gene_zero_prop <- apply(as.matrix(SummarizedExperiment::assay(sce, assay_use)), 1, function(y){
         sum(y < 1e-5) / dim(sce)[2]
       })
       important_feature = gene_zero_prop < 0.8 ## default zero proportion in scDesign2

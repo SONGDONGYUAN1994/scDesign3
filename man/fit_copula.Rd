@@ -11,7 +11,7 @@ fit_copula(
   new_covariate = NULL,
   marginal_list,
   family_use,
-  copula = "vine",
+  copula = "gaussian",
   DT = TRUE,
   pseudo_obs = FALSE,
   epsilon = 1e-06,
