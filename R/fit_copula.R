@@ -351,13 +351,14 @@ cal_cor <- function(norm.mat,
 sampleMVN <- function(n,
                       Sigma) {
   mvnrv <-
-    rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma)
+    rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma, checkSymmetry = FALSE, method="chol")
   mvnrvq <- apply(mvnrv, 2, stats::pnorm)
 
   return(mvnrvq)
 }
 
 ## fix integer overflow issue when # of gene* # of cell is too larger in rnorm(n * ncol(sigma))
+## This function comes from package Mvnorm.
 rmvnorm <- function(n, mean = rep(0, nrow(sigma)), sigma = diag(length(mean)),
                     method=c("eigen", "svd", "chol"), pre0.9_9994 = FALSE, checkSymmetry = TRUE)
 {
