@@ -19,6 +19,7 @@
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
 #' @param corr_formula A string of the correlation structure.
 #' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.
+#' @param fastmvn An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE. It only matters for Gaussian copula.
 #' @param DT A logic variable. If TRUE, perform the distributional transformation
 #' to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
 #' Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.
@@ -86,6 +87,7 @@ scdesign3 <- function(sce,
                       usebam = FALSE,
                       corr_formula,
                       copula = "gaussian",
+                      fastmvn = FALSE,
                       DT = TRUE,
                       pseudo_obs = FALSE,
                       family_set = c("gauss", "indep"),

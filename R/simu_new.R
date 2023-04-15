@@ -13,6 +13,7 @@
 #' @param quantile_mat A cell by feature matrix of the multivariate quantile.
 #' @param copula_list A list of copulas for generating the multivariate quantile matrix. If provided, the \code{quantile_mat} must be NULL.
 #' @param n_cores An integer. The number of cores to use.
+#' @param fastmvn An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE.
 #' @param family_use A string of the marginal distribution.
 #' Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param nonnegative A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
@@ -94,6 +95,7 @@ simu_new <- function(sce,
                      quantile_mat = NULL,
                      copula_list,
                      n_cores,
+                     fastmvn = FALSE,
                      family_use,
                      nonnegative = TRUE,
                      nonzerovar = TRUE,
@@ -150,7 +152,9 @@ simu_new <- function(sce,
 
             #message("Sample MVN")
             new_mvu <- sampleMVN(n = curr_ncell,
-                                 Sigma = cor.mat)
+                                 Sigma = cor.mat,
+                                 n_cores = n_cores,
+                                 fastmvn = fastmvn)
             #message("MVN Sampling End")
             rownames(new_mvu) <- curr_ncell_idx
           } else if (methods::is(cor.mat, "vinecop")) {
@@ -166,7 +170,9 @@ simu_new <- function(sce,
             if(length(which(important_feature)) != dim(sce)[1]){
               cor.mat <- diag(rep(1, length(which(!important_feature))))
               mvu2 <- sampleMVN(n = curr_ncell,
-                                Sigma = cor.mat)
+                                Sigma = cor.mat,
+                                n_cores = n_cores,
+                                fastmvn = fastmvn)
               new_mvu[, which(!important_feature)] <- mvu2
             }
             #message("Sampling Vine Copula Ends")
@@ -285,5 +291,3 @@ simu_new <- function(sce,
 
   return(new_count)
 }
-
-

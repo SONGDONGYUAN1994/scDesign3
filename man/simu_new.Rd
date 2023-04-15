@@ -13,6 +13,7 @@ simu_new(
   quantile_mat = NULL,
   copula_list,
   n_cores,
+  fastmvn = FALSE,
   family_use,
   nonnegative = TRUE,
   nonzerovar = TRUE,
@@ -39,6 +40,8 @@ simu_new(
 \item{copula_list}{A list of copulas for generating the multivariate quantile matrix. If provided, the \code{quantile_mat} must be NULL.}
 
 \item{n_cores}{An integer. The number of cores to use.}
+
+\item{fastmvn}{An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE.}
 
 \item{family_use}{A string of the marginal distribution.
 Must be one of 'poisson', "binomial", 'nb', 'zip', 'zinb' or 'gaussian'.}

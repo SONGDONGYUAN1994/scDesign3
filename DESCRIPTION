@@ -35,6 +35,7 @@ Imports:
     matrixStats,
     Matrix
 Suggests:
+    mvnfast,
     igraph,
     knitr,
     rmarkdown,
