@@ -33,7 +33,7 @@
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 #' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #'
-#' @return A feature by cell matrix of the new simulated count (expression) matrix.
+#' @return A feature by cell matrix of the new simulated count (expression) matrix or sparse matrix.
 #' @examples
 #'   data(example_sce)
 #'   my_data <- construct_data(
@@ -108,6 +108,8 @@ simu_new <- function(sce,
     stop("You can only provide either the quantile_mat or the copula_list!")
   }
 
+  qc_gene_idx <- which(apply(mean_mat, 2, function(x){!all(is.na(x))}))
+
   if(!is.null(quantile_mat)) {
     message("Multivariate quantile matrix is provided")
   } else {
@@ -116,7 +118,7 @@ simu_new <- function(sce,
     group_index <- unique(input_data$corr_group)
     corr_group <- as.data.frame(input_data$corr_group)
     colnames(corr_group) <- "corr_group"
-    ngene <- dim(sce)[1]
+    ngene <- length(qc_gene_idx)
     if (is.null(new_covariate)) {
       new_corr_group <- NULL
     } else{
@@ -139,8 +141,8 @@ simu_new <- function(sce,
           curr_ncell_idx <- curr_index
         } else{
           curr_ncell <- length(which(new_corr_group[, 1] == x))
-          curr_ncell_idx <-
-            paste0("Cell", which(new_corr_group[, 1] == x))
+          curr_ncell_idx <-which(new_corr_group[, 1] == x)
+            #paste0("Cell", which(new_corr_group[, 1] == x))
         }
         cor.mat <- copula_list[[x]]
 
@@ -158,7 +160,7 @@ simu_new <- function(sce,
             #message("MVN Sampling End")
             rownames(new_mvu) <- curr_ncell_idx
           } else if (methods::is(cor.mat, "vinecop")) {
-            new_mvu <- matrix(0, nrow = curr_ncell, ncol = dim(sce)[1])
+            new_mvu <- matrix(0, nrow = curr_ncell, ncol = ngene)
             #message("Sampling Vine Copula Starts")
             mvu <- rvinecopulib::rvinecop(
               curr_ncell,
@@ -167,7 +169,7 @@ simu_new <- function(sce,
               qrng = TRUE
             )
             new_mvu[, which(important_feature)] <- mvu
-            if(length(which(important_feature)) != dim(sce)[1]){
+            if(length(which(important_feature)) != ngene){
               cor.mat <- diag(rep(1, length(which(!important_feature))))
               mvu2 <- sampleMVN(n = curr_ncell,
                                 Sigma = cor.mat,
@@ -197,7 +199,13 @@ simu_new <- function(sce,
     newmvn <-
       do.call(rbind, lapply(newmvn.list, function(x)
         x$new_mvu))
-
+    newmvn[as.numeric(rownames(newmvn)),] <- newmvn
+    rownames(newmvn) <- as.character(1:dim(newmvn)[1])
+    colnames(newmvn) <- rownames(sce)[qc_gene_idx]
+    newmvn_full <- matrix(NA, nrow = dim(newmvn)[1], ncol = dim(sce)[1])
+    rownames(newmvn_full) <- rownames(newmvn)
+    colnames(newmvn_full) <- rownames(sce)
+    newmvn_full[rownames(newmvn), colnames(newmvn)] <- newmvn
     quantile_mat <- as.data.frame(newmvn)
   }
 
@@ -205,7 +213,8 @@ simu_new <- function(sce,
 
   mat_function <- function(x, y) {
 
-    para_mat <- cbind(mean_mat[, x], sigma_mat[, x], quantile_mat[, x], zero_mat[, x])
+    idx <- which(!is.na(mean_mat[,x]))
+    para_mat <- cbind(mean_mat[idx, x], sigma_mat[idx, x], quantile_mat[idx, x], zero_mat[idx, x])
 
     if (y == "binomial") {
       qfvec <- stats::qbinom(p = para_mat[, 3], prob = para_mat[, 1], size = 1)
@@ -226,7 +235,7 @@ simu_new <- function(sce,
       qfvec <-
         gamlss.dist::qZIP(p = para_mat[, 3],
                           mu = para_mat[, 1],
-                          sigma = ifelse(para_mat[, 4] != 0, para_mat[, 4],  2.2e-16)) ## Avoid zero zero-inflated prob
+                          sigma = ifelse(para_mat[, 4] != 0, para_mat[, 4],  2.2e-16))## Avoid zero zero-inflated prob
     } else if (y == "zinb") {
 
       qfvec <-
@@ -241,6 +250,12 @@ simu_new <- function(sce,
     #message(paste0("Gene ", x , " End!"))
 
     r <- as.vector(qfvec)
+    if(length(r) < total_cells){
+      new_r <- rep(0, total_cells)
+      new_r[idx] <- r
+      names(new_r) <- cell_names
+      r <- new_r
+    }
     r
   }
 
@@ -253,28 +268,41 @@ simu_new <- function(sce,
     paraFunc <- pbmcapply::pbmcmapply
   }
 
+  if(is.null(new_covariate)){
+    total_cells <- dim(sce)[2]
+    cell_names <- colnames(sce)
+  }else{
+    total_cells <- dim(new_covariate)[1]
+    cell_names <- rownames(new_covariate)
+  }
+
   if(parallelization == "bpmapply"){
     BPPARAM$workers <- n_cores
-    mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
+    mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
-    mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
+    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use, SIMPLIFY = TRUE
+                   , mc.cores = n_cores
+                   )
  }
   new_count <- mat #simplify2array(mat)
+  rownames(new_count) <- cell_names
+  colnames(new_count) <- rownames(sce)[qc_gene_idx]
 
+  if(length(qc_gene_idx) < dim(sce)[1]){
+    temp_count <- matrix(0, total_cells, dim(sce)[1])
+    rownames(temp_count) <- cell_names
+    colnames(temp_count) <- rownames(sce)
+    temp_count[rownames(new_count),colnames(new_count)] <- new_count
+    new_count <- temp_count
+  }
   new_count <- as.matrix(t(new_count))
 
   if(nonnegative) new_count[new_count < 0] <- 0
 
-  if(is.null(new_covariate)){
-    colnames(new_count) <- colnames(sce)
-    rownames(new_count) <- rownames(sce)
-  }else{
-    colnames(new_count) <- rownames(new_covariate)
-    rownames(new_count) <- rownames(sce)
-  }
+
 
   if(nonzerovar) {
-    row_vars <- matrixStats::rowVars(new_count)
+    row_vars <- matrixStats::rowVars(new_count[qc_gene_idx,])
     if(sum(row_vars == 0) > 0) {
       message("Some genes have zero variance. Replace a random one with 1.")
       row_vars_index <- which(row_vars == 0)

@@ -70,7 +70,7 @@ this parameter must be NULL. When the parameter parallelization = 'bpmapply',  t
 \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
-A feature by cell matrix of the new simulated count (expression) matrix.
+A feature by cell matrix of the new simulated count (expression) matrix or sparse matrix.
 }
 \description{
 \code{simu_new} generates new simulated data based on fitted marginal and copula models.

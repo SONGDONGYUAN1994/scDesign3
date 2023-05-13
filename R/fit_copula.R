@@ -92,13 +92,19 @@ fit_copula <- function(sce,
                        n_cores,
                        parallelization = "mcmapply",
                        BPPARAM = NULL) {
-  # convert count matrix
+
+
+  marginals <- lapply(marginal_list, function(x){x$fit})
+  # find gene whose marginal is fitted
+  qc_gene_idx <- which(!is.na(marginals))
+
   if (copula == "gaussian") {
     message("Convert Residuals to Multivariate Gaussian")
     newmat <- convert_n(
-      sce = sce,
+      sce = sce[qc_gene_idx,],
       assay_use = assay_use,
-      marginal_list = marginal_list,
+      marginal_list = marginal_list[qc_gene_idx],
+      data = input_data,
       DT = DT,
       pseudo_obs = pseudo_obs,
       n_cores = n_cores,
@@ -110,9 +116,10 @@ fit_copula <- function(sce,
   } else{
     message("Convert Residuals to Uniform")
     newmat <- convert_u(
-      sce = sce,
+      sce = sce[qc_gene_idx,],
       assay_use = assay_use,
-      marginal_list = marginal_list,
+      marginal_list = marginal_list[qc_gene_idx],
+      data = input_data,
       DT = DT,
       pseudo_obs = pseudo_obs,
       family_use = family_use,
@@ -140,11 +147,11 @@ fit_copula <- function(sce,
     }
   }
 
+  important_feature <- important_feature[qc_gene_idx]
 
   group_index <- unique(input_data$corr_group)
   corr_group <- as.data.frame(input_data$corr_group)
   colnames(corr_group) <- "corr_group"
-  ngene <- dim(sce)[1]
   if (is.null(new_covariate)) {
     new_corr_group <- NULL
   } else{
@@ -262,11 +269,11 @@ fit_copula <- function(sce,
 
   copula.aic <- sum(sapply(newmvn.list, function(x)
     x$model_aic))
-  marginal.aic <- sum(sapply(marginal_list, stats::AIC))
+  marginal.aic <- sum(sapply(marginals[qc_gene_idx], stats::AIC))
 
   copula.bic <- sum(sapply(newmvn.list, function(x)
     x$model_bic))
-  marginal.bic <- sum(sapply(marginal_list, stats::BIC))
+  marginal.bic <- sum(sapply(marginals[qc_gene_idx], stats::BIC))
 
   model_aic <- c(marginal.aic, copula.aic, marginal.aic + copula.aic)
   names(model_aic) <- c("aic.marginal", "aic.copula", "aic.total")
@@ -313,7 +320,7 @@ cal_cor <- function(norm.mat,
     #s_d <- apply(norm.mat, 2, stats::sd)
     s_d <- matrixStats::colSds(important.mat,na.rm = TRUE)
     if (any(0 == s_d)) {
-      important.mat[is.na(important.mat)] <- 0
+      important_cor.mat[is.na(important_cor.mat)] <- 0
     }
     cor.mat[rownames(important_cor.mat), colnames(important_cor.mat)] <- important_cor.mat
   }
@@ -349,6 +356,7 @@ cal_cor <- function(norm.mat,
 convert_n <- function(sce,
                       assay_use,
                       marginal_list,
+                      data,
                       DT = TRUE,
                       pseudo_obs = FALSE,
                       epsilon = 1e-6,
@@ -358,34 +366,37 @@ convert_n <- function(sce,
   ## Extract count matrix
   count_mat <-
       t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
-
-
+  removed_cell_list <- lapply(marginal_list, function(x){x$removed_cell})
+  marginal_list <- lapply(marginal_list, function(x){x$fit})
   # n cell
   ncell <- dim(count_mat)[1]
 
 
   mat_function <- function(x, y) {
     fit <- marginal_list[[x]]
-
+    removed_cell <- removed_cell_list[[x]]
+    if(length(removed_cell) > 0 && !any(is.na(removed_cell))){
+      data<- data[-removed_cell,]
+    }
     if (methods::is(fit, "gamlss")) {
-      mean_vec <- stats::predict(fit, type = "response", what = "mu")
+      mean_vec <- stats::predict(fit, type = "response", what = "mu", data = data)
       if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
         theta_vec <-
-          stats::predict(fit, type = "response", what = "sigma") # called the theta_vec but actually used as sigma_vec for Gaussian
+          stats::predict(fit, type = "response", what = "sigma", data = data) # called the theta_vec but actually used as sigma_vec for Gaussian
       } else if (y == "nb") {
         theta_vec <-
-          1 / stats::predict(fit, type = "response", what = "sigma")
+          1 / stats::predict(fit, type = "response", what = "sigma", data = data)
         #theta_vec[theta_vec < 1e-3] <- 1e-3
       } else if (y == "zip") {
         theta_vec <- rep(NA, length(mean_vec))
         zero_vec <-
-          stats::predict(fit, type = "response", what = "sigma")
+          stats::predict(fit, type = "response", what = "sigma", data = data)
       } else if (y == "zinb") {
-        theta_vec <- stats::predict(fit, type = "response", what = "sigma")
+        theta_vec <- stats::predict(fit, type = "response", what = "sigma", data = data)
         zero_vec <-
-          stats::predict(fit, type = "response", what = "nu")
+          stats::predict(fit, type = "response", what = "nu", data = data)
       } else {
         stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
       }
@@ -414,7 +425,7 @@ convert_n <- function(sce,
     ## Mean for Each Cell
 
 
-    Y <- count_mat[, x]
+    Y <- count_mat[names(mean_vec), x]
 
 
     ## Frame
@@ -501,6 +512,13 @@ convert_n <- function(sce,
       r <- pvec
     }
 
+    if(length(r) < dim(sce)[2]){
+      new_r <- rep(1, dim(sce)[2])
+      names(new_r) <- colnames(sce)
+      new_r[names(r)] <- r
+      r <- new_r
+    }
+
     ## Avoid Inf
     idx_adjust <- which(1 - r < epsilon)
     r[idx_adjust] <- r[idx_adjust] - epsilon
@@ -533,7 +551,7 @@ convert_n <- function(sce,
     BPPARAM$workers <- n_cores
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
-    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE)
+    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
   }
   colnames(mat) <- rownames(sce)
   rownames(mat) <- colnames(sce)
@@ -552,6 +570,7 @@ convert_n <- function(sce,
 convert_u <- function(sce,
                       assay_use,
                       marginal_list,
+                      data,
                       DT = TRUE,
                       pseudo_obs = FALSE,
                       epsilon = 1e-6,
@@ -561,7 +580,8 @@ convert_u <- function(sce,
   ## Extract count matrix
   count_mat <-
       t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
-
+  removed_cell_list <- lapply(marginal_list, function(x){x$removed_cell})
+  marginal_list <- lapply(marginal_list, function(x){x$fit})
 
 
   # n cell
@@ -569,26 +589,29 @@ convert_u <- function(sce,
 
   mat_function <- function(x, y) {
     fit <- marginal_list[[x]]
-
+    removed_cell <- removed_cell_list[[x]]
+    if(length(removed_cell) > 0 && !is.na(removed_cell)){
+      data<- data[-removed_cell,]
+    }
     if (methods::is(fit, "gamlss")) {
-      mean_vec <- stats::predict(fit, type = "response", what = "mu")
+      mean_vec <- stats::predict(fit, type = "response", what = "mu", data = data)
       if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
         theta_vec <-
-          stats::predict(fit, type = "response", what = "sigma") # called the theta_vec but actually used as sigma_vec for Gaussian
+          stats::predict(fit, type = "response", what = "sigma", data = data) # called the theta_vec but actually used as sigma_vec for Gaussian
       } else if (y == "nb") {
         theta_vec <-
-          1 / stats::predict(fit, type = "response", what = "sigma")
+          1 / stats::predict(fit, type = "response", what = "sigma", data = data)
         #theta_vec[theta_vec < 1e-3] <- 1e-3
       } else if (y == "zip") {
         theta_vec <- rep(NA, length(mean_vec))
         zero_vec <-
-          stats::predict(fit, type = "response", what = "sigma")
+          stats::predict(fit, type = "response", what = "sigma", data = data)
       } else if (y == "zinb") {
-        theta_vec <- stats::predict(fit, type = "response", what = "sigma")
+        theta_vec <- stats::predict(fit, type = "response", what = "sigma", data = data)
         zero_vec <-
-          stats::predict(fit, type = "response", what = "nu")
+          stats::predict(fit, type = "response", what = "nu", data = data)
       } else {
         stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
       }
@@ -615,7 +638,7 @@ convert_u <- function(sce,
     ## Mean for Each Cell
 
 
-    Y <- count_mat[, x]
+    Y <- count_mat[names(mean_vec), x]
 
 
     ## Frame
@@ -700,6 +723,13 @@ convert_u <- function(sce,
       r <- u1 * v + u2 * (1 - v)
     } else {
       r <- pvec
+    }
+
+    if(length(r) < dim(sce)[2]){
+      new_r <- rep(1, dim(sce)[2])
+      names(new_r) <- colnames(sce)
+      new_r[names(r)] <- r
+      r <- new_r
     }
 
     ## Avoid Inf
@@ -806,7 +836,7 @@ sampleMVN <- function(n,
     mvnrv <- mvnfast::rmvn(n, mu = rep(0, dim(Sigma)[1]), sigma = Sigma, ncores = n_cores)
   } else {
     mvnrv <-
-      rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma, checkSymmetry = FALSE, method="chol")
+      rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma, checkSymmetry = FALSE, method="eigen")
   }
   mvnrvq <- apply(mvnrv, 2, stats::pnorm)
 

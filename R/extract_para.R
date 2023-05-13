@@ -75,9 +75,56 @@ extract_para <-  function(sce,
                           parallelization = "mcmapply",
                           BPPARAM = NULL,
                           data = NULL) {
+  removed_cell_list <- lapply(marginal_list, function(x){x$removed_cell})
+  marginal_list <- lapply(marginal_list, function(x){x$fit})
+
+  # find gene whose marginal is fitted
+  qc_gene_idx <- which(!is.na(marginal_list))
 
   mat_function <-function(x, y) {
     fit <- marginal_list[[x]]
+    removed_cell <- removed_cell_list[[x]]
+    #data$gene <- counts(sce)
+    # if(!"gamlss" %in% class(fit)){
+    #   modelframe <- model.frame(fit)
+    # }else{
+    #   modelframe <- fit$mu.x
+    # }
+    if(is.null(new_covariate)){
+      total_cells <- dim(sce)[2]
+      cell_names <- colnames(sce)
+    }else{
+      total_cells <- dim(new_covariate)[1]
+      cell_names <- rownames(new_covariate)
+    }
+
+    if(length(removed_cell) > 0 && !any(is.na(removed_cell))){
+      if(is.null(new_covariate)){
+        data <- data[-removed_cell,]
+      }else{
+        if (methods::is(fit, "gamlss")){
+          all_covariates <- all.vars(fit$mu.formula)[-1]
+        }else{
+          all_covariates <- all.vars(fit$formula)[-1]
+        }
+        remove_idx <- lapply(all_covariates, function(x){
+          curr_x <- tapply(data$gene, data[,x], sum)
+          zero_group <- which(curr_x==0)
+          if(length(zero_group) == 0){
+            return(NA)
+          }else{
+            type <- names(curr_x)[zero_group]
+            return(which(new_covariate[,x] %in% type))
+          }
+
+        })
+        remove_cell_idx <- unlist(remove_idx)
+        remove_cell_idx <- unique(stats::na.omit(remove_cell))
+        if(length(remove_cell_idx) > 0){
+          new_covariate <- new_covariate[-remove_cell_idx,]
+        }
+      }
+    }
 
     if (methods::is(fit, "gamlss")) {
       mean_vec <-
@@ -86,7 +133,7 @@ extract_para <-  function(sce,
                        what = "mu",
                        newdata = new_covariate, data = data)
       if (y == "poisson" | y == "binomial") {
-        theta_vec <- rep(NA, length(mean_vec))
+        theta_vec <- rep(NA, total_cells)
       } else if (y == "gaussian") {
         theta_vec = stats::predict(fit,
                                    type = "response",
@@ -100,7 +147,7 @@ extract_para <-  function(sce,
                          newdata = new_covariate, data = data)
         #theta_vec[theta_vec < 1e-3] <- 1e-3
       } else if (y == "zip") {
-        theta_vec <- rep(NA, length(mean_vec))
+        theta_vec <- rep(NA,  total_cells)
         zero_vec <-
           stats::predict(fit,
                          type = "response",
@@ -130,12 +177,12 @@ extract_para <-  function(sce,
 
         mean_vec <- stats::predict(fit, type = "response")
         if (y == "poisson" | y == "binomial") {
-          theta_vec <- rep(NA, length(mean_vec))
+          theta_vec <- rep(NA,  total_cells)
         } else if (y == "gaussian") {
-          theta_vec <- rep(sqrt(fit$sig2), length(mean_vec)) # this thete_vec is used for sigma_vec
+          theta_vec <- rep(sqrt(fit$sig2), total_cells) # this thete_vec is used for sigma_vec
         } else if (y == "nb") {
           theta <- fit$family$getTheta(TRUE)
-          theta_vec <- 1/rep(theta, length(mean_vec))
+          theta_vec <- 1/rep(theta, total_cells)
         } else {
           stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb!")
         }
@@ -149,7 +196,7 @@ extract_para <-  function(sce,
         mean_vec <-
           stats::predict(fit, type = "response", newdata = new_covariate)
         if (y == "poisson" | y == "binomial") {
-          theta_vec <- rep(NA, length(mean_vec))
+          theta_vec <- rep(NA, total_cells)
         } else if (y == "gaussian") {
           theta_vec = stats::predict(fit,
                                      type = "response",
@@ -157,24 +204,48 @@ extract_para <-  function(sce,
                                      newdata = new_covariate) # this thete_vec is used for sigma_vec
         } else if (y == "nb") {
           theta <- fit$family$getTheta(TRUE)
-          theta_vec <- 1/rep(theta, length(mean_vec))
+          theta_vec <- 1/rep(theta, total_cells)
         } else {
-          stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb!")
+          stop("Distribution of gam must be one of gaussian, binomial, poisson, nb!")
         }
       }
+
+
+    }
+
+    if (!exists("zero_vec")) {
+      zero_vec <- rep(0, length(mean_vec))
+      names(zero_vec) <- names(mean_vec)
+    }
+
+    if(length(mean_vec) < total_cells){
+      full_means <- rep(NA, total_cells)
+      names(full_means) <- cell_names
+      full_means[names(mean_vec)] <- mean_vec
+      full_theta <- rep(NA, total_cells)
+      names(full_theta) <- cell_names
+      full_zero <- rep(NA, total_cells)
+      names(full_zero) <- cell_names
+      if(is.null(names(theta_vec))){
+        if(length(theta_vec) == length(mean_vec)){
+          names(theta_vec) <- names(mean_vec)  ## for gamlss case
+        }else{
+          names(theta_vec) <- cell_names ## for gam case
+        }
+
+      }
+      full_theta[names(theta_vec)] <- theta_vec
+      full_zero[names(zero_vec)] <- zero_vec
+      mean_vec <- full_means
+      theta_vec <- full_theta
+      zero_vec <- full_zero
     }
 
     #q_vec <- quantile_mat[, x]
 
-    if (!exists("zero_vec")) {
-      zero_vec <- 0
-    }
+
     para_mat <- cbind(mean_vec, theta_vec, zero_vec)
-    if (is.null(new_covariate)) {
-      rownames(para_mat) <- colnames(sce)
-    } else{
-      rownames(para_mat) <- rownames(new_covariate)
-    }
+    rownames(para_mat) <- cell_names
     para_mat
   }
   paraFunc <- parallel::mcmapply
@@ -187,9 +258,11 @@ extract_para <-  function(sce,
 
   if(parallelization == "bpmapply"){
     BPPARAM$workers <- n_cores
-    mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE))
+    mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE))
   }else{
-    mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use,SIMPLIFY = FALSE, mc.cores = n_cores))
+    mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,SIMPLIFY = FALSE
+                                   ,mc.cores = n_cores
+                                   ))
   }
   mean_mat <- sapply(mat, function(x)
     x[, 1])
@@ -198,8 +271,23 @@ extract_para <-  function(sce,
   zero_mat <- sapply(mat, function(x)
     x[, 3])
 
-  colnames(mean_mat) <-
-    colnames(sigma_mat) <- colnames(zero_mat) <- rownames(sce)
+  if(length(qc_gene_idx) > 0){
+    colnames(mean_mat) <-
+      colnames(sigma_mat) <- colnames(zero_mat) <- rownames(sce)[qc_gene_idx]
+    na_mat <- matrix(NA, nrow = dim(mean_mat)[1], ncol = dim(sce)[1] - length(qc_gene_idx))
+    rownames(na_mat) <- rownames(mean_mat)
+    colnames(na_mat) <- rownames(sce)[-qc_gene_idx]
+    mean_mat <- cbind(mean_mat,na_mat)
+    sigma_mat <- cbind(sigma_mat,na_mat)
+    zero_mat <- cbind(zero_mat,na_mat)
+    mean_mat <- mean_mat[,rownames(sce)]
+    sigma_mat <- sigma_mat[,rownames(sce)]
+    zero_mat <- zero_mat[,rownames(sce)]
+  }else{
+    colnames(mean_mat) <-
+      colnames(sigma_mat) <- colnames(zero_mat) <- rownames(sce)
+  }
+
 
   return(list(
     mean_mat = mean_mat,

@@ -498,8 +498,10 @@ predict.gamlss <- function(object,
   ## If no new data just use lpred() and finish
   if (is.null(newdata))  #
   {
-    predictor<- lpred(object, what = what, type = type, terms = terms, se.fit = se.fit, ... )
-    return(predictor)
+    newdata = data
+    #predictor<- lpred(object, what = what, type = type, terms = terms, se.fit = se.fit, ... )
+    #return(predictor)
+    #newdata <- object$mu.x
   }
   ## at the moment se.fit is not supported for new data
   if (se.fit)
@@ -507,8 +509,8 @@ predict.gamlss <- function(object,
   ##  stop if newdata is not data frame
   ## note that atomic is not working here so better to take it out Mikis 23-10-13
   ## if (!(is.atomic(newdata) | inherits(newdata, "data.frame")))
-  if (!(inherits(newdata, "data.frame")))
-    stop("newdata must be a data frame ") # or a frame mumber
+  #if (!(inherits(newdata, "data.frame")))
+   # stop("newdata must be a data frame ") # or a frame mumber
   ## getting which parameter and type
   what <- if (!is.null(parameter))  {
     match.arg(parameter, choices=c("mu", "sigma", "nu", "tau"))} else  match.arg(what)
@@ -517,20 +519,22 @@ predict.gamlss <- function(object,
   Call <- object$call
   ## we need both the old and the new data sets
   ## the argument data can be provided by predict
-  data<- data1 <- if (is.null(data))
+  data<-if (is.null(data))
   {        ## if it is not provided then get it from the original call
     if (!is.null(Call$data)) eval(Call$data)
     else stop("define the original data using the option data")
+  }else{
+    data
   }
-  else data # if it provide get it
+  # else data # if it provide get it
   ## keep only the same variables
   ## this assumes that all the relevant variables will be in newdata
   ## what happens if not?
-  data <- data[match(names(newdata),names(data))]
+  data <- data[,match(names(newdata),names(data))]
   ## merge the two data together
   data <- concat(data,newdata)
   ## get the formula
-  parform <- formula(object, what)# object[[paste(what, "formula", sep=".")]]
+  parform <- stats::formula(object, what)# object[[paste(what, "formula", sep=".")]]
   ## put response to NULL
   if (length(parform)==3)
     parform[2] <- NULL
@@ -540,9 +544,9 @@ predict.gamlss <- function(object,
   offsetVar <- if (!is.null(off.num <- attr(Terms, "offset"))) # new
     eval(attr(Terms, "variables")[[off.num + 1]], data)
   ## model frame
-  m <- model.frame(Terms, data, xlev = object[[paste(what,"xlevels",sep=".")]])
+  m <- stats::model.frame(Terms, data, xlev = object[[paste(what,"xlevels",sep=".")]])
   ## model design matrix y and w
-  X <- model.matrix(Terms, data, contrasts = object$contrasts)
+  X <- stats::model.matrix(Terms, data, contrasts = object$contrasts)
   y <- object[[paste(what,"lp",sep=".")]]
   w <- object[[paste(what,"wt",sep=".")]]
   ## leave for future checks
@@ -693,14 +697,19 @@ predict.gamlss <- function(object,
   if(type == "response")
   {
     FAM <- eval(object$call$family)#
-    if (!is(FAM,"gamlss.family"))
+    if (!methods::is(FAM,"gamlss.family"))
     {
-      FAM <- family(object)[1]
+      FAM <- stats::family(object)[1]
     }
     # else
     # {
-    FAM <- as.gamlss.family(FAM)# this should get a gamlss family but not alway
+    FAM <- gamlss.dist::as.gamlss.family(FAM)# this should get a gamlss family but not alway
     pred <- FAM[[paste0(what,".linkinv")]](pred)
   }
+  names(pred) <- rownames(newdata)
   pred
 }
+
+
+
+

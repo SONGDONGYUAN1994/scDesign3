@@ -224,7 +224,10 @@ simuCovariateMat <- function(covariate_mat,
         df <- dplyr::select(df, -"discrete_group")
         df_factor <- dplyr::select_if(df, is.factor)
         df_onerow <- as.data.frame(df_factor[1, ])
+        colnames(df_onerow) <- colnames(df_factor)
         new_dat <- as.data.frame(df_onerow[rep(1, n), ])
+        colnames(new_dat) <- colnames(df_onerow)
+        new_dat
       }
       if(parallelization == "bpmapply"){
           new_dat_list <- paraFunc(FUN = dat_function, df = df_list, n = group_n_new, BPPARAM = BPPARAM, SIMPLIFY = FALSE)

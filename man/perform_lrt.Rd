@@ -60,6 +60,8 @@ my_marginal2 <- fit_marginal(
   n_cores = 1,
   usebam = FALSE
 )
-my_pvalue <- perform_lrt(my_marginal2, my_marginal1)
+my_fit1 <- lapply(my_marginal1, function(x)x$fit)
+my_fit2 <- lapply(my_marginal2, function(x)x$fit)
+my_pvalue <- perform_lrt(my_fit2, my_fit1)
 
 }
