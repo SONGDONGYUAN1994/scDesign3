@@ -6,9 +6,9 @@ The R package **scDesign3** is an all-in-one single-cell data simulation tool by
 
 ![](man/figures/scDesign3_illustration.png){width="600"}
 
-To find out more details about **scDesign3**, you can check out our preprint on BioRxiv:
+To find out more details about **scDesign3**, you can check out our manuscript on Nature Biotechnology:
 
-[Song, D., Wang, Q., Yan, G., Liu, T., & Li, J. J. (2022). A unified framework of realistic in silico data generation and statistical model inference for single-cell and spatial omics. *bioRxiv*.](https://www.biorxiv.org/content/10.1101/2022.09.20.508796v2)
+[Song, D., Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> (2023).](https://www.nature.com/articles/s41587-023-01772-1)
 
 ## Installation
 

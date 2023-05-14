@@ -123,6 +123,7 @@ IFNB_marginal <- fit_marginal(
 )
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 IFNB_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -137,7 +138,7 @@ IFNB_copula <- fit_copula(
 In here, the condition effects on B cells are removed for all genes by modifying the estimated coefficients for all genes' marginal models.
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 IFNB_marginal_null_B <- lapply(IFNB_marginal, function(x) {
-  x$coefficients["cell_typeB:conditionSTIM"] <- 0-x$coefficients["conditionSTIM"]
+  x$fit$coefficients["cell_typeB:conditionSTIM"] <- 0-x$fit$coefficients["conditionSTIM"]
   x
 })
 ```
@@ -148,10 +149,12 @@ IFNB_para_null_B <- extract_para(
     marginal_list = IFNB_marginal_null_B,
     n_cores = 2,
     family_use = "nb",
-    new_covariate = NULL
+    new_covariate = NULL,
+    data = IFNB_data$dat
   )
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 IFNB_newcount_null_B <- simu_new(
     sce = example_sce,
     mean_mat = IFNB_para_null_B$mean_mat,
@@ -180,6 +183,7 @@ logcounts(example_sce) <- log1p(counts(example_sce))
 
 ## Visulization
 ```{r, message=FALSE, fig.width=12, eval=TRUE}
+set.seed(123)
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 
                                   sce_list = simu_res_list, 
                                   name_vec = c("Reference", "w/ Condition", "Modified Condition"),

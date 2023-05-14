@@ -76,8 +76,8 @@ The top 200 highly variable genes are kept for generating synthetic data.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 ngene <- 200
 logcounts(Zhengmix4eq_sce) <- log1p(counts(Zhengmix4eq_sce))
-dec.seurat_obj <- modelGeneVar(Zhengmix4eq_sce)
-chosen <- getTopHVGs(Zhengmix4eq_sce, n = ngene)
+zheng_sce <- modelGeneVar(Zhengmix4eq_sce)
+chosen <- getTopHVGs(zheng_sce, n = ngene)
 example_sce <- Zhengmix4eq_sce[chosen,]
 ```
 
@@ -93,7 +93,7 @@ head(colData(example_sce))
 ### Simulation
 We use the step-by-step functions instead of the one-shot function to generate synthetic data since these step-by-step functions allow us to alter estimated parameters and generate new data based on our desired parameters.
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
-set.seed(1)
+set.seed(1234)
 example_data <- construct_data(
     sce = example_sce,
     assay_use = "counts",
@@ -117,6 +117,7 @@ example_marginal <- fit_marginal(
   )
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(1234)
 example_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -132,9 +133,10 @@ example_copula <- fit_copula(
 example_para <- extract_para(
     sce = example_sce,
     marginal_list = example_marginal,
-    n_cores = 1,
+    n_cores = 2,
     family_use = "nb",
-    new_covariate = NULL
+    new_covariate = NULL,
+    data = example_data$dat
   )
 ```
 
@@ -156,6 +158,7 @@ example_para$mean_mat[,non_de_idx] <- non_de_mat
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(1234)
  example_newcount <- simu_new(
     sce = example_sce,
     mean_mat = example_para$mean_mat,
@@ -299,6 +302,7 @@ PANCREAS_marginal <- fit_marginal(
   )
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(1)
 PANCREAS_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -316,7 +320,8 @@ PANCREAS_para <- extract_para(
     marginal_list = PANCREAS_marginal,
     n_cores = 1,
     family_use = "nb",
-    new_covariate = NULL
+    new_covariate = NULL,
+    data = PANCREAS_data$dat
   )
 ```
 Here, we examine the `mean_mat`, which is one of the outputs from the previous function `extract_para()`. For each gene, we calculate the difference in the between the maximum mean parameter and minimum mean parameter across all cells. We select genes which the gene's mean difference across cells are in the top 50 largest differences. We regard these genes as DE genes(DEG). Then, we manually set the mean parameters of the rest genes to be the same across all cells. We regard all genes with the same mean parameter across cells as non-DE genes.
@@ -336,6 +341,7 @@ PANCREAS_para$mean_mat[,non_de_idx] <- non_de_mat
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(1)
  PANCREAS_newcount <- simu_new(
     sce = example_sce,
     mean_mat = PANCREAS_para$mean_mat,
@@ -525,6 +531,7 @@ example_marginal <- fit_marginal(
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(1)
 example_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -543,13 +550,14 @@ example_para <- extract_para(
     marginal_list = example_marginal,
     n_cores = 2,
     family_use = "nb",
-    new_covariate = NULL
+    new_covariate = NULL,
+    data = example_data$dat
   )
 ```
 Here, we examine the `mean_mat`, which is one of the outputs from the previous function `extract_para()`. For each gene, we calculate the deviance explained by spatial locations in each regression model, and select the top 50. We regard these genes as spatially variable genes (SVGs). Then, we manually set the mean parameters of the rest genes to be the same across all cells. We regard all genes with the same mean parameter across cells as non-SVG genes.
 ```{r,message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 dev_explain <- sapply(example_marginal, function(x){
-  sum = summary(x)
+  sum = summary(x$fit)
   return(sum$dev.expl)
 })
 dev_ordered <- order(dev_explain, decreasing = TRUE)
@@ -583,6 +591,7 @@ Another way to select SVG based on Moran's I.
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(1)
  example_newcount <- simu_new(
     sce = example_sce,
     mean_mat = example_para$mean_mat,

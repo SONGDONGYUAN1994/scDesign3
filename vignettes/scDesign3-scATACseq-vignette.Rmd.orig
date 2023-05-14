@@ -83,14 +83,15 @@ example_simu <- scdesign3(
     mu_formula = "cell_type",
     sigma_formula = "1",
     family_use = "zip",
-    n_cores = 2,
+    n_cores = 1,
     usebam = FALSE,
     corr_formula = "cell_type",
     copula = "gaussian",
     DT = TRUE,
     pseudo_obs = FALSE,
     return_model = FALSE,
-    nonzerovar = FALSE
+    nonzerovar = FALSE,
+    parallelization = "pbmcmapply"
   )
 ```
 
@@ -113,6 +114,7 @@ assay(simu_sce, "tfidf") <- as.matrix(tf_idf(counts(simu_sce)))
 ## Visualization
 
 ```{r, message=FALSE, eval=TRUE}
+set.seed(123)
 compare_figure <- plot_reduceddim(ref_sce = example_sce,
                                   sce_list = list(simu_sce),
                                   name_vec = c("Reference", "scDesign3"),

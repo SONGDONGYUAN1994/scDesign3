@@ -107,6 +107,7 @@ logcounts(simu_sce) <- log1p(counts(simu_sce))
 
 ## Visualization
 ```{r, message=FALSE,eval=TRUE}
+set.seed(123)
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 
                                   sce_list = list(simu_sce), 
                                   name_vec = c("Reference", "scDesign3"),

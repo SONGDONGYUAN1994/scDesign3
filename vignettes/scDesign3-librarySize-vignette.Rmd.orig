@@ -76,7 +76,7 @@ example_simu <- scdesign3(
     spatial = NULL,
     other_covariates = "library",
     mu_formula = "cell_type + offset(log(library))",
-    sigma_formula = "cell_type",
+    sigma_formula = "1",
     family_use = "nb",
     n_cores = 2,
     usebam = FALSE,

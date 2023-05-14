@@ -112,6 +112,7 @@ BATCH_marginal <- fit_marginal(
 )
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 BATCH_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -126,7 +127,7 @@ BATCH_copula <- fit_copula(
 In here, we remove  the batch effect by setting its coefficient to zero for all genes' marginal fits. Then, we use the new sets of coefficients to generate the parameters for all genes across all cells.
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_marginal_null <- lapply(BATCH_marginal, function(x) {
-  x$coefficients[length(x$coefficients)] <- 0
+  x$fit$coefficients[length(x$fit$coefficients)] <- 0
   x
 })
 ```
@@ -136,10 +137,12 @@ BATCH_para_null <- extract_para(
     marginal_list = BATCH_marginal_null,
     n_cores = 2,
     family_use = "nb",
-    new_covariate = NULL
+    new_covariate = NULL,
+    data = BATCH_data$dat
   )
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 BATCH_newcount_null <- simu_new(
     sce = example_sce,
     mean_mat = BATCH_para_null$mean_mat,
@@ -158,7 +161,7 @@ BATCH_newcount_null <- simu_new(
 Additionally, we can alter the batch effect information by mannually change the estimated coefficient for batch effect in each gene's marginal model. Then, we can simulate new dataset with altered batch effect information.
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 BATCH_marginal_alter <- lapply(BATCH_marginal, function(x) {
-  x$coefficients[length(x$coefficients)] <- rnorm(1, mean = 5, sd = 2)
+  x$fit$coefficients[length(x$fit$coefficients)] <- rnorm(1, mean = 5, sd = 2)
   x
 })
 ```
@@ -168,10 +171,12 @@ BATCH_para_alter <- extract_para(
     marginal_list = BATCH_marginal_alter,
     n_cores = 2,
     family_use = "nb",
-    new_covariate = NULL
+    new_covariate = NULL,
+    data = BATCH_data$dat
   )
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 BATCH_newcount_alter <- simu_new(
     sce = example_sce,
     mean_mat = BATCH_para_alter$mean_mat,
@@ -198,6 +203,7 @@ simu_res_list <- lapply(list(simu_res$new_count, BATCH_newcount_null, BATCH_newc
 
 ## Visulization
 ```{r, message=FALSE, fig.width=12, eval=TRUE}
+set.seed(123)
 compare_figure <- plot_reduceddim(ref_sce = example_sce, 
                                   sce_list = simu_res_list, 
                                   name_vec = c("Reference", "w/ Batch", "w/o Batch","Aritifical Batch"),

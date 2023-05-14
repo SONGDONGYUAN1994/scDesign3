@@ -92,6 +92,7 @@ Zhengmix4eq_simu_sce_gaussian <- scdesign3(sce = Zhengmix4eq_sce_sub,
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 Zhengmix4eq_simu_sce_vine <- scdesign3(sce = Zhengmix4eq_sce_sub,
                             celltype = 'cell_type',
                             pseudotime = NULL,

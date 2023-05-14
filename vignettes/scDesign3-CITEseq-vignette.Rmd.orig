@@ -106,6 +106,7 @@ logcounts(simu_sce) <- log1p(counts(simu_sce))
 
 Then, we obtained the PCA and UMAP for both the inputted reference data and the synthetic data. These sets of embedding will be used for the visualization below.
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
  train_pca_fit <- irlba::prcomp_irlba(t(log1p(counts(example_sce))), 
                                           center = TRUE, 
                                           scale. = FALSE, 

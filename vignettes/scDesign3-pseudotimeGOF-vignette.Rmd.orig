@@ -79,6 +79,7 @@ colData(example_sce)$pseudotime <- out$model$experiment$cell_info$time
 
 Secondly, we perturb the pseudotime by generating random numbers from uniform distribution and replace various percentage of the original pseudotime by the random numbers. The percentage ranges from 0% to 100%.
 ```{r, message=FALSE, eval=TRUE}
+set.seed(123)
 example_sce_list <- lapply(0:10, function(x) {
   perturb_prop <- x/10
   n_cell <- round(dim(example_sce)[2]*perturb_prop)
@@ -95,6 +96,7 @@ example_sce_list <- lapply(0:10, function(x) {
 
 Thirdly, we run the function `scdesign3` on datasets with perturbed pseudotime.
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
 scDesign3_result <- lapply(example_sce_list, function(x) {
   res <-  scdesign3(
     sce = x,
