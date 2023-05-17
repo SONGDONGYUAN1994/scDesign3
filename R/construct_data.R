@@ -53,6 +53,14 @@ construct_data <- function(sce,
                           corr_by,
                           parallelization = "mcmapply",
                           BPPARAM = NULL) {
+
+  ## check unique cell names and gene names
+  if(length(unique(colnames(sce))) != dim(sce)[2]){
+    stop("Please make sure your inputted SingleCellExperiment object does not have duplicate cell names")
+  }
+  if(length(unique(rownames(sce))) != dim(sce)[1]){
+    stop("Please make sure your inputted SingleCellExperiment object does not have duplicate gene names")
+  }
   ## Extract expression matrix
   count_mat <-
       t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
