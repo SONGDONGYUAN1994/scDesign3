@@ -41,7 +41,8 @@
 #' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 #' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
-#'
+#' @param trace A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss
+#' will be returned, FALSE otherwise. Default is FALSE.
 #' @return A list with the components:
 #' \describe{
 #'   \item{\code{new_count}}{A matrix of the new simulated count (expression) matrix.}
@@ -96,7 +97,8 @@ scdesign3 <- function(sce,
                       nonzerovar = TRUE,
                       return_model = FALSE,
                       parallelization = "mcmapply",
-                      BPPARAM = NULL) {
+                      BPPARAM = NULL,
+                      trace = FALSE) {
   message("Input Data Construction Start")
 
   input_data <- construct_data(
@@ -122,7 +124,8 @@ scdesign3 <- function(sce,
     family_use = family_use,
     usebam = usebam,
     parallelization = parallelization,
-    BPPARAM = BPPARAM
+    BPPARAM = BPPARAM,
+    trace = trace
   )
   message("Marginal Fitting End")
 

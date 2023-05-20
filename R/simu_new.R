@@ -206,7 +206,7 @@ simu_new <- function(sce,
     rownames(newmvn_full) <- rownames(newmvn)
     colnames(newmvn_full) <- rownames(sce)
     newmvn_full[rownames(newmvn), colnames(newmvn)] <- newmvn
-    quantile_mat <- as.data.frame(newmvn)
+    quantile_mat <- as.data.frame(newmvn_full)
   }
 
   ## New count

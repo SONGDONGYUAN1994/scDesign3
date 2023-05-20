@@ -74,7 +74,7 @@ extract_para <-  function(sce,
                           new_covariate,
                           parallelization = "mcmapply",
                           BPPARAM = NULL,
-                          data = NULL) {
+                          data) {
   removed_cell_list <- lapply(marginal_list, function(x){x$removed_cell})
   marginal_list <- lapply(marginal_list, function(x){x$fit})
 

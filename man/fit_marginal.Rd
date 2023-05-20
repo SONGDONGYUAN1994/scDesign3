@@ -13,7 +13,8 @@ fit_marginal(
   n_cores,
   usebam,
   parallelization = "mcmapply",
-  BPPARAM = NULL
+  BPPARAM = NULL,
+  trace = FALSE
 )
 }
 \arguments{
@@ -41,6 +42,9 @@ Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the
 \item{BPPARAM}{A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
+
+\item{trace}{A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss
+will be returned, FALSE otherwise. Default is FALSE.}
 }
 \value{
 A list of fitted regression models. The length is equal to the total feature number.
