@@ -52,7 +52,7 @@ In this tutorial, we will show how to use scDesign3 to simulate data with condit
 The raw data is from the `SeuratData` package. The data is called `ifnb` in the package; it is PBMC data simulated and controlled by IFNB.
 
 ```{r, message=FALSE}
-example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AABoozvjRadAygeSSJFoc2OOa/IFNB_sce.rds?raw=1")))
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581977")))
 print(example_sce)
 ```
 ```{r, message=FALSE}

@@ -56,7 +56,7 @@ In this tutorial, we will show how to use scDesign3 to simulate the multiple lin
 The raw data is from the [GEO with ID GSE72859](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE72859), which describes myeloid progenitors from mouse bone marrow. We pre-select the top 1000 highly variable genes. 
 
 ```{r, message=FALSE}
-example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AAADW7is80WscU5RwavChsdUa/MARROW_sce.rds?raw=1")))
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581980")))
 print(example_sce)
 ```
 To save computational time, we only use the top 100 genes.

@@ -52,8 +52,8 @@ In this tutorial, we show how to use scDesign3 to simulate the spot-resolution s
 The paired scRNA-seq and spatial data were used in [CARD](https://www.nature.com/articles/s41587-022-01273-7). We pre-select the top cell-type marker genes.
 
 ```{r, message=FALSE}
-MOBSC_sce <- readRDS((url("https://www.dropbox.com/s/650bsdt2gmkcvs5/MOBSC_sce.rds?raw=1")))
-MOBSP_sce <- readRDS((url("https://www.dropbox.com/s/czvptdt4vzi7q9m/MOBSP_sce.rds?raw=1")))
+MOBSC_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581983")))
+MOBSP_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581986")))
 print(MOBSC_sce)
 print(MOBSP_sce)
 ```
@@ -185,7 +185,7 @@ proportion_mat <- proportion_mat[, 1:4]
 ```
 
 We can visualzie the proportions by pie-chart.
-```{r, fig.width=3, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, fig.width=5}
 colors_cell_type <- c("#E69F00", "#56B4E9", "#009E73", 
                        "#0072B2")
 d_pie <- as_tibble(colData(MOBSP_sce), rownames = "cell") %>% bind_cols(as_tibble(proportion_mat)) %>% dplyr::mutate(region = seq_len(dim(MOBSP_sce)[2])) %>% dplyr::mutate(X= spatial1, Y = spatial2)
@@ -227,7 +227,7 @@ counts(MOBSPMIX_sce) <- as.matrix(MOBSP_new_mixture)
 ```
 
 Finally, we can check the simulated results. We use four cell-type marker genes as the example.
-```{r, fig.width=5}
+```{r}
 MOBSC_sig_matrix <- sapply(cell_type, function(x) {
   rowMeans(t(MOBSC_para$mean_mat)[, colData(MOBSC_sce)$cellType %in% x])
 })

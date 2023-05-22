@@ -54,7 +54,7 @@ scDesign3 is a unified probabilistic framework that generates realistic in silic
 The raw data is from the [scvelo](https://scvelo.readthedocs.io/scvelo.datasets.pancreas/), which describes pancreatic endocrinogenesis. We pre-select the top 1000 highly variable genes and filter out some cell types to ensure a **single trajectory**.
 
 ```{r}
-example_sce <- readRDS((url("https://www.dropbox.com/s/p1mvl5osxp55sot/PANCREAS_sce.rds?raw=1")))
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581992")))
 print(example_sce)
 ```
 To save computational time, we only use the top 100 genes.

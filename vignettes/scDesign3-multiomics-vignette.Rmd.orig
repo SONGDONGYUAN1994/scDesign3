@@ -53,8 +53,8 @@ In this tutorial, we will show how to use scDesign3 to simulate multi-omics (RNA
 
 ## Read in the reference data
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-SCGEMMETH_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AAAo-79sEfTkvrEig0q4L5Oia/SCGEMMETH_sce.rds?raw=1")))
-SCGEMRNA_sce <-readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AADEKgmZG4FsW5tdbu1fdYKda/SCGEMRNA_sce.rds?raw=1")))
+SCGEMMETH_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581998")))
+SCGEMRNA_sce <-readRDS((url("https://figshare.com/ndownloader/files/40582001")))
 print(SCGEMMETH_sce)
 print(SCGEMRNA_sce)
 ```
@@ -136,6 +136,7 @@ METH_copula <- fit_copula(
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 RNA_para <- extract_para(
     sce = SCGEMRNA_sce,
+    assay_use = "logcounts",
     marginal_list = RNA_marginal,
     n_cores = 2,
     family_use = "gaussian",

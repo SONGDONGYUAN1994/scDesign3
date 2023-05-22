@@ -6,17 +6,20 @@
 \usage{
 extract_para(
   sce,
+  assay_use = "counts",
   marginal_list,
   n_cores,
   family_use,
   new_covariate,
   parallelization = "mcmapply",
   BPPARAM = NULL,
-  data = NULL
+  data
 )
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object.}
+
+\item{assay_use}{A string which indicates the assay you will use in the sce. Default is 'counts'.}
 
 \item{marginal_list}{A list of fitted regression models from \code{\link{fit_marginal}} for each gene in sce.}
 

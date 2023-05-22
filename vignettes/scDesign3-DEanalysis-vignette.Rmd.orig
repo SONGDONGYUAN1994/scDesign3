@@ -93,7 +93,7 @@ head(colData(example_sce))
 ### Simulation
 We use the step-by-step functions instead of the one-shot function to generate synthetic data since these step-by-step functions allow us to alter estimated parameters and generate new data based on our desired parameters.
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
-set.seed(1234)
+set.seed(123)
 example_data <- construct_data(
     sce = example_sce,
     assay_use = "counts",
@@ -117,7 +117,7 @@ example_marginal <- fit_marginal(
   )
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
-set.seed(1234)
+set.seed(123)
 example_copula <- fit_copula(
     sce = example_sce,
     assay_use = "counts",
@@ -158,7 +158,7 @@ example_para$mean_mat[,non_de_idx] <- non_de_mat
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
-set.seed(1234)
+set.seed(123)
  example_newcount <- simu_new(
     sce = example_sce,
     mean_mat = example_para$mean_mat,
@@ -269,7 +269,7 @@ power_plot
 ### Read in the reference data
 The raw data is from the [scvelo](https://scvelo.readthedocs.io/en/stable/scvelo.datasets.pancreas/), which describes pancreatic endocrinogenesis. We pre-select the top 1000 highly variable genes and filter out some cell types to ensure a **single trajectory**.
 ```{r}
-example_sce <- readRDS((url("https://www.dropbox.com/s/p1mvl5osxp55sot/PANCREAS_sce.rds?raw=1")))
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581992")))
 print(example_sce)
 ```
 To save computational time, we only use the top 200 genes.
@@ -488,7 +488,7 @@ power_plot
 ### Read in the reference data
 The raw data is from the [Seurat](https://satijalab.org/seurat/articles/spatial_vignette.html), which is a dataset generated with the Visium technology from 10x Genomics. We pre-select the top spatial variable genes.
 ```{r, message=FALSE}
-example_sce <- readRDS((url("https://www.dropbox.com/s/v1uazcl2glirmfe/VISIUM_sce.rds?raw=1")))
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40582019")))
 print(example_sce)
 ```
 To save time, we subset the top 200 genes.

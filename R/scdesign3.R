@@ -149,6 +149,7 @@ scdesign3 <- function(sce,
   message("Start Parameter Extraction")
   para_list <- extract_para(
     sce = sce,
+    assay_use = assay_use,
     marginal_list = marginal_res,
     n_cores = n_cores,
     family_use = family_use,

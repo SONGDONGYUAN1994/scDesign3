@@ -6,6 +6,7 @@
 #' marginal models from \code{\link{fit_marginal}}.
 #'
 #' @param sce A \code{SingleCellExperiment} object.
+#' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.
 #' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}} for each gene in sce.
 #' @param n_cores An integer. The number of cores to use.
 #' @param family_use A string of the marginal distribution.
@@ -68,6 +69,7 @@
 #' @export extract_para
 
 extract_para <-  function(sce,
+                          assay_use = "counts",
                           marginal_list,
                           n_cores,
                           family_use,
@@ -84,7 +86,9 @@ extract_para <-  function(sce,
   mat_function <-function(x, y) {
     fit <- marginal_list[[x]]
     removed_cell <- removed_cell_list[[x]]
-    #data$gene <- counts(sce)
+    count_mat <-
+      t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
+    data$gene <- count_mat[,x]
     # if(!"gamlss" %in% class(fit)){
     #   modelframe <- model.frame(fit)
     # }else{
@@ -119,7 +123,7 @@ extract_para <-  function(sce,
 
         })
         remove_cell_idx <- unlist(remove_idx)
-        remove_cell_idx <- unique(stats::na.omit(remove_cell))
+        remove_cell_idx <- unique(stats::na.omit(remove_cell_idx))
         if(length(remove_cell_idx) > 0){
           new_covariate <- new_covariate[-remove_cell_idx,]
         }

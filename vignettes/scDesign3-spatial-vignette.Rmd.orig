@@ -50,7 +50,7 @@ In this tutorial, we show how to use scDesign3 to simulate the single-cell spati
 The raw data is from the [Seurat](https://satijalab.org/seurat/articles/spatial_vignette.html), which is a dataset generated with the Visium technology from 10x Genomics. We pre-select the top spatial variable genes.
 
 ```{r, message=FALSE}
-example_sce <- readRDS((url("https://www.dropbox.com/s/v1uazcl2glirmfe/VISIUM_sce.rds?raw=1")))
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40582019")))
 print(example_sce)
 ```
 To save time, we subset the top 10 genes.

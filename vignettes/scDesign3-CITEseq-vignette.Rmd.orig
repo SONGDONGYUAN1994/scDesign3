@@ -57,7 +57,7 @@ In this tutorial, we will show how to use scDesign3 to simulate CITE-seq data an
 
 ## Read in the reference data
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AAA2ly7fk9Ge98YB3FbiMtR9a/CITE_sce.rds?raw=1")))
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581968")))
 print(example_sce)
 ```
 To save computational time, we only use the top 100 genes and six more genes with protein and RNA abundance information.

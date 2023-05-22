@@ -58,7 +58,7 @@ In this tutorial, we show how to use scDesign3 to simulate the peak by cell matr
 The raw data is from the [Signac](https://stuartlab.org/signac/articles/pbmc_vignette.html), which is of human peripheral blood mononuclear cells (PBMCs) provided by 10x Genomics. We pre-select the differentially accessible peaks between clusters.
 
 ```{r, message=FALSE}
-example_sce <- readRDS((url("https://www.dropbox.com/s/e75uf5k5voni106/ATAC_sce.rds?raw=1")))
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581962")))
 print(example_sce)
 ```
 
@@ -73,7 +73,7 @@ Here we choose the Zero-inflated Poisson (ZIP) as the distribution due to its go
 
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 set.seed(123)
-example_simu <- scdesign3(
+example_simu <- scdesign3(    
     sce = example_sce,
     assay_use = "counts",
     celltype = "cell_type",
@@ -90,8 +90,7 @@ example_simu <- scdesign3(
     DT = TRUE,
     pseudo_obs = FALSE,
     return_model = FALSE,
-    nonzerovar = FALSE,
-    parallelization = "pbmcmapply"
+    nonzerovar = FALSE
   )
 ```
 

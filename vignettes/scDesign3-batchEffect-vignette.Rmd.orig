@@ -51,7 +51,7 @@ In this tutorial, we will show how to use scDesign3 to simulate data with origin
 ## Read in the reference data
 The raw data is from the `SeuratData` package. The data is called `pbmcsca` in the package; it is PBMC Systematic Comparative Analysis dataset from the Broad Institute.
 ```{r, message=FALSE}
-example_sce <- readRDS((url("https://www.dropbox.com/sh/0tptrft7hsstpi3/AACFsTJvmzgBKicMsbFzxbyUa/BATCH_sce.rds?raw=1")))
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581965")))
 print(example_sce)
 ```
 To save computational time, we only use the top 100 genes.
