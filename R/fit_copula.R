@@ -590,7 +590,7 @@ convert_u <- function(sce,
   mat_function <- function(x, y) {
     fit <- marginal_list[[x]]
     removed_cell <- removed_cell_list[[x]]
-    if(length(removed_cell) > 0 && !is.na(removed_cell)){
+    if(length(removed_cell) > 0 && !any(is.na(removed_cell))){
       data<- data[-removed_cell,]
     }
     if (methods::is(fit, "gamlss")) {
