@@ -143,7 +143,7 @@ construct_data <- function(sce,
       mclust_mod <- mclust::Mclust(corr_group, G = seq_len(5))
       corr_group <- mclust_mod$classification
 
-      #corr_group2 <- newCovariate[, group]
+      corr_group2 <- newCovariate[, group]
       corr_group2 <- mclust::predict.Mclust(mclust_mod, newdata = corr_group2)$classification
 
     } else {
