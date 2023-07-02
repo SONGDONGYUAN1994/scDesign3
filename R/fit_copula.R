@@ -93,10 +93,31 @@ fit_copula <- function(sce,
                        parallelization = "mcmapply",
                        BPPARAM = NULL) {
 
-
   marginals <- lapply(marginal_list, function(x){x$fit})
   # find gene whose marginal is fitted
   qc_gene_idx <- which(!is.na(marginals))
+  group_index <- unique(input_data$corr_group)
+  ind <- group_index[1] == "ind"
+  if(ind) {
+    copula.aic <- 0
+    copula.bic <- 0
+    marginal.aic <- sum(sapply(marginals[qc_gene_idx], stats::AIC))
+    marginal.bic <- sum(sapply(marginals[qc_gene_idx], stats::BIC))
+    model_aic <- c(marginal.aic, copula.aic, marginal.aic + copula.aic)
+    names(model_aic) <- c("aic.marginal", "aic.copula", "aic.total")
+    model_bic <- c(marginal.bic, copula.bic, marginal.bic + copula.bic)
+    names(model_bic) <- c("bic.marginal", "bic.copula", "bic.total")
+    copula_list <- NULL
+    return(
+      list(
+        #new_mvu = new_mvu,
+        model_aic = model_aic,
+        model_bic = model_bic,
+        copula_list = copula_list,
+        important_feature = important_feature
+      )
+    )
+  }
 
   if (copula == "gaussian") {
     message("Convert Residuals to Multivariate Gaussian")
@@ -149,7 +170,7 @@ fit_copula <- function(sce,
 
   important_feature <- important_feature[qc_gene_idx]
 
-  group_index <- unique(input_data$corr_group)
+  
   corr_group <- as.data.frame(input_data$corr_group)
   colnames(corr_group) <- "corr_group"
   if (is.null(new_covariate)) {
@@ -158,7 +179,7 @@ fit_copula <- function(sce,
     new_corr_group <- as.data.frame(new_covariate$corr_group)
     colnames(new_corr_group) <- "corr_group"
   }
-  ind <- group_index[1] == "ind"
+
   newmvn.list <-
     lapply(group_index, function(x,
                                  sce,
@@ -207,7 +228,6 @@ fit_copula <- function(sce,
         #message("Cal AIC/BIC End")
 
       } else if (copula == "vine") {
-        if (!ind) {
           message("Vine Copula Estimation Starts")
           start <- Sys.time()
           curr_mat <- newmat[curr_index, , drop = FALSE]
@@ -235,21 +255,9 @@ fit_copula <- function(sce,
           # } else{
           #   new_mvu <- NULL
           # }
-
-
           model_aic <- stats::AIC(vine.fit)
           model_bic <- stats::BIC(vine.fit)
           cor.mat <- vine.fit
-        }
-        else {
-          #new_mvu <-
-          #  matrix(data = stats::runif(curr_ncell * ngene),
-          #         nrow = curr_ncell)
-          #rownames(new_mvu) <- curr_ncell_idx
-          model_aic <- 0
-          model_bic <- 0
-          cor.mat <- NULL
-        }
       } else{
         stop("Copula must be one of 'vine' or 'gaussian'")
       }

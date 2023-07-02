@@ -135,15 +135,15 @@ construct_data <- function(sce,
       corr_group <- rep(1, n_cell)
       corr_group2 <- rep(1, dim(newCovariate)[1])
     } else if (group[1] == "ind"){
-      corr_group <- rep(NULL, n_cell)
-      corr_group2 <- rep(NULL, dim(newCovariate)[1])
+      corr_group <- rep("ind", n_cell)
+      corr_group2 <- rep("ind", dim(newCovariate)[1])
     } else if (group[1] == "pseudotime" | length(group) > 1) {
       ## For continuous pseudotime, discretize it
       corr_group <- SummarizedExperiment::colData(sce)[, group]
       mclust_mod <- mclust::Mclust(corr_group, G = seq_len(5))
       corr_group <- mclust_mod$classification
 
-      corr_group2 <- newCovariate[, group]
+      #corr_group2 <- newCovariate[, group]
       corr_group2 <- mclust::predict.Mclust(mclust_mod, newdata = corr_group2)$classification
 
     } else {

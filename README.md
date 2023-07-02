@@ -2,7 +2,7 @@
 
 ------------------------------------------------------------------------
 
-The R package **scDesign3** is an all-in-one single-cell data simulation tool by using reference datasets with different cell states (cell types, trajectories or and spatial coordinates), different modalities (gene expression, chromatin accessibility, protein abundance, DNA methylation, etc), and complex experimental designs. The transparent parameters enable users to alter models as needed; the model evaluation metrics (AIC, BIC) and convenient visualization function help users select models. Detailed tutorials that illustrate various functionalities of scDesign3 are available at this [website](https://songdongyuan1994.github.io/scDesign3/docs/index.html). The following illustration figure summarizes the usage of scDesign3:
+The R package **scDesign3** is an all-in-one single-cell data simulation tool by using reference datasets with different cell states (cell types, trajectories or and spatial coordinates), different modalities (gene expression, chromatin accessibility, protein abundance, DNA methylation, etc), and complex experimental designs. The transparent parameters enable users to alter models as needed; the model evaluation metrics (AIC, BIC) and convenient visualization function help users select models. <span style="color:blue"> **Detailed tutorials that illustrate various functionalities of scDesign3 are available at this [website](https://songdongyuan1994.github.io/scDesign3/docs/index.html)**</span>. The following illustration figure summarizes the usage of scDesign3:
 
 ![](man/figures/scDesign3_illustration.png){width="600"}
 
@@ -10,7 +10,17 @@ To find out more details about **scDesign3**, you can check out our manuscript o
 
 [Song, D., Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> (2023).](https://www.nature.com/articles/s41587-023-01772-1)
 
-## Installation
+
+
+# Table of contents
+1. [Installation](#Installation)
+2. [Quick Start](#Quick Start)
+3. [Tutorials](#Tutorials)
+4. [Contact](#Contact)
+5. [Related Manuscripts](#Related Manuscripts)
+
+
+## Installation <a name="Installation"></a>
 
 To install the development version from GitHub, please run:
 
@@ -22,7 +32,7 @@ devtools::install_github("SONGDONGYUAN1994/scDesign3")
 
 We are now working on submitting it to Bioconductor and will provide the link once online.
 
-## Quick Start
+## Quick Start<a name="Quick Start"></a>
 
 The following code is a quick example of running our simulator. The function `scdesign3()` takes in a `SinglecellExperiment` object with the cell covariates(such as cell types, pesudotime, or spatial coordinates) stored in the `colData` of the `SinglecellExperiment` object. For more details on the `SinlgeCellExperiment` object, please check on its [Bioconductor link](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 
@@ -50,7 +60,7 @@ example_simu <- scdesign3(
     return_model = FALSE,
     nonzerovar = FALSE,
     parallelization = "mcmapply",
-    BPPARAM = NULL，
+    BPPARAM = NULL,
     trace = FALSE
   )
 ```
@@ -98,38 +108,35 @@ The output of `scdesign3()` is a list which includes:
     -   If the parameter `return_model` is set to `TRUE`, this will be a list which contains either a correlation matrix (when `copula = "gaussian"`) or the fitted Vine copula (when `copula = "vine"`) for each user specified correlation groups (based on the parameter `corr_by`).
     -   If the parameter `return_model` is set to the default value `FALSE`, this will be `NULL`.
 
-## Tutorials
+## Tutorials<a name="Tutorials"></a>
 
 For all detailed tutorials, please check the [website](https://songdongyuan1994.github.io/scDesign3/docs/index.html). The tutorials will demonstrate the applications of **scDesign3** from the following four perspectives: data simulation, model parameters, model selection, and model alteration.
 
 -   Data simulation
-    -   scDesign3 introduction
-    -   Simulate datasets with cell library size
-    -   Simulate datasets with multiple lineages
-    -   Simulate spatial transcriptomic data
-    -   Simulate spot-resolution spatial data for cell-type deconvolution
-    -   Simulate single-cell ATAC-seq data
-    -   Simulate CITE-seq data
-    -   Simulate multi-omics data from multiple single-omic datasets
-    -   Simulate datasets with batch effect
-    -   Simulate datasets with condition effect
+    -   [Simulate datasets with cell library size](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-librarySize-vignette.html)
+    -   [Simulate datasets with multiple lineages](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-multipleLineages-vignette.html)
+    -   [Simulate spatial transcriptomic data](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-spatial-vignette.html)
+    -   [Simulate spot-resolution spatial data for cell-type deconvolution](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-spatial-deconvolution.html)
+    -   [Simulate single-cell ATAC-seq data](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-scATACseq-vignette.html)
+    -   [Simulate CITE-seq data](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-CITEseq-vignette.html)
+    -   [Simulate multi-omics data from multiple single-omic datasets](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-multiomics-vignette.html)
 -   Model parameter
-    -   scDesign3 introduction
-    -   scDesign3 marginal distribution for genes
-    -   Compare Gaussian copula and Vine copula
+    -   [scDesign3 introduction](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-introduction-vignette.html)
+    -   [scDesign3 marginal distribution for genes](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-marginal-vignette.html)
+    -   [Compare Gaussian copula and Vine copula](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-copulaCompare-vignette.html)
 -   Model selection
-    -   Evaluate clustering goodness-of-fit by scDesign3
-    -   Evaluate pseudotime goodness-of-fit by scDesign3
+    -   [Evaluate clustering goodness-of-fit by scDesign3](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-clusterGOF-vignette.html)
+    -   [Evaluate pseudotime goodness-of-fit by scDesign3](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-pseudotimeGOF-vignette.html)
 -   Model alteration
-    -   Simulate datasets with/without batch effect
-    -   Simulate datasets with/without condition effect
-    -   Simulate datasets for DE test
+    -   [Simulate datasets with/without batch effect](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-batchEffect-vignette.html)
+    -   [Simulate datasets with/without condition effect](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-conditionEffect-vignette.html)
+    -   [Simulate datasets for DE test](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-DEanalysis-vignette.html)
 
-## Contact
+## Contact<a name="Contact"></a>
 
 Any questions or suggestions on `scDesign3` are welcomed! Please report it on [issues](https://github.com/SONGDONGYUAN1994/scDesign3/issues), or contact Dongyuan Song ([dongyuansong\@ucla.edu](mailto:dongyuansong@ucla.edu){.email}) or Qingyang Wang ([qw802\@g.ucla.edu](mailto:qw802@g.ucla.edu){.email}).
 
-## Related Manuscripts
+## Related Manuscripts<a name="Related Manuscripts"></a>
 
 -   The predecessors of **scDesign3**
     -   **scDesign**: [Li, W. V., & Li, J. J. (2019). A statistical simulator scDesign for rational scRNA-seq experimental design. Bioinformatics, 35(14), i41-i50.](https://academic.oup.com/bioinformatics/article/35/14/i41/5529133)
