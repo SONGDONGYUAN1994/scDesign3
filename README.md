@@ -14,10 +14,10 @@ To find out more details about **scDesign3**, you can check out our manuscript o
 
 # Table of contents
 1. [Installation](#Installation)
-2. [Quick Start](#Quick Start)
+2. [Quick Start](#QuickStart)
 3. [Tutorials](#Tutorials)
 4. [Contact](#Contact)
-5. [Related Manuscripts](#Related Manuscripts)
+5. [Related Manuscripts](#RelatedManuscripts)
 
 
 ## Installation <a name="Installation"></a>
@@ -32,7 +32,7 @@ devtools::install_github("SONGDONGYUAN1994/scDesign3")
 
 We are now working on submitting it to Bioconductor and will provide the link once online.
 
-## Quick Start<a name="Quick Start"></a>
+## Quick Start<a name="QuickStart"></a>
 
 The following code is a quick example of running our simulator. The function `scdesign3()` takes in a `SinglecellExperiment` object with the cell covariates(such as cell types, pesudotime, or spatial coordinates) stored in the `colData` of the `SinglecellExperiment` object. For more details on the `SinlgeCellExperiment` object, please check on its [Bioconductor link](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 
@@ -136,7 +136,7 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
 
 Any questions or suggestions on `scDesign3` are welcomed! Please report it on [issues](https://github.com/SONGDONGYUAN1994/scDesign3/issues), or contact Dongyuan Song ([dongyuansong\@ucla.edu](mailto:dongyuansong@ucla.edu){.email}) or Qingyang Wang ([qw802\@g.ucla.edu](mailto:qw802@g.ucla.edu){.email}).
 
-## Related Manuscripts<a name="Related Manuscripts"></a>
+## Related Manuscripts<a name="RelatedManuscripts"></a>
 
 -   The predecessors of **scDesign3**
     -   **scDesign**: [Li, W. V., & Li, J. J. (2019). A statistical simulator scDesign for rational scRNA-seq experimental design. Bioinformatics, 35(14), i41-i50.](https://academic.oup.com/bioinformatics/article/35/14/i41/5529133)
