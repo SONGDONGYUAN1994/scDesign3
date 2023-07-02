@@ -4,7 +4,8 @@
 
 The R package **scDesign3** is an all-in-one single-cell data simulation tool by using reference datasets with different cell states (cell types, trajectories or and spatial coordinates), different modalities (gene expression, chromatin accessibility, protein abundance, DNA methylation, etc), and complex experimental designs. The transparent parameters enable users to alter models as needed; the model evaluation metrics (AIC, BIC) and convenient visualization function help users select models. <span style="color:blue"> **Detailed tutorials that illustrate various functionalities of scDesign3 are available at this [website](https://songdongyuan1994.github.io/scDesign3/docs/index.html)**</span>. The following illustration figure summarizes the usage of scDesign3:
 
-![](man/figures/scDesign3_illustration.png){width="600"}
+<img src="man/figures/scDesign3_illustration.png" width="600"/>
+
 
 To find out more details about **scDesign3**, you can check out our manuscript on Nature Biotechnology:
 
@@ -13,14 +14,14 @@ To find out more details about **scDesign3**, you can check out our manuscript o
 
 
 # Table of contents
-1. [Installation](#Installation)
-2. [Quick Start](#QuickStart)
-3. [Tutorials](#Tutorials)
-4. [Contact](#Contact)
-5. [Related Manuscripts](#RelatedManuscripts)
+1. [Installation](#installation-)
+2. [Quick Start](#quick-start)
+3. [Tutorials](#tutorials)
+4. [Contact](#contact)
+5. [Related Manuscripts](#related-manuscripts)
 
 
-## Installation <a name="Installation"></a>
+## Installation<a name="installation-"></a>
 
 To install the development version from GitHub, please run:
 
@@ -32,7 +33,7 @@ devtools::install_github("SONGDONGYUAN1994/scDesign3")
 
 We are now working on submitting it to Bioconductor and will provide the link once online.
 
-## Quick Start<a name="QuickStart"></a>
+## Quick Start<a name="quick-start"></a>
 
 The following code is a quick example of running our simulator. The function `scdesign3()` takes in a `SinglecellExperiment` object with the cell covariates(such as cell types, pesudotime, or spatial coordinates) stored in the `colData` of the `SinglecellExperiment` object. For more details on the `SinlgeCellExperiment` object, please check on its [Bioconductor link](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 
@@ -108,7 +109,7 @@ The output of `scdesign3()` is a list which includes:
     -   If the parameter `return_model` is set to `TRUE`, this will be a list which contains either a correlation matrix (when `copula = "gaussian"`) or the fitted Vine copula (when `copula = "vine"`) for each user specified correlation groups (based on the parameter `corr_by`).
     -   If the parameter `return_model` is set to the default value `FALSE`, this will be `NULL`.
 
-## Tutorials<a name="Tutorials"></a>
+## Tutorials<a name="tutorials"></a>
 
 For all detailed tutorials, please check the [website](https://songdongyuan1994.github.io/scDesign3/docs/index.html). The tutorials will demonstrate the applications of **scDesign3** from the following four perspectives: data simulation, model parameters, model selection, and model alteration.
 
@@ -132,11 +133,11 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
     -   [Simulate datasets with/without condition effect](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-conditionEffect-vignette.html)
     -   [Simulate datasets for DE test](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-DEanalysis-vignette.html)
 
-## Contact<a name="Contact"></a>
+## Contact<a name="contact"></a>
 
 Any questions or suggestions on `scDesign3` are welcomed! Please report it on [issues](https://github.com/SONGDONGYUAN1994/scDesign3/issues), or contact Dongyuan Song ([dongyuansong\@ucla.edu](mailto:dongyuansong@ucla.edu){.email}) or Qingyang Wang ([qw802\@g.ucla.edu](mailto:qw802@g.ucla.edu){.email}).
 
-## Related Manuscripts<a name="RelatedManuscripts"></a>
+## Related Manuscripts<a name="related-manuscripts"></a>
 
 -   The predecessors of **scDesign3**
     -   **scDesign**: [Li, W. V., & Li, J. J. (2019). A statistical simulator scDesign for rational scRNA-seq experimental design. Bioinformatics, 35(14), i41-i50.](https://academic.oup.com/bioinformatics/article/35/14/i41/5529133)
