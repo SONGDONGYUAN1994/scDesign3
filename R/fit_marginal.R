@@ -79,13 +79,13 @@ fit_marginal <- function(data,
                              predictor,
                              count_mat
   ) {
-
+    
     ## formula
     mgcv_formula <-
       stats::formula(paste0(predictor, "~", mu_formula))
 
     ## If use the mgcv s() smoother
-    mu_mgcvform <- grepl("^s\\(", mu_formula) | grepl("^te\\(", mu_formula)
+    mu_mgcvform <- grepl("s\\(", mu_formula) | grepl("te\\(", mu_formula)
 
     ## If use bam to fit marginal distribution
     usebam <- usebam & mu_mgcvform ## If no smoothing terms, no need to to use bam.
@@ -96,26 +96,64 @@ fit_marginal <- function(data,
     }
 
     if (mu_mgcvform) {
+      terms <- attr(stats::terms(mgcv_formula), "term.labels")
+      terms_smooth <- terms[which(grepl("s\\(", terms))] 
+      
       if(usebam){
-        mu_formula <-
-          stats::formula(paste0(predictor, "~", "ba(~", mu_formula, ", method = 'fREML', gc.level = 0, discrete = TRUE)"))
+        terms_smooth_update <- sapply(terms_smooth, function(x){paste0("ba(~", x, ", method = 'fREML', gc.level = 0, discrete = TRUE)")})
+        if(length(terms_smooth) == length(terms)){## only contain smooth terms
+          mu_formula <-
+            stats::formula(paste0(predictor, "~", paste0(terms_smooth_update, collapse = "+")))
+        }else{
+          terms_linear <- terms[which(!grepl("s\\(", terms))] 
+          terms_update <- c(terms_linear, terms_smooth_update)
+          mu_formula <-
+            stats::formula(paste0(predictor, "~", paste0(terms_update, collapse = "+")))
+          }
       }else{
-        mu_formula <-
-          stats::formula(paste0(predictor, "~", "ga(~", mu_formula, ", method = 'REML')"))
+        terms_smooth_update <- sapply(terms_smooth, function(x){paste0("ga(~", x, ", method = 'REML')")})
+        if(length(terms_smooth) == length(terms)){## only contain smooth terms
+          mu_formula <-
+            stats::formula(paste0(predictor, "~", paste0(terms_smooth_update, collapse = "+")))
+        }else{
+          terms_linear <- terms[which(!grepl("s\\(", terms))] 
+          terms_update <- c(terms_linear, terms_smooth_update)
+          mu_formula <-
+            stats::formula(paste0(predictor, "~", paste0(terms_update, collapse = "+")))
+        }
       }
     }
     else {
       mu_formula <- stats::formula(paste0(predictor, "~", mu_formula))
     }
 
-    sigma_mgcvform <- grepl("^s\\(", sigma_formula) | grepl("^te\\(", sigma_formula)
+    sigma_mgcvform <- grepl("s\\(", sigma_formula) | grepl("te\\(", sigma_formula)
     if (sigma_mgcvform) {
+      temp_sigma_formula <- stats::formula(paste0(predictor, "~", sigma_formula))
+      terms <- attr(stats::terms(temp_sigma_formula), "term.labels")
+      terms_smooth <- terms[which(grepl("s\\(", terms))]
       if(usebam){
-        sigma_formula <-
-          stats::formula(paste0("~", "ba(~", sigma_formula, ", method = 'fREML', gc.level = 0, discrete = TRUE)"))
+        terms_smooth_update <- sapply(terms_smooth, function(x){paste0("ba(~", x, ", method = 'fREML', gc.level = 0, discrete = TRUE)")})
+        if(length(terms_smooth) == length(terms)){## only contain smooth terms
+          sigma_formula <-
+            stats::formula(paste0("~", paste0(terms_smooth_update, collapse = "+")))
+        }else{
+          terms_linear <- terms[which(!grepl("s\\(", terms))] 
+          terms_update <- c(terms_linear, terms_smooth_update)
+          sigma_formula <-
+            stats::formula(paste0("~", paste0(terms_update, collapse = "+")))
+        }
       }else{
-        sigma_formula <-
-          stats::formula(paste0("~", "ga(~", sigma_formula, ", method = 'REML')"))
+        terms_smooth_update <- sapply(terms_smooth, function(x){paste0("ga(~", x, ", method = 'REML')")})
+        if(length(terms_smooth) == length(terms)){## only contain smooth terms
+          sigma_formula <-
+            stats::formula(paste0("~", paste0(terms_smooth_update, collapse = "+")))
+        }else{
+          terms_linear <- terms[which(!grepl("s\\(", terms))] 
+          terms_update <- c(terms_linear, terms_smooth_update)
+          sigma_formula <-
+            stats::formula(paste0("~", paste0(terms_update, collapse = "+")))
+        }
       }
 
     } else {
