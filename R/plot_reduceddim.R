@@ -113,7 +113,8 @@ plot_reduceddim <- function(ref_sce,
     p_umap <- ggplot(rd_tbl, aes_string(x = "UMAP1", y = "UMAP2", color = color_by)) +
       geom_point(alpha = 0.5, size = 1, aes_string(shape = shape_by)) +
       facet_wrap(~Method, nrow = 1) +
-      theme(aspect.ratio = 1, legend.position = "bottom")
+      theme(aspect.ratio = 1, legend.position = "bottom") +
+      guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
 
     if(is.numeric(unlist(rd_tbl[, color_by]))) {
       p_pca <- p_pca + viridis::scale_color_viridis()

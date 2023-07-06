@@ -18,12 +18,13 @@ scdesign3(
   n_cores = 2,
   usebam = FALSE,
   corr_formula,
+  empirical_quantile = FALSE,
   copula = "gaussian",
   fastmvn = FALSE,
   DT = TRUE,
   pseudo_obs = FALSE,
   family_set = c("gauss", "indep"),
-  important_feature = rep(TRUE, dim(sce)[1]),
+  important_feature = "all",
   nonnegative = TRUE,
   nonzerovar = TRUE,
   return_model = FALSE,
@@ -35,8 +36,7 @@ scdesign3(
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object.}
 
-\item{assay_use}{A string which indicates the assay you will use in the sce. Default is 'counts'.
-Must be one of 'celltype', 'pseudotime' or 'spatial'.}
+\item{assay_use}{A string which indicates the assay you will use in the sce. Default is 'counts'.}
 
 \item{celltype}{A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.}
 
@@ -62,6 +62,8 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{corr_formula}{A string of the correlation structure.}
 
+\item{empirical_quantile}{Please only change it if you really understand this! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL quantile matrix of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
+
 \item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.}
 
 \item{fastmvn}{An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE. It only matters for Gaussian copula.}
@@ -76,7 +78,7 @@ Default is FALSE.}
 \item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gauss", "indep").}
 
 \item{important_feature}{A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
 for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
@@ -84,7 +86,7 @@ The default value for is a vector with length equal to the number of inputted ge
 
 \item{nonnegative}{A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
 
-\item{nonzerovar}{A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.}
+\item{nonzerovar}{A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA. Default is FALSE.}
 
 \item{return_model}{A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.}
 

@@ -658,7 +658,7 @@ predict.gamlss <- function(object,
   ##
   if (!is.null(smo.mat))
   {
-    cat("new prediction", "\n")
+    #cat("new prediction", "\n")
     smooth.labels <- dimnames(smo.mat)[[2]]       ## getting the labels i.e. "pb(Fl)" "pb(A)"
     pred.s <- array(0, c(nrows, n.smooths), list(names(pred),
                                                  dimnames(smo.mat)[[2]])) ## creating the prediction matrix

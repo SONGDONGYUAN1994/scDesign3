@@ -9,6 +9,7 @@ fit_copula(
   assay_use,
   input_data,
   new_covariate = NULL,
+  empirical_quantile = FALSE,
   marginal_list,
   family_use,
   copula = "gaussian",
@@ -16,7 +17,7 @@ fit_copula(
   pseudo_obs = FALSE,
   epsilon = 1e-06,
   family_set = c("gaussian", "indep"),
-  important_feature = rep(TRUE, dim(sce)[1]),
+  important_feature = "all",
   n_cores,
   parallelization = "mcmapply",
   BPPARAM = NULL
@@ -30,7 +31,9 @@ Default is 'counts'.}
 
 \item{input_data}{The input data, which is one of the output from \code{\link{construct_data}}.}
 
-\item{new_covariate}{A data.frame which contains covariates of targeted simulated data from \code{\link{construct_data}}.}
+\item{new_covariate}{A data.frame which contains covariates of targeted simulated data from \code{\link{construct_data}}. Default is NULL, meaning that you simulate the cells as your original data.}
+
+\item{empirical_quantile}{Please only change it if you really understand this! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL quantile matrix of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
 
 \item{marginal_list}{A list of fitted regression models from \code{\link{fit_marginal}}.}
 
@@ -47,10 +50,10 @@ Default is FALSE.}
 
 \item{epsilon}{A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.}
 
-\item{family_set}{A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").}
+\item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gaussian", "indep").}
 
 \item{important_feature}{A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
 for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
@@ -111,6 +114,5 @@ and fit the copula model on the residuals.
   new_covariate = NULL,
   input_data = my_data$dat
   )
-
-
+  
 }

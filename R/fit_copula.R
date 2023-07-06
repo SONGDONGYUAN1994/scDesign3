@@ -9,7 +9,8 @@
 #' @param assay_use A string which indicates the assay you will use in the sce.
 #' Default is 'counts'.
 #' @param input_data The input data, which is one of the output from \code{\link{construct_data}}.
-#' @param new_covariate A data.frame which contains covariates of targeted simulated data from \code{\link{construct_data}}.
+#' @param new_covariate A data.frame which contains covariates of targeted simulated data from \code{\link{construct_data}}. Default is NULL, meaning that you simulate the cells as your original data.
+#' @param empirical_quantile Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL quantile matrix of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.
 #' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}}.
 #' @param family_use A string or a vector of strings of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.
@@ -19,9 +20,9 @@
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
 #' @param epsilon A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.
-#' @param family_set A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").
+#' @param family_set A string or a string vector of the bivariate copula families. Default is c("gaussian", "indep").
 #' @param important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-#' this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+#' this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
 #' for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 #' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 #' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
@@ -70,8 +71,7 @@
 #'   new_covariate = NULL,
 #'   input_data = my_data$dat
 #'   )
-#'
-#'
+#'   
 #' @import mclust
 #' @import gamlss
 #'
@@ -81,6 +81,7 @@ fit_copula <- function(sce,
                        assay_use,
                        input_data,
                        new_covariate = NULL,
+                       empirical_quantile = FALSE,
                        marginal_list,
                        family_use,
                        copula = 'gaussian',
@@ -88,11 +89,23 @@ fit_copula <- function(sce,
                        pseudo_obs = FALSE,
                        epsilon = 1e-6,
                        family_set = c("gaussian", "indep"),
-                       important_feature = rep(TRUE, dim(sce)[1]),
+                       important_feature = "all",
                        n_cores,
                        parallelization = "mcmapply",
                        BPPARAM = NULL) {
 
+  if(empirical_quantile == TRUE) {
+    if(is.null(new_covariate)) {
+      message("Use the empirical quantile matrices from the original data; do not fit copula. This will make the result FIXED.")
+    } else {
+      stop("You cannot use empirical quantile if you specify new covaraites!")
+    }
+  }
+  
+  if(important_feature == "all") {
+    important_feature <- rep(TRUE, dim(sce)[1])
+  }
+  
   marginals <- lapply(marginal_list, function(x){x$fit})
   # find gene whose marginal is fitted
   qc_gene_idx <- which(!is.na(marginals))
@@ -119,115 +132,167 @@ fit_copula <- function(sce,
     )
   }
 
-  if (copula == "gaussian") {
-    message("Convert Residuals to Multivariate Gaussian")
-    newmat <- convert_n(
-      sce = sce[qc_gene_idx,],
-      assay_use = assay_use,
-      marginal_list = marginal_list[qc_gene_idx],
-      data = input_data,
-      DT = DT,
-      pseudo_obs = pseudo_obs,
-      n_cores = n_cores,
-      family_use = family_use,
-      epsilon = epsilon,
-      parallelization = parallelization
-    )
-    message("Converting End")
-  } else{
-    message("Convert Residuals to Uniform")
-    newmat <- convert_u(
-      sce = sce[qc_gene_idx,],
-      assay_use = assay_use,
-      marginal_list = marginal_list[qc_gene_idx],
-      data = input_data,
-      DT = DT,
-      pseudo_obs = pseudo_obs,
-      family_use = family_use,
-      n_cores = n_cores,
-      epsilon = epsilon,
-      parallelization = parallelization
-    )
-    message("Converting End")
-  }
-
-  ## select important genes
-  if(is.vector(important_feature) & methods::is(important_feature,"logical")){
-    if(length(important_feature) != dim(sce)[1]){
-      stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
-    }
-  }else{
-    if(important_feature=="auto"){
-      gene_zero_prop <- apply(as.matrix(SummarizedExperiment::assay(sce, assay_use)), 1, function(y){
-        sum(y < 1e-5) / dim(sce)[2]
-      })
-      important_feature = gene_zero_prop < 0.8 ## default zero proportion in scDesign2
-      names(important_feature) <- rownames(sce)
-    }else{
-      stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
-    }
-  }
-
-  important_feature <- important_feature[qc_gene_idx]
-
-  
-  corr_group <- as.data.frame(input_data$corr_group)
-  colnames(corr_group) <- "corr_group"
-  if (is.null(new_covariate)) {
-    new_corr_group <- NULL
-  } else{
-    new_corr_group <- as.data.frame(new_covariate$corr_group)
-    colnames(new_corr_group) <- "corr_group"
-  }
-
-  newmvn.list <-
-    lapply(group_index, function(x,
-                                 sce,
-                                 newmat,
-                                 corr_group,
-                                 new_corr_group,
-                                 ind,
-                                 n_cores,
-                                 important_feature) {
-      message(paste0("Copula group ", x, " starts"))
-      curr_index <- which(corr_group[, 1] == x)
-      if (is.null(new_covariate)) {
-        curr_ncell <- length(curr_index)
-        curr_ncell_idx <- curr_index
-      } else{
-        curr_ncell <- length(which(new_corr_group[, 1] == x))
-        curr_ncell_idx <-
-          paste0("Cell", which(new_corr_group[, 1] == x))
+  if(empirical_quantile == TRUE) {
+    ###
+    if(is.vector(important_feature) & methods::is(important_feature,"logical")){
+      if(length(important_feature) != dim(sce)[1]){
+        stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
       }
-      if (copula == "gaussian") {
-        #message(paste0("Group ", group_index, " Start"))
-        curr_mat <- newmat[curr_index, , drop = FALSE]
-        #message("Cal MVN")
-        cor.mat <- cal_cor(
-          curr_mat,
-          important_feature = important_feature,
-          if.sparse = FALSE,
-          lambda = 0.05,
-          tol = 1e-8,
-          ind = ind
-        )
-
-        #message("Sample MVN")
-        #new_mvu <- sampleMVN(n = curr_ncell,
-        #                     Sigma = cor.mat)
-        #message("MVN Sampling End")
-        #rownames(new_mvu) <- curr_ncell_idx
-
-        #message("Cal AIC/BIC Start")
-        model_aic <- cal_aic(norm.mat = newmat,
-                             cor.mat = cor.mat,
-                             ind = ind)
-        model_bic <- cal_bic(norm.mat = newmat,
-                             cor.mat = cor.mat,
-                             ind = ind)
-        #message("Cal AIC/BIC End")
-
-      } else if (copula == "vine") {
+    }else{
+      if(important_feature=="auto"){
+        gene_zero_prop <- apply(as.matrix(SummarizedExperiment::assay(sce, assay_use)), 1, function(y){
+          sum(y < 1e-5) / dim(sce)[2]
+        })
+        important_feature = gene_zero_prop < 0.8 ## default zero proportion in scDesign2
+        names(important_feature) <- rownames(sce)
+      }else{
+        stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
+      }
+    }
+    
+    important_feature <- important_feature[qc_gene_idx]
+    corr_group <- as.data.frame(input_data$corr_group)
+    colnames(corr_group) <- "corr_group"
+    if (is.null(new_covariate)) {
+      new_corr_group <- NULL
+    } else{
+      new_corr_group <- as.data.frame(new_covariate$corr_group)
+      colnames(new_corr_group) <- "corr_group"
+    }
+    
+    newmvq.list <- lapply(group_index, function(x,
+                                                sce,
+                                                corr_group) {
+      message(paste0("Empirical quantile group ", x, " starts"))
+      sce <- sce[important_feature, ]
+      curr_index <- which(corr_group[, 1] == x)
+      
+      newmat <- SummarizedExperiment::assay(sce[, curr_index], assay_use)
+      newmat <- t(as.matrix(newmat))
+      
+      newmvq <- rvinecopulib::pseudo_obs(newmat)
+      newmvq
+    }, sce = sce,
+    corr_group = corr_group)
+      
+    newmvq <- do.call("rbind", newmvq.list)
+    newmvq <- newmvq[colnames(sce),] 
+    
+    return(list(model_aic = 0,
+           model_bic = 0,
+           quantile_mat = newmvq,
+           important_feature = important_feature))
+    ###
+  } else {
+    if (copula == "gaussian") {
+      message("Convert Residuals to Multivariate Gaussian")
+      newmat <- convert_n(
+        sce = sce[qc_gene_idx,],
+        assay_use = assay_use,
+        marginal_list = marginal_list[qc_gene_idx],
+        data = input_data,
+        DT = DT,
+        pseudo_obs = pseudo_obs,
+        n_cores = n_cores,
+        family_use = family_use,
+        epsilon = epsilon,
+        parallelization = parallelization
+      )
+      message("Converting End")
+    } else{
+      message("Convert Residuals to Uniform")
+      newmat <- convert_u(
+        sce = sce[qc_gene_idx,],
+        assay_use = assay_use,
+        marginal_list = marginal_list[qc_gene_idx],
+        data = input_data,
+        DT = DT,
+        pseudo_obs = pseudo_obs,
+        family_use = family_use,
+        n_cores = n_cores,
+        epsilon = epsilon,
+        parallelization = parallelization
+      )
+      message("Converting End")
+    }
+    
+    ## select important genes
+    if(is.vector(important_feature) & methods::is(important_feature,"logical")){
+      if(length(important_feature) != dim(sce)[1]){
+        stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
+      }
+    }else{
+      if(important_feature=="auto"){
+        gene_zero_prop <- apply(as.matrix(SummarizedExperiment::assay(sce, assay_use)), 1, function(y){
+          sum(y < 1e-5) / dim(sce)[2]
+        })
+        important_feature = gene_zero_prop < 0.8 ## default zero proportion in scDesign2
+        names(important_feature) <- rownames(sce)
+      }else{
+        stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
+      }
+    }
+    
+    important_feature <- important_feature[qc_gene_idx]
+    
+    
+    corr_group <- as.data.frame(input_data$corr_group)
+    colnames(corr_group) <- "corr_group"
+    if (is.null(new_covariate)) {
+      new_corr_group <- NULL
+    } else{
+      new_corr_group <- as.data.frame(new_covariate$corr_group)
+      colnames(new_corr_group) <- "corr_group"
+    }
+    
+    newmvn.list <-
+      lapply(group_index, function(x,
+                                   sce,
+                                   newmat,
+                                   corr_group,
+                                   new_corr_group,
+                                   ind,
+                                   n_cores,
+                                   important_feature) {
+        message(paste0("Copula group ", x, " starts"))
+        curr_index <- which(corr_group[, 1] == x)
+        if (is.null(new_covariate)) {
+          curr_ncell <- length(curr_index)
+          curr_ncell_idx <- curr_index
+        } else{
+          curr_ncell <- length(which(new_corr_group[, 1] == x))
+          curr_ncell_idx <-
+            paste0("Cell", which(new_corr_group[, 1] == x))
+        }
+        if (copula == "gaussian") {
+          #message(paste0("Group ", group_index, " Start"))
+          curr_mat <- newmat[curr_index, , drop = FALSE]
+          #message("Cal MVN")
+          cor.mat <- cal_cor(
+            curr_mat,
+            important_feature = important_feature,
+            if.sparse = FALSE,
+            lambda = 0.05,
+            tol = 1e-8,
+            ind = ind
+          )
+          
+          #message("Sample MVN")
+          #new_mvu <- sampleMVN(n = curr_ncell,
+          #                     Sigma = cor.mat)
+          #message("MVN Sampling End")
+          #rownames(new_mvu) <- curr_ncell_idx
+          
+          #message("Cal AIC/BIC Start")
+          model_aic <- cal_aic(norm.mat = newmat,
+                               cor.mat = cor.mat,
+                               ind = ind)
+          model_bic <- cal_bic(norm.mat = newmat,
+                               cor.mat = cor.mat,
+                               ind = ind)
+          #message("Cal AIC/BIC End")
+          
+        } else if (copula == "vine") {
           message("Vine Copula Estimation Starts")
           start <- Sys.time()
           curr_mat <- newmat[curr_index, , drop = FALSE]
@@ -258,53 +323,60 @@ fit_copula <- function(sce,
           model_aic <- stats::AIC(vine.fit)
           model_bic <- stats::BIC(vine.fit)
           cor.mat <- vine.fit
-      } else{
-        stop("Copula must be one of 'vine' or 'gaussian'")
-      }
-      return(
-        list(
-          #new_mvu = new_mvu,
-          model_aic = model_aic,
-          model_bic = model_bic,
-          cor.mat = cor.mat
+        } else{
+          stop("Copula must be one of 'vine' or 'gaussian'")
+        }
+        return(
+          list(
+            #new_mvu = new_mvu,
+            model_aic = model_aic,
+            model_bic = model_bic,
+            cor.mat = cor.mat
+          )
         )
+      }, sce = sce, 
+      newmat = newmat, 
+      ind = ind, 
+      n_cores = n_cores, 
+      corr_group = corr_group, 
+      new_corr_group = new_corr_group, 
+      important_feature = important_feature)
+    
+    #newmvn <-
+    #  do.call(rbind, lapply(newmvn.list, function(x)
+    #    x$new_mvu))
+    
+    copula.aic <- sum(sapply(newmvn.list, function(x)
+      x$model_aic))
+    marginal.aic <- sum(sapply(marginals[qc_gene_idx], stats::AIC))
+    
+    copula.bic <- sum(sapply(newmvn.list, function(x)
+      x$model_bic))
+    marginal.bic <- sum(sapply(marginals[qc_gene_idx], stats::BIC))
+    
+    model_aic <- c(marginal.aic, copula.aic, marginal.aic + copula.aic)
+    names(model_aic) <- c("aic.marginal", "aic.copula", "aic.total")
+    
+    model_bic <- c(marginal.bic, copula.bic, marginal.bic + copula.bic)
+    names(model_bic) <- c("bic.marginal", "bic.copula", "bic.total")
+    
+    copula_list <- lapply(newmvn.list, function(x)
+      x$cor.mat)
+    names(copula_list) <- group_index
+    
+    
+    #new_mvu <- as.data.frame(newmvn)
+    
+    return(
+      list(
+        #new_mvu = new_mvu,
+        model_aic = model_aic,
+        model_bic = model_bic,
+        copula_list = copula_list,
+        important_feature = important_feature
       )
-    }, sce = sce, newmat = newmat, ind = ind, n_cores = n_cores, corr_group = corr_group, new_corr_group = new_corr_group, important_feature = important_feature)
-
-  #newmvn <-
-  #  do.call(rbind, lapply(newmvn.list, function(x)
-  #    x$new_mvu))
-
-  copula.aic <- sum(sapply(newmvn.list, function(x)
-    x$model_aic))
-  marginal.aic <- sum(sapply(marginals[qc_gene_idx], stats::AIC))
-
-  copula.bic <- sum(sapply(newmvn.list, function(x)
-    x$model_bic))
-  marginal.bic <- sum(sapply(marginals[qc_gene_idx], stats::BIC))
-
-  model_aic <- c(marginal.aic, copula.aic, marginal.aic + copula.aic)
-  names(model_aic) <- c("aic.marginal", "aic.copula", "aic.total")
-
-  model_bic <- c(marginal.bic, copula.bic, marginal.bic + copula.bic)
-  names(model_bic) <- c("bic.marginal", "bic.copula", "bic.total")
-
-  copula_list <- lapply(newmvn.list, function(x)
-    x$cor.mat)
-  names(copula_list) <- group_index
-
-
-  #new_mvu <- as.data.frame(newmvn)
-
-  return(
-    list(
-      #new_mvu = new_mvu,
-      model_aic = model_aic,
-      model_bic = model_bic,
-      copula_list = copula_list,
-      important_feature = important_feature
     )
-  )
+  }
 }
 
 

@@ -109,55 +109,17 @@ simu_new <- function(sce,
   }
 
   qc_gene_idx <- which(apply(mean_mat, 2, function(x){!all(is.na(x))}))
-  
-  if(is.null(copula_list)){
-    mat_function <-  function(x, y){
-      idx <- which(!is.na(mean_mat[,x]))
-      para_mat <- cbind(mean_mat[idx, x], sigma_mat[idx, x], zero_mat[idx, x])
-      if (y == "binomial") {
-        qfvec <- stats::rbinom(n = length(idx), prob = para_mat[, 1], size = 1)
-      } else if (y == "poisson") {
-        
-        qfvec <- stats::rpois(n = length(idx), lambda = para_mat[, 1])
-      } else if (y == "gaussian") {
-        qfvec <-
-          gamlss.dist::rNO(n = length(idx),
-                           mu = para_mat[, 1],
-                           sigma = abs(para_mat[, 2]))
-      } else if (y == "nb") {
-        qfvec <-
-          gamlss.dist::rNBI(n = length(idx),
-                            mu = para_mat[, 1],
-                            sigma = para_mat[, 2])
-      } else if (y == "zip") {
-        qfvec <-
-          gamlss.dist::rZIP(n = length(idx),
-                            mu = para_mat[, 1],
-                            sigma = ifelse(para_mat[, 3] != 0, para_mat[, 4],  2.2e-16))## Avoid zero zero-inflated prob
-      } else if (y == "zinb") {
-        
-        qfvec <-
-          gamlss.dist::rZINBI(n = length(idx),
-                              mu = para_mat[, 1],
-                              sigma = para_mat[, 2],
-                              nu = ifelse(para_mat[, 3] != 0, para_mat[, 4],  2.2e-16))
-      } else {
-        stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
-      }
-      
-      r <- as.vector(qfvec)
-      if(length(r) < total_cells){
-        new_r <- rep(0, total_cells)
-        new_r[idx] <- r
-        names(new_r) <- cell_names
-        r <- new_r
-      }
-      r
-    }
-  }else{
-    
+ 
     if(!is.null(quantile_mat)) {
       message("Multivariate quantile matrix is provided")
+      
+      newmvn_full <- matrix(NA, nrow = dim(quantile_mat)[1], ncol = dim(sce)[1])
+      rownames(newmvn_full) <- rownames(quantile_mat)
+      colnames(newmvn_full) <- rownames(sce)
+      newmvn_full[rownames(quantile_mat), colnames(quantile_mat)] <- quantile_mat
+      quantile_mat <- as.data.frame(newmvn_full)
+      
+      
     } else {
       message("Use Copula to sample a multivariate quantile matrix")
       
@@ -302,8 +264,7 @@ simu_new <- function(sce,
       }
       r
     }
-    
-  }
+
   
 
 
