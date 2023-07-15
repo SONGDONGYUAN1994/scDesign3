@@ -30,7 +30,7 @@ Default is 'counts'.}
 
 \item{input_data}{The input data, which is one of the output from \code{\link{construct_data}}.}
 
-\item{empirical_quantile}{Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL quantile matrix of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
+\item{empirical_quantile}{Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL CDF values of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
 
 \item{marginal_list}{A list of fitted regression models from \code{\link{fit_marginal}}.}
 
@@ -54,7 +54,7 @@ this string must be either "all" (using all genes) or "auto", which indicates th
 for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.}
+The default value for is "all".}
 
 \item{n_cores}{An integer. The number of cores to use.}
 

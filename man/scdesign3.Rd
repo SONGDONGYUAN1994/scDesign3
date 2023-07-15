@@ -26,7 +26,7 @@ scdesign3(
   family_set = c("gauss", "indep"),
   important_feature = "all",
   nonnegative = TRUE,
-  nonzerovar = TRUE,
+  nonzerovar = FALSE,
   return_model = FALSE,
   parallelization = "mcmapply",
   BPPARAM = NULL,
@@ -62,7 +62,7 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{corr_formula}{A string of the correlation structure.}
 
-\item{empirical_quantile}{Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL quantile matrix of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
+\item{empirical_quantile}{Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL CDF values of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
 
 \item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.}
 
@@ -75,7 +75,7 @@ Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not mak
 \item{pseudo_obs}{A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 Default is FALSE.}
 
-\item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gauss", "indep").}
+\item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gauss", "indep"). For more information please check package \code{rvinecoplib}.}
 
 \item{important_feature}{A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
 this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells

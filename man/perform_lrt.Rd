@@ -19,7 +19,7 @@ A data.frame of the LRT result.
 }
 \details{
 The function takes two lists of marginal models (by default, the first list is the alternative and the second is the null)
-from \code{\link{fit_marginal}}. Note that LRT only makes sense for NESTED models.
+from \code{\link{fit_marginal}}. Note that LRT only makes sense for NESTED models. This can be quite tricky if you use penalized-splines (e.g., for trajectory data).
 }
 \examples{
 data(example_sce)
