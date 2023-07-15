@@ -11,7 +11,7 @@ To find out more details about **scDesign3**, you can check out our manuscript o
 
 [Song, D., Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> (2023).](https://www.nature.com/articles/s41587-023-01772-1)
 
-
+Please note that the parallel computing of scDesign3 is mainly designed for UNIX OS; be careful when you set `n_cores`.
 
 # Table of contents
 1. [Installation](#installation-)
@@ -56,7 +56,7 @@ example_simu <- scdesign3(
     DT = TRUE,
     pseudo_obs = FALSE,
     family_set = c("gauss", "indep"),
-    important_feature = rep(TRUE, dim(sce)[1]),
+    important_feature = "all",
     nonnegative = TRUE,
     return_model = FALSE,
     nonzerovar = FALSE,
@@ -86,7 +86,7 @@ The parameters of `scdesign3()` are:
 - `DT`: A logic variable. If TRUE, perform the distributional transformation to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB). Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.
 - `pseudo_obs`: A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula. Default is FALSE.
 - `family_set`: A string or a string vector of the bivariate copula families. Default is c("gauss", "indep").
-- `important_feature`: A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should be a logical vector with length equal to the number of genes in sce. TRUE in the logical vector means the corresponding gene will be included in gene-gene correlation estimation and FALSE in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation. The default value for is a vector with length equal to the number of inputted genes and every value equals to TRUE.
+- `important_feature`: A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then this string must be "all" or "auto", which indicates that all genes are used or the genes will be automatically selected based on the proportion of zero expression across cells for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should be a logical vector with length equal to the number of genes in sce. TRUE in the logical vector means the corresponding gene will be included in gene-gene correlation estimation and FALSE in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation. The default value for is "all".
 - `nonnegative`: A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
 - `return_model`: A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
 - `nonzerovar`: A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.
@@ -138,7 +138,8 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
 Any questions or suggestions on `scDesign3` are welcomed! Please report it on [issues](https://github.com/SONGDONGYUAN1994/scDesign3/issues), or contact Dongyuan Song ([dongyuansong\@ucla.edu](mailto:dongyuansong@ucla.edu){.email}) or Qingyang Wang ([qw802\@g.ucla.edu](mailto:qw802@g.ucla.edu){.email}).
 
 ## Related Manuscripts<a name="related-manuscripts"></a>
-
+-   The original **scDesign3** paper
+    -   **scDesign3**: [Song, D., Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> (2023).](https://www.nature.com/articles/s41587-023-01772-1)
 -   The predecessors of **scDesign3**
     -   **scDesign**: [Li, W. V., & Li, J. J. (2019). A statistical simulator scDesign for rational scRNA-seq experimental design. Bioinformatics, 35(14), i41-i50.](https://academic.oup.com/bioinformatics/article/35/14/i41/5529133)
     -   **scDesign2**: [Sun, T., Song, D., Li, W. V., & Li, J. J. (2021). scDesign2: a transparent simulator that generates high-fidelity single-cell gene expression count data with gene correlations captured. Genome biology, 22(1), 1-37.](https://link.springer.com/article/10.1186/s13059-021-02367-2)

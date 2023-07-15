@@ -20,12 +20,12 @@
 #' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA.
 #' @param input_data A input count matrix.
 #' @param new_covariate A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}}.
-#' @param important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-#' this string must be "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+#' @param important_feature important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
+#' this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
 #' for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 #' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 #' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-#' The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.
+#' The default value for is "all".
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
 #' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
@@ -97,10 +97,10 @@ simu_new <- function(sce,
                      fastmvn = FALSE,
                      family_use,
                      nonnegative = TRUE,
-                     nonzerovar = TRUE,
+                     nonzerovar = FALSE,
                      input_data,
                      new_covariate,
-                     important_feature,
+                     important_feature = "all",
                      parallelization = "mcmapply",
                      BPPARAM = NULL){
   if(!is.null(quantile_mat) & !is.null(copula_list)) {

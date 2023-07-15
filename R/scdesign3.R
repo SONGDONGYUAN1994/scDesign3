@@ -17,7 +17,7 @@
 #' @param n_cores An integer. The number of cores to use.
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
 #' @param corr_formula A string of the correlation structure.
-#' @param empirical_quantile Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL quantile matrix of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.
+#' @param empirical_quantile Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL CDF values of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.
 #' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.
 #' @param fastmvn An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE. It only matters for Gaussian copula.
 #' @param DT A logic variable. If TRUE, perform the distributional transformation
@@ -25,7 +25,7 @@
 #' Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
-#' @param family_set A string or a string vector of the bivariate copula families. Default is c("gauss", "indep").
+#' @param family_set A string or a string vector of the bivariate copula families. Default is c("gauss", "indep"). For more information please check package \code{rvinecoplib}.
 #' @param important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
 #' this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
 #' for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
@@ -93,9 +93,9 @@ scdesign3 <- function(sce,
                       DT = TRUE,
                       pseudo_obs = FALSE,
                       family_set = c("gauss", "indep"),
-                      important_feature = "all", #rep(TRUE, dim(sce)[1])
+                      important_feature = "all",
                       nonnegative = TRUE,
-                      nonzerovar = TRUE,
+                      nonzerovar = FALSE,
                       return_model = FALSE,
                       parallelization = "mcmapply",
                       BPPARAM = NULL,
