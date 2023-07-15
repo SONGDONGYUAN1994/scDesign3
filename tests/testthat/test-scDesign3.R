@@ -64,7 +64,6 @@ test_that("Run scDesign3", {
     family_use = c(rep("nb", 5), rep("zip", 5)),
     copula = "vine",
     n_cores = 2,
-    new_covariate = NULL,
     input_data = my_data$dat
   )
 
@@ -76,7 +75,6 @@ test_that("Run scDesign3", {
     family_use = c(rep("nb", 5), rep("zip", 5)),
     copula = "vine",
     n_cores = 2,
-    new_covariate = NULL,
     input_data = my_data$dat
   )
   
@@ -96,7 +94,7 @@ test_that("Run scDesign3", {
     marginal_list = my_marginal3,
     n_cores = 1,
     family_use = c(rep("nb", 5), rep("zip", 5)),
-    new_covariate = NULL,
+    new_covariate = my_data$new_covariate,
     data = my_data$dat
   )
 

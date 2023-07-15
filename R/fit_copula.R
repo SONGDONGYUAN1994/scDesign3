@@ -9,7 +9,6 @@
 #' @param assay_use A string which indicates the assay you will use in the sce.
 #' Default is 'counts'.
 #' @param input_data The input data, which is one of the output from \code{\link{construct_data}}.
-#' @param new_covariate A data.frame which contains covariates of targeted simulated data from \code{\link{construct_data}}. Default is NULL, meaning that you simulate the cells as your original data.
 #' @param empirical_quantile Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL quantile matrix of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.
 #' @param marginal_list A list of fitted regression models from \code{\link{fit_marginal}}.
 #' @param family_use A string or a vector of strings of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
@@ -68,7 +67,6 @@
 #'   family_use = c(rep("nb", 5), rep("zip", 5)),
 #'   copula = "vine",
 #'   n_cores = 1,
-#'   new_covariate = NULL,
 #'   input_data = my_data$dat
 #'   )
 #'   
@@ -80,7 +78,6 @@
 fit_copula <- function(sce,
                        assay_use,
                        input_data,
-                       new_covariate = NULL,
                        empirical_quantile = FALSE,
                        marginal_list,
                        family_use,
@@ -95,11 +92,7 @@ fit_copula <- function(sce,
                        BPPARAM = NULL) {
 
   if(empirical_quantile == TRUE) {
-    if(is.null(new_covariate)) {
       message("Use the empirical quantile matrices from the original data; do not fit copula. This will make the result FIXED.")
-    } else {
-      stop("You cannot use empirical quantile if you specify new covaraites!")
-    }
   }
   
   if(important_feature == "all") {
@@ -153,12 +146,7 @@ fit_copula <- function(sce,
     important_feature <- important_feature[qc_gene_idx]
     corr_group <- as.data.frame(input_data$corr_group)
     colnames(corr_group) <- "corr_group"
-    if (is.null(new_covariate)) {
-      new_corr_group <- NULL
-    } else{
-      new_corr_group <- as.data.frame(new_covariate$corr_group)
-      colnames(new_corr_group) <- "corr_group"
-    }
+
     
     newmvq.list <- lapply(group_index, function(x,
                                                 sce,
@@ -238,32 +226,19 @@ fit_copula <- function(sce,
     
     corr_group <- as.data.frame(input_data$corr_group)
     colnames(corr_group) <- "corr_group"
-    if (is.null(new_covariate)) {
-      new_corr_group <- NULL
-    } else{
-      new_corr_group <- as.data.frame(new_covariate$corr_group)
-      colnames(new_corr_group) <- "corr_group"
-    }
+   
     
     newmvn.list <-
       lapply(group_index, function(x,
                                    sce,
                                    newmat,
                                    corr_group,
-                                   new_corr_group,
                                    ind,
                                    n_cores,
                                    important_feature) {
         message(paste0("Copula group ", x, " starts"))
         curr_index <- which(corr_group[, 1] == x)
-        if (is.null(new_covariate)) {
-          curr_ncell <- length(curr_index)
-          curr_ncell_idx <- curr_index
-        } else{
-          curr_ncell <- length(which(new_corr_group[, 1] == x))
-          curr_ncell_idx <-
-            paste0("Cell", which(new_corr_group[, 1] == x))
-        }
+       
         if (copula == "gaussian") {
           #message(paste0("Group ", group_index, " Start"))
           curr_mat <- newmat[curr_index, , drop = FALSE]
@@ -338,8 +313,7 @@ fit_copula <- function(sce,
       newmat = newmat, 
       ind = ind, 
       n_cores = n_cores, 
-      corr_group = corr_group, 
-      new_corr_group = new_corr_group, 
+      corr_group = corr_group,
       important_feature = important_feature)
     
     #newmvn <-

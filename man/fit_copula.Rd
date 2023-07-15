@@ -8,7 +8,6 @@ fit_copula(
   sce,
   assay_use,
   input_data,
-  new_covariate = NULL,
   empirical_quantile = FALSE,
   marginal_list,
   family_use,
@@ -31,9 +30,7 @@ Default is 'counts'.}
 
 \item{input_data}{The input data, which is one of the output from \code{\link{construct_data}}.}
 
-\item{new_covariate}{A data.frame which contains covariates of targeted simulated data from \code{\link{construct_data}}. Default is NULL, meaning that you simulate the cells as your original data.}
-
-\item{empirical_quantile}{Please only change it if you really understand this! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL quantile matrix of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
+\item{empirical_quantile}{Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL quantile matrix of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
 
 \item{marginal_list}{A list of fitted regression models from \code{\link{fit_marginal}}.}
 
@@ -111,7 +108,6 @@ and fit the copula model on the residuals.
   family_use = c(rep("nb", 5), rep("zip", 5)),
   copula = "vine",
   n_cores = 1,
-  new_covariate = NULL,
   input_data = my_data$dat
   )
   

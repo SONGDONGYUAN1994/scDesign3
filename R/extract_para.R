@@ -54,7 +54,6 @@
 #'   family_use = c(rep("nb", 5), rep("zip", 5)),
 #'   copula = "vine",
 #'   n_cores = 1,
-#'   new_covariate = NULL,
 #'   input_data = my_data$dat
 #'   )
 #'   my_para <- extract_para(
@@ -62,7 +61,7 @@
 #'     marginal_list = my_marginal,
 #'     n_cores = 1,
 #'     family_use = c(rep("nb", 5), rep("zip", 5)),
-#'     new_covariate = NULL,
+#'     new_covariate = my_data$new_covariate,
 #'     data = my_data$dat
 #'   )
 #'
@@ -82,7 +81,13 @@ extract_para <-  function(sce,
 
   # find gene whose marginal is fitted
   qc_gene_idx <- which(!is.na(marginal_list))
-
+  
+  # check if user inputted new covariates
+  data_temp <- data[,colnames(new_covariate), drop = FALSE]
+  if(identical(data_temp, new_covariate)){
+    new_covariate <- NULL
+  }
+  
   mat_function <-function(x, y) {
     fit <- marginal_list[[x]]
     removed_cell <- removed_cell_list[[x]]
@@ -213,8 +218,6 @@ extract_para <-  function(sce,
           stop("Distribution of gam must be one of gaussian, binomial, poisson, nb!")
         }
       }
-
-
     }
 
     if (!exists("zero_vec")) {
@@ -265,7 +268,7 @@ extract_para <-  function(sce,
     mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE))
   }else{
     mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,SIMPLIFY = FALSE
-                                   ,mc.cores = n_cores
+                                  ,mc.cores = n_cores
                                    ))
   }
   mean_mat <- sapply(mat, function(x)
@@ -275,13 +278,16 @@ extract_para <-  function(sce,
   zero_mat <- sapply(mat, function(x)
     x[, 3])
 
-  if(length(qc_gene_idx) > 0){
+  if(length(qc_gene_idx) < dim(sce)[1]){
     colnames(mean_mat) <-
       colnames(sigma_mat) <- colnames(zero_mat) <- rownames(sce)[qc_gene_idx]
+    zeros <- matrix(0, nrow = dim(mean_mat)[1], ncol = dim(sce)[1] - length(qc_gene_idx))
     na_mat <- matrix(NA, nrow = dim(mean_mat)[1], ncol = dim(sce)[1] - length(qc_gene_idx))
+    rownames(zeros) <- rownames(mean_mat)
+    colnames(zeros) <- rownames(sce)[-qc_gene_idx]
     rownames(na_mat) <- rownames(mean_mat)
     colnames(na_mat) <- rownames(sce)[-qc_gene_idx]
-    mean_mat <- cbind(mean_mat,na_mat)
+    mean_mat <- cbind(mean_mat,zeros)
     sigma_mat <- cbind(sigma_mat,na_mat)
     zero_mat <- cbind(zero_mat,na_mat)
     mean_mat <- mean_mat[,rownames(sce)]

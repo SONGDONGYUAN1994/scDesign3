@@ -60,7 +60,6 @@
 #'   family_use = c(rep("nb", 5), rep("zip", 5)),
 #'   copula = "vine",
 #'   n_cores = 1,
-#'   new_covariate = NULL,
 #'   input_data = my_data$dat
 #'   )
 #'   my_para <- extract_para(
@@ -68,7 +67,7 @@
 #'     marginal_list = my_marginal,
 #'     n_cores = 1,
 #'     family_use = c(rep("nb", 5), rep("zip", 5)),
-#'     new_covariate = NULL,
+#'     new_covariate = my_data$new_covariate,
 #'     data = my_data$dat
 #'   )
 #'   my_newcount <- simu_new(
@@ -108,7 +107,13 @@ simu_new <- function(sce,
     stop("You can only provide either the quantile_mat or the copula_list!")
   }
 
-  qc_gene_idx <- which(apply(mean_mat, 2, function(x){!all(is.na(x))}))
+  # check if user inputted new covariates
+  data_temp <- input_data[,colnames(new_covariate), drop = FALSE]
+  if(identical(data_temp, new_covariate)){
+    new_covariate <- NULL
+  }
+  
+  qc_gene_idx <- which(apply(mean_mat, 2, function(x){!sum(x,na.rm = TRUE)==0}))
  
     if(!is.null(quantile_mat)) {
       message("Multivariate quantile matrix is provided")
@@ -161,11 +166,28 @@ simu_new <- function(sce,
               #message(paste0("Group ", group_index, " Start"))
               
               #message("Sample MVN")
-              new_mvu <- sampleMVN(n = curr_ncell,
-                                   Sigma = cor.mat,
+              #sample from mvn for important genes only
+              corr_gene_idx <- apply(cor.mat, 2, function(x) length(which(x < 1e-5)) != length(x)-1)
+              corr_gene <- colnames(cor.mat)[which(corr_gene_idx)]
+              new_mvn_important <- sampleMVN(n = curr_ncell,
+                                   Sigma = cor.mat[corr_gene, corr_gene],
                                    n_cores = n_cores,
                                    fastmvn = fastmvn)
+              colnames(new_mvn_important) <- corr_gene
               #message("MVN Sampling End")
+              ind_gene <- colnames(cor.mat)[which(corr_gene_idx==FALSE)]
+              if(length(ind_gene) > 0){
+                new_mvn_non_important <- lapply(ind_gene, function(x) return(stats::rnorm(n = curr_ncell)))
+                new_mvn_non_important_mat <- do.call("cbind",new_mvn_non_important)
+                colnames(new_mvn_non_important_mat) <- ind_gene
+                
+                mvnrvq <- apply(new_mvn_non_important_mat, 2, stats::pnorm)
+                new_mvu <- cbind(new_mvn_important, mvnrvq)
+                new_mvu <- new_mvu[,colnames(cor.mat)]
+              }else{
+                new_mvu <- new_mvn_important
+              }
+
               rownames(new_mvu) <- curr_ncell_idx
             } else if (methods::is(cor.mat, "vinecop")) {
               new_mvu <- matrix(0, nrow = curr_ncell, ncol = ngene)
@@ -219,7 +241,7 @@ simu_new <- function(sce,
     
     mat_function <- function(x, y) {
       
-      idx <- which(!is.na(mean_mat[,x]))
+      idx <- which(mean_mat[,x] !=0)
       para_mat <- cbind(mean_mat[idx, x], sigma_mat[idx, x], quantile_mat[idx, x], zero_mat[idx, x])
       
       if (y == "binomial") {
@@ -291,7 +313,7 @@ simu_new <- function(sce,
     mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use, SIMPLIFY = TRUE
-                   , mc.cores = n_cores
+                  , mc.cores = n_cores
                    )
  }
   new_count <- mat #simplify2array(mat)

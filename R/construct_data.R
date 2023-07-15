@@ -123,7 +123,7 @@ construct_data <- function(sce,
   if(ncell != dim(dat)[1]){
     newCovariate <- as.data.frame(simuCovariateMat(dat,ncell, parallelization, BPPARAM))
   }else{
-    newCovariate <- NULL
+    newCovariate <- dat
   }
 
   # identify groups

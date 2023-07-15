@@ -105,7 +105,6 @@ parameter matricies from \code{\link{extract_para}} and multivariate Unifs from 
   family_use = c(rep("nb", 5), rep("zip", 5)),
   copula = "vine",
   n_cores = 1,
-  new_covariate = NULL,
   input_data = my_data$dat
   )
   my_para <- extract_para(
@@ -113,7 +112,7 @@ parameter matricies from \code{\link{extract_para}} and multivariate Unifs from 
     marginal_list = my_marginal,
     n_cores = 1,
     family_use = c(rep("nb", 5), rep("zip", 5)),
-    new_covariate = NULL,
+    new_covariate = my_data$new_covariate,
     data = my_data$dat
   )
   my_newcount <- simu_new(
