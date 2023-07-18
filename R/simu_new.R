@@ -122,7 +122,7 @@ simu_new <- function(sce,
       rownames(newmvn_full) <- rownames(quantile_mat)
       colnames(newmvn_full) <- rownames(sce)
       newmvn_full[rownames(quantile_mat), colnames(quantile_mat)] <- quantile_mat
-      quantile_mat <- as.data.frame(newmvn_full)
+      quantile_mat <- as.matrix(newmvn_full)
       
       
     } else {
@@ -236,7 +236,7 @@ simu_new <- function(sce,
       rownames(newmvn_full) <- rownames(newmvn)
       colnames(newmvn_full) <- rownames(sce)
       newmvn_full[rownames(newmvn), colnames(newmvn)] <- newmvn
-      quantile_mat <- as.data.frame(newmvn_full)
+      quantile_mat <- as.matrix(newmvn_full)
     }
     
     mat_function <- function(x, y) {
