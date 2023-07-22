@@ -2,22 +2,21 @@
 % Please edit documentation in R/plot_reduceddim.R
 \name{plot_reduceddim}
 \alias{plot_reduceddim}
-\title{Dimensionality reduction and visualization
-\code{plot_reduceddim} performs the dimensionality reduction
-on the reference data, projects the synthetic datasets on the same low dimensional space,
-then visualize the results.}
+\title{Dimensionality reduction and visualization}
 \usage{
 plot_reduceddim(
   ref_sce,
   sce_list,
   name_vec,
   assay_use = "logcounts",
+  pc_umap = TRUE,
   n_pc = 50,
   center = TRUE,
   scale. = TRUE,
   if_plot = TRUE,
   shape_by = NULL,
-  color_by
+  color_by,
+  point_size = 1
 )
 }
 \arguments{
@@ -30,6 +29,8 @@ plot_reduceddim(
 \item{assay_use}{A string which indicates the assay you will use in the sce.
 Default is 'logcounts'.}
 
+\item{pc_umap}{A logic value of whether using PCs as the input of UMAP. Default is TRUE.}
+
 \item{n_pc}{An integer of the number of PCs.}
 
 \item{center}{A logic value of whether centering the data before PCA. Default is TRUE.}
@@ -41,13 +42,15 @@ Default is 'logcounts'.}
 \item{shape_by}{A string which indicates the column in \code{colData} used for shape.}
 
 \item{color_by}{A string which indicates the column in \code{colData} used for color.}
+
+\item{point_size}{A numeric value of the point size in the final plot. Default is 1.}
 }
 \value{
-The ggplot or the dataframe of reduced dimensions.
+The ggplot or the data.frame of reduced dimensions.
 }
 \description{
-Dimensionality reduction and visualization
 \code{plot_reduceddim} performs the dimensionality reduction
-on the reference data, projects the synthetic datasets on the same low dimensional space,
+This function takes a reference sce and a list of new sces, performs the dimensionality reduction on the reference data, 
+projects the synthetic datasets on the same low dimensional space,
 then visualize the results.
 }
