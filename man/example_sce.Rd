@@ -10,6 +10,9 @@ A dataset with 10 rows (genes) and 1289 cols (cells)
 \usage{
 data("example_sce")
 }
+\value{
+The corresponding SingleCellExperiment object
+}
 \description{
 A SingelCellExperiment object containing both cell type and pseudotime
 }

@@ -6,8 +6,7 @@
 #' @param envir The environment.
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
-#'
-#' @export
+#' @noRd
 ga <- function(formula, envir, control = ga.control(...), ...)
 {
   #------------------------------------------
@@ -34,7 +33,7 @@ ga <- function(formula, envir, control = ga.control(...), ...)
   ## get the data
   ## this has been modified on the 12-12-14 to make sure that
   ##  if model.frame.gamlss() is used as for example in term.plot() the
-  ## function does not fail (It need to implemented to all smoother using formulea?)
+  ## function does not fail (It need to implemented to all smoother using formula?)
   if (sys.call(position)[1] == "predict.gamlss()") {
     # if stats::predict is used
     Data <- get("data", envir = gamlss.env)
@@ -100,8 +99,7 @@ ga <- function(formula, envir, control = ga.control(...), ...)
 #' @param formula A formula of the model.
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
-#'
-#' @export
+#' @noRd
 ba <-function(formula, control = ba.control(...), ...)
 {
   #------------------------------------------
@@ -111,9 +109,9 @@ ba <-function(formula, control = ba.control(...), ...)
   if (!methods::is(formula, "formula"))
     stop("formula argument in ba() needs a formula starting with ~")
   # get where "gamlss" is in system call, it can be in gamlss() or predict.gamlss()
-  #rexpr <- grepl("gamlss",sys.calls()) ##
+  rexpr <- grepl("gamlss",sys.calls()) ##
   #rexpr <- grepl("fitModel", sys.calls())
-  rexpr <- grepl("stats::model.frame.default", sys.calls())
+  #rexpr <- grepl("stats::model.frame.default", sys.calls())
 
   for (i in length(rexpr):1) {
     position <- i # get the position
@@ -143,31 +141,31 @@ ba <-function(formula, control = ba.control(...), ...)
   Data$Y.var = rep(0, nrow(Data))
   #browser()
   G = mgcv::bam(formula,
-          data = Data,
-          offset = control$offset,
-          method = control$method,
-          control = control$control,
-          select = control$select,
-          scale = control$scale,
-          gamma = control$gamma,
-          knots = control$knots,
-          sp = control$sp,
-          min.sp = control$min.sp,
-          paraPen = control$paraPen,
-          chunk.size = control$chunk.size,
-          rho = control$rho,
-          AR.start = control$AR.start,
-          discrete = control$discrete,
-          cluster = control$cluster,
-          nthreads = control$nthreads,
-          gc.level = control$gc.level,
-          use.chol = control$use.chol,
-          samfrac = control$samfrac,
-          coef = control$coef,
-          drop.unused.levels = control$drop.unused.levels,
-          drop.intercept = control$drop.intercept,
-          G = NULL,
-          fit = FALSE
+                data = Data,
+                offset = control$offset,
+                method = control$method,
+                control = control$control,
+                select = control$select,
+                scale = control$scale,
+                gamma = control$gamma,
+                knots = control$knots,
+                sp = control$sp,
+                min.sp = control$min.sp,
+                paraPen = control$paraPen,
+                chunk.size = control$chunk.size,
+                rho = control$rho,
+                AR.start = control$AR.start,
+                discrete = control$discrete,
+                cluster = control$cluster,
+                nthreads = control$nthreads,
+                gc.level = control$gc.level,
+                use.chol = control$use.chol,
+                samfrac = control$samfrac,
+                coef = control$coef,
+                drop.unused.levels = control$drop.unused.levels,
+                drop.intercept = control$drop.intercept,
+                G = NULL,
+                fit = FALSE
   )
   ##bam(formula, family=gaussian(),
   ##      data=list()#, weights=NULL, subset=NULL,
@@ -198,7 +196,7 @@ ba <-function(formula, control = ba.control(...), ...)
 #' @param method The method argument in \code{bam()}.
 #' @param control A list of fit control parameters to replace defaults returned by gam.control. Any control parameters not supplied stay at their default values.
 #' @param select The \code{select} argument in \code{bam()}. Determine should selection penalties be added to the smooth effects, so that they can in principle be penalized out of the model.
-#' @param scale For the scale parameter. If this is positive then it is taken as the known scale parameter. Negative signals that the scale paraemter is unknown. 0 signals that the scale parameter is 1 for Poisson and binomial and unknown otherwise.
+#' @param scale For the scale parameter. If this is positive then it is taken as the known scale parameter. Negative signals that the scale parameter is unknown. 0 signals that the scale parameter is 1 for Poisson and binomial and unknown otherwise.
 #' @param gamma The \code{gamma} argument in \code{bam()}. Increase above 1 to force smoother fits.
 #' @param knots The \code{knots} argument in \code{bam()}. An optional list containing user specified knot values to be used for basis construction.
 #' @param sp The \code{sp} argument in \code{bam()}. A vector of smoothing parameters can be provided here.
@@ -219,30 +217,30 @@ ba <-function(formula, control = ba.control(...), ...)
 #' @param ... Other arguments.
 #'
 #' @return A control object
-#' @export
-ba.control = function(offset = NULL,
-                      method = "fREML",
-                      control = list(),
-                      select = FALSE,
-                      scale = 0,
-                      gamma = 1,
-                      knots = NULL,
-                      sp = NULL,
-                      min.sp = NULL,
-                      paraPen = NULL,
-                      chunk.size = 10000,
-                      rho = 0,
-                      AR.start = NULL,
-                      discrete = TRUE,
-                      cluster = NULL,
-                      nthreads = 2,
-                      gc.level = 1,
-                      use.chol = FALSE,
-                      samfrac = 1,
-                      coef = NULL,
-                      drop.unused.levels = TRUE,
-                      drop.intercept = NULL,
-                      ...)
+#' @noRd
+ba.control <- function(offset = NULL,
+                       method = "fREML",
+                       control = list(),
+                       select = FALSE,
+                       scale = 0,
+                       gamma = 1,
+                       knots = NULL,
+                       sp = NULL,
+                       min.sp = NULL,
+                       paraPen = NULL,
+                       chunk.size = 10000,
+                       rho = 0,
+                       AR.start = NULL,
+                       discrete = TRUE,
+                       cluster = NULL,
+                       nthreads = 2,
+                       gc.level = 1,
+                       use.chol = FALSE,
+                       samfrac = 1,
+                       coef = NULL,
+                       drop.unused.levels = TRUE,
+                       drop.intercept = NULL,
+                       ...)
 {
   #gam()
   control <- mgcv::gam.control(...)
@@ -281,24 +279,24 @@ ba.control = function(offset = NULL,
 #' @param ... Other arguments
 #'
 #' @return A control object
-#' @export
-ga.control = function(offset = NULL,
-                      method = "REML",
-                      optimizer = c("outer","newton"),
-                      control = list(),
-                      scale = 0,
-                      select = FALSE,
-                      knots = NULL,
-                      sp = NULL,
-                      min.sp = NULL,
-                      H = NULL,
-                      gamma = 1,
-                      paraPen = NULL,
-                      in.out = NULL,
-                      drop.unused.levels = TRUE,
-                      drop.intercept = NULL,
-                      discrete = FALSE,
-                      ...)
+#' @noRd
+ga.control <- function(offset = NULL,
+                       method = "REML",
+                       optimizer = c("outer","newton"),
+                       control = list(),
+                       scale = 0,
+                       select = FALSE,
+                       knots = NULL,
+                       sp = NULL,
+                       min.sp = NULL,
+                       H = NULL,
+                       gamma = 1,
+                       paraPen = NULL,
+                       in.out = NULL,
+                       drop.unused.levels = TRUE,
+                       drop.intercept = NULL,
+                       discrete = FALSE,
+                       ...)
 {
   #gam()
   control <- mgcv::gam.control(...)
@@ -311,21 +309,65 @@ ga.control = function(offset = NULL,
 }
 
 
+
+
+
 #' Functions from gamlss/gamlss.add with bugs fixed
 #'
-#' The GAMLSS specific method which produce predictors for a new data set for a specified parameter from a GAMLSS objects.
-#' @section predict.gamlss
-#' @param object A model fitted using GAMLSS.
-#' @param what which distribution parameter is required, the default is "mu".
-#' @param parameter equivalent to the parameter \code{what}.
-#' @param newdata a dataframe containing all covariates used in the fitted model.
-#' @param type the default, gets the linear predictor for the specified distribution parameter.
-#' @param terms if \code{type="terms"}, which terms to be selected (default is all terms).
-#' @param se.fit if TRUE the approximate standard errors of the appropriate type are extracted if exist.
-#' @param data the dataframe used in the original fit if is not defined in the call.
+#' The gamlss versions of the generic function \code{model.frame}
+#' @section model.frame.gamlss
+#' @param formula A formula of the model.
+#' @param what For which parameter to extract the model.frame, terms or model.frame.
+#' @param parameter Equivalent to \code{what}.
 #' @param ... Other arguments.
-#' @return A vector or matrix of predicted values.
-#' @export
+#'
+#' @return a vector or matrix of predicted values.
+#' @noRd
+model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), parameter = NULL, ...)
+{
+  object <- formula
+  dots <- list(...)
+  what <- if (!is.null(parameter)) {
+    match.arg(parameter, choices = c("mu", "sigma", "nu", "tau"))
+  } else match.arg(what)
+  Call <- object$call
+  parform <- stats::formula(object, what)
+  data <- if (!is.null(Call$data)) {
+    # problem here, as Call$data is .
+    #eval(Call$data)
+    # instead, this would work:
+    if(what == "mu") {
+      eval(Call$data, environment(formula$mu.terms))
+    }
+    else if (what == "sigma") {
+      eval(Call$data, environment(formula$sigma.terms))
+    } else if (what == "nu") {
+      eval(Call$data, environment(formula$nu.terms))
+    } else if (what == "tau") {
+      eval(Call$data, environment(formula$tau.terms))
+    }
+    # (there is no formula$terms, just mu.terms and sigma.terms)
+  } else {
+    environment(formula$terms)
+  }
+  Terms <- stats::terms(parform)
+  mf <- stats::model.frame(
+    Terms,
+    data,
+    xlev = object[[paste(what, "xlevels", sep = ".")]]
+  )
+  mf
+}
+
+##' Support for Function ga()
+##'
+##'This is support for the  smoother functions \code{ga()} intefaces for Simon Woood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
+##' @param x The explanatory variables
+##' @param y Iterative y variable
+##' @param w Iterative weights
+##' @param xeval If xeval=TRUE then predicion is used
+##' @param ... Other arguments
+##' @noRd
 gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting
@@ -339,15 +381,15 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
     G$mf$Y.var <- Y.var
     G$mf$`(weights)` <- W.var
     fit <-  mgcv::gam(G=G, fit=TRUE)
-    df <- sum(fit$edf)-1
+    df <- sum(ifelse(is.null(fit$edf2), yes = fit$edf, fit$edf2) + fit$edf1 - fit$edf)-1
     fv <- stats::fitted(fit)
     residuals <- y-fv
     list(fitted.values=fv, residuals=residuals,
          nl.df = df, lambda=fit$sp[1], #
          coefSmo = fit, var=NA)    # var=fv has to fixed
-  } else { # stats::predict
+  } else { # predict
     gamlss.env <- as.environment(attr(x, "gamlss.env"))
-    obj <- get("object", envir=gamlss.env ) # get the object from stats::predict
+    obj <- get("object", envir=gamlss.env ) # get the object from predict
     TT <- get("TT", envir=gamlss.env ) # get wich position is now
     SL <- get("smooth.labels", envir=gamlss.env) # all the labels of the smoother
     fit <- eval(parse(text=paste("obj$", get("what", envir=gamlss.env), ".coefSmo[[",as.character(match(TT,SL)), "]]", sep="")))
@@ -357,6 +399,61 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   }
 }
 
+
+##' Support for Function ba()
+##'
+##'This is support for the  smoother functions \code{ba()} intefaces for Simon Woood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
+##' @param x The explanatory variables
+##' @param y Iterative y variable
+##' @param w Iterative weights
+##' @param xeval If xeval=TRUE then predicion is used
+##' @param ... Other arguments
+##' @noRd
+gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
+  if (is.null(xeval))
+  {#fitting
+    Y.var <- y
+    W.var <- w
+    G <- attr(x,"G")
+    control = attr(x,"control")
+    G$y <- Y.var
+    G$w <- W.var
+    G$mf$Y.var <- Y.var
+    G$mf$`(weights)` <- W.var
+    fit <-  mgcv::bam(G=G, fit=TRUE,
+                      offset=control$offset, method=control$method,
+                      control=control$control, select=control$select,
+                      scale=control$scale, gamma=control$gamma,
+                      knots=control$knots, sp=control$sp, min.sp=control$min.sp,
+                      paraPen=control$paraPen, chunk.size=control$chunk.size,
+                      rho=control$rho, AR.start=control$AR.start,
+                      discrete=control$discrete,
+                      cluster=control$cluster, nthreads=control$nthreads,
+                      gc.level=control$gc.level, use.chol=control$use.chol,
+                      samfrac=control$samfrac,
+                      drop.unused.levels=control$bam$drop.unused.levels)
+    df <- sum(ifelse(is.null(fit$edf2), yes = fit$edf, fit$edf2) + fit$edf1 - fit$edf)-1
+    fv <- stats::fitted(fit)
+    residuals <- y-fv
+    list( fitted.values=fv, residuals=residuals,
+          nl.df = df, lambda=fit$sp[1], #
+          coefSmo = fit, var=NA)    # var=fv has to fixed
+  } else { # predict
+    gamlss.env <- as.environment(attr(x, "gamlss.env"))
+    obj <- get("object", envir=gamlss.env ) # get the object from predict
+    TT <- get("TT", envir=gamlss.env ) # get wich position is now
+    SL <- get("smooth.labels", envir=gamlss.env) # all the labels of the smoother
+    fit <- eval(parse(text=paste("obj$", get("what", envir=gamlss.env), ".coefSmo[[",as.character(match(TT,SL)), "]]", sep="")))
+    OData <- attr(x,"data")
+    ll <- dim(OData)[1]
+    pred <- stats::predict(fit,newdata = OData[seq(length(y)+1,ll),])
+  }
+}
+
+
+
+
+## Accessed from gamlss's github 04/10/2023
 predict.gamlss <- function(object,
                            what = c("mu", "sigma", "nu", "tau"),
                            parameter = NULL,
@@ -401,8 +498,10 @@ predict.gamlss <- function(object,
   ## If no new data just use lpred() and finish
   if (is.null(newdata))  #
   {
-    predictor <- gamlss::lpred(object, what = what, type = type, terms = terms, se.fit = se.fit, ... )
-    return(predictor)
+    newdata = data
+    #predictor<- lpred(object, what = what, type = type, terms = terms, se.fit = se.fit, ... )
+    #return(predictor)
+    #newdata <- object$mu.x
   }
   ## at the moment se.fit is not supported for new data
   if (se.fit)
@@ -410,8 +509,8 @@ predict.gamlss <- function(object,
   ##  stop if newdata is not data frame
   ## note that atomic is not working here so better to take it out Mikis 23-10-13
   ## if (!(is.atomic(newdata) | inherits(newdata, "data.frame")))
-  if (!(inherits(newdata, "data.frame")))
-    stop("newdata must be a data frame ") # or a frame mumber
+  #if (!(inherits(newdata, "data.frame")))
+   # stop("newdata must be a data frame ") # or a frame mumber
   ## getting which parameter and type
   what <- if (!is.null(parameter))  {
     match.arg(parameter, choices=c("mu", "sigma", "nu", "tau"))} else  match.arg(what)
@@ -419,21 +518,19 @@ predict.gamlss <- function(object,
   ## get the original call
   Call <- object$call
   ## we need both the old and the new data sets
-  ## the argument data can be provided by stats::predict
-
-  ## get the formula by Dongyuan
-  parform <- stats::formula(object, what)
-
-  data<- data1 <- if (is.null(data))
+  ## the argument data can be provided by predict
+  data<-if (is.null(data))
   {        ## if it is not provided then get it from the original call
-    if (!is.null(Call$data)) eval(Call$data, environment(parform)) ## Add environment(parform) here by Dongyuan
+    if (!is.null(Call$data)) eval(Call$data)
     else stop("define the original data using the option data")
+  }else{
+    data
   }
-  else data # if it provide get it
+  # else data # if it provide get it
   ## keep only the same variables
   ## this assumes that all the relevant variables will be in newdata
   ## what happens if not?
-  data <- data[match(names(newdata),names(data))]
+  data <- data[,match(names(newdata),names(data))]
   ## merge the two data together
   data <- concat(data,newdata)
   ## get the formula
@@ -442,7 +539,7 @@ predict.gamlss <- function(object,
   if (length(parform)==3)
     parform[2] <- NULL
   ## define the terms
-  Terms <- stats::terms(parform)
+  Terms <- terms(parform)
   ## get the offset
   offsetVar <- if (!is.null(off.num <- attr(Terms, "offset"))) # new
     eval(attr(Terms, "variables")[[off.num + 1]], data)
@@ -472,16 +569,16 @@ predict.gamlss <- function(object,
     y <- (y - smo.mat %*% rep(1, n.smooths))
   }
   ## refit the model
-  refit <- stats::lm.wfit(X[onlydata,  , drop = FALSE], y, w)
-  ## ckeck the residuals if they are zero
-  ##if (any(abs(stats::resid(refit))>1e-005))
-  # if (abs(sum(stats::resid(refit)))>1e-001||abs(sum(coef(object, what=what)-coef(refit), na.rm=TRUE))>1e-005)
+  # refit <- lm.wfit(X[onlydata,  , drop = FALSE], y, w)
+  # ## ckeck the residuals if they are zero
+  # ##if (any(abs(resid(refit))>1e-005))
+  # if (abs(sum(resid(refit)))>1e-001||abs(sum(coef(object, what=what)-coef(refit), na.rm=TRUE))>1e-005)
   #   warning(paste("There is a discrepancy  between the original and the re-fit",
-  #                 " \n used to achieve 'safe' stats::predictions \n ", sep = "" ))
+  #                 " \n used to achieve 'safe' predictions \n ", sep = "" ))
   ## this is disturbing fit and refit have different coefficients  why?
-  ## fit <- stats::lm.wfit(X, yaug, waug)
+  ## fit <- lm.wfit(X, yaug, waug)
   ## get the coefficients
-  coef <- refit$coef         ## save the coefficints
+  coef <- coef(object, what=what)        ## save the coefficints
   nX <- dimnames(X)        ## the names of rows and columns
   rownames <- nX[[1]][!onlydata] ## only the newdata rows
   nrows <- sum(!onlydata)     ## the number of rows in the new data
@@ -499,9 +596,10 @@ predict.gamlss <- function(object,
     aaa <- factor(aa, labels = ll)
     asgn <- split(order(aa), aaa)
     hasintercept <- attr(Terms, "intercept") > 0
-    p <- refit$qr$rank
+    fit_qr <- object[[paste0(what,".qr")]]
+    p <- fit_qr$rank
     p1 <- seq(len = p)
-    piv <- refit$qr$pivot[p1]
+    piv <- fit_qr$pivot[p1]
     if (hasintercept)
     {
       asgn$"(Intercept)" <- NULL
@@ -512,7 +610,7 @@ predict.gamlss <- function(object,
     # xbar <- drop(array(1/TT, c(1, TT)) %*% X[onlydata, !nac])
     nterms <- length(asgn)
     #    if (nterms > 0)
-    # define the stats::prediction matrix
+    # define the prediction matrix
     pred <- matrix(ncol = nterms, nrow = nrows)
     dimnames(pred) <- list(rownames(newdata), names(asgn))
     #          if (se.fit )
@@ -560,10 +658,10 @@ predict.gamlss <- function(object,
   ##
   if (!is.null(smo.mat))
   {
-    cat("new stats::prediction", "\n")
+    #cat("new prediction", "\n")
     smooth.labels <- dimnames(smo.mat)[[2]]       ## getting the labels i.e. "pb(Fl)" "pb(A)"
     pred.s <- array(0, c(nrows, n.smooths), list(names(pred),
-                                                 dimnames(smo.mat)[[2]])) ## creating the stats::prediction matrix
+                                                 dimnames(smo.mat)[[2]])) ## creating the prediction matrix
     # smooth.labels[smooth.labels%in%colnames(X)]
     # smooth.wanted <- smooth.labels[match(smooth.labels, colnames(X), 0) > 0]
     ## getting the smoothing call
@@ -598,153 +696,20 @@ predict.gamlss <- function(object,
   }
   if(type == "response")
   {
-    ## Saturday, April 14, 2007  change to work with trun and cens
-    # pred <- try(gamlss.family(family(object)[1])[[paste(what,"linkinv",sep=".")]](pred) , silent = TRUE)
-    #         if (any(class(pred)%in%"try-error"))
-    #             {
-    # this is the latest change DS: Monday, March 10, 2008 at 10:00
-    if (methods::is(eval(parse(text=object$family[[1]])),"gamlss.family"))
+    FAM <- eval(object$call$family)#
+    if (!methods::is(FAM,"gamlss.family"))
     {
-      pred<- eval(parse(text=object$family[[1]]))[[ paste(what,"linkinv",sep=".")]](pred)
+      FAM <- stats::family(object)[1]
     }
-    else
-    {
-      pred <- gamlss.dist::gamlss.family(eval(parse(text=paste(stats::family(object)[1],"(",what,".link=",# ms
-                                                  eval(parse(text=(paste("object$",what,".link", sep="")))),")", sep=""))
-      ))[[paste(what,"linkinv",sep=".")]](pred)
-    }
-    #pred <- gamlss.family(family(object)[1])[[paste(what,"linkinv",sep=".")]](pred)
+    # else
+    # {
+    FAM <- gamlss.dist::as.gamlss.family(FAM)# this should get a gamlss family but not alway
+    pred <- FAM[[paste0(what,".linkinv")]](pred)
   }
+  names(pred) <- rownames(newdata)
   pred
 }
 
 
-#' Functions from gamlss/gamlss.add with bugs fixed
-#'
-#' The gamlss versions of the generic function \code{model.frame}
-#' @section model.frame.gamlss
-#' @param formula A formula of the model.
-#' @param what For which parameter to extract the model.frame, terms or model.frame.
-#' @param parameter Equivalent to \code{what}.
-#' @param ... Other arguments.
-#'
-#' @return a vector or matrix of predicted values.
-#' @export
-model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), parameter = NULL, ...)
-{
-  object <- formula
-  dots <- list(...)
-  what <- if (!is.null(parameter)) {
-    match.arg(parameter, choices = c("mu", "sigma", "nu", "tau"))
-  } else match.arg(what)
-  Call <- object$call
-  parform <- stats::formula(object, what)
-  data <- if (!is.null(Call$data)) {
-    # problem here, as Call$data is .
-    eval(Call$data)
-    # instead, this would work:
-    # eval(Call$data, environment(formula$mu.terms))
-    # (there is no formula$terms, just mu.terms and sigma.terms)
-  } else {
-    environment(formula$terms)
-  }
-  Terms <- stats::terms(parform)
-  mf <- stats::model.frame(
-    Terms,
-    data,
-    xlev = object[[paste(what, "xlevels", sep = ".")]]
-  )
-  mf
-}
-
-##' Support for Function ga()
-##'
-##'This is support for the  smoother functions \code{ga()} intefaces for Simon Woood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
-##' @param x The explanatory variables
-##' @param y Iterative y variable
-##' @param w Iterative weights
-##' @param xeval If xeval=TRUE then predicion is used
-##' @param ... Other arguments
-##'
-##' @export
-gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
-  if (is.null(xeval))
-  {#fitting
-    #formula <- attr(x,"formula")
-    #control <- as.list(attr(x, "control"))
-    Y.var <- y
-    W.var <- w
-    G <- attr(x,"G")
-    G$y <- Y.var
-    G$w <- W.var
-    G$mf$Y.var <- Y.var
-    G$mf$`(weights)` <- W.var
-    fit <-  mgcv::gam(G=G, fit=TRUE)
-    df <- sum(ifelse(is.null(fit$edf2), yes = fit$edf, fit$edf2) + fit$edf1 - fit$edf)-1
-    fv <- stats::fitted(fit)
-    residuals <- y-fv
-    list(fitted.values=fv, residuals=residuals,
-         nl.df = df, lambda=fit$sp[1], #
-         coefSmo = fit, var=NA)    # var=fv has to fixed
-  } else { # predict
-    gamlss.env <- as.environment(attr(x, "gamlss.env"))
-    obj <- get("object", envir=gamlss.env ) # get the object from predict
-    TT <- get("TT", envir=gamlss.env ) # get wich position is now
-    SL <- get("smooth.labels", envir=gamlss.env) # all the labels of the smoother
-    fit <- eval(parse(text=paste("obj$", get("what", envir=gamlss.env), ".coefSmo[[",as.character(match(TT,SL)), "]]", sep="")))
-    OData <- attr(x,"data")
-    ll <- dim(OData)[1]
-    pred <- stats::predict(fit,newdata = OData[seq(length(y)+1,ll),])
-  }
-}
 
 
-##' Support for Function ba()
-##'
-##'This is support for the  smoother functions \code{ba()} intefaces for Simon Woood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
-##' @param x The explanatory variables
-##' @param y Iterative y variable
-##' @param w Iterative weights
-##' @param xeval If xeval=TRUE then predicion is used
-##' @param ... Other arguments
-##'
-gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
-  if (is.null(xeval))
-  {#fitting
-    Y.var <- y
-    W.var <- w
-    G <- attr(x,"G")
-    control = attr(x,"control")
-    G$y <- Y.var
-    G$w <- W.var
-    G$mf$Y.var <- Y.var
-    G$mf$`(weights)` <- W.var
-    fit <-  mgcv::bam(G=G, fit=TRUE,
-                offset=control$offset, method=control$method,
-                control=control$control, select=control$select,
-                scale=control$scale, gamma=control$gamma,
-                knots=control$knots, sp=control$sp, min.sp=control$min.sp,
-                paraPen=control$paraPen, chunk.size=control$chunk.size,
-                rho=control$rho, AR.start=control$AR.start,
-                discrete=control$discrete,
-                cluster=control$cluster, nthreads=control$nthreads,
-                gc.level=control$gc.level, use.chol=control$use.chol,
-                samfrac=control$samfrac,
-                drop.unused.levels=control$bam$drop.unused.levels)
-    df <- sum(ifelse(is.null(fit$edf2), yes = fit$edf, fit$edf2) + fit$edf1 - fit$edf)-1
-    fv <- stats::fitted(fit)
-    residuals <- y-fv
-    list( fitted.values=fv, residuals=residuals,
-          nl.df = df, lambda=fit$sp[1], #
-          coefSmo = fit, var=NA)    # var=fv has to fixed
-  } else { # predict
-    gamlss.env <- as.environment(attr(x, "gamlss.env"))
-    obj <- get("object", envir=gamlss.env ) # get the object from predict
-    TT <- get("TT", envir=gamlss.env ) # get wich position is now
-    SL <- get("smooth.labels", envir=gamlss.env) # all the labels of the smoother
-    fit <- eval(parse(text=paste("obj$", get("what", envir=gamlss.env), ".coefSmo[[",as.character(match(TT,SL)), "]]", sep="")))
-    OData <- attr(x,"data")
-    ll <- dim(OData)[1]
-    pred <- stats::predict(fit,newdata = OData[seq(length(y)+1,ll),])
-  }
-}

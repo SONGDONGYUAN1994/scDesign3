@@ -8,16 +8,18 @@ fit_copula(
   sce,
   assay_use,
   input_data,
-  new_covariate = NULL,
+  empirical_quantile = FALSE,
   marginal_list,
-  family,
-  copula = "vine",
+  family_use,
+  copula = "gaussian",
   DT = TRUE,
   pseudo_obs = FALSE,
   epsilon = 1e-06,
-  cor_formula,
   family_set = c("gaussian", "indep"),
-  n_cores
+  important_feature = "all",
+  n_cores,
+  parallelization = "mcmapply",
+  BPPARAM = NULL
 )
 }
 \arguments{
@@ -26,37 +28,51 @@ fit_copula(
 \item{assay_use}{A string which indicates the assay you will use in the sce.
 Default is 'counts'.}
 
-\item{input_data}{A input count matrix.}
+\item{input_data}{The input data, which is one of the output from \code{\link{construct_data}}.}
 
-\item{new_covariate}{A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}}.}
+\item{empirical_quantile}{Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL CDF values of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
 
 \item{marginal_list}{A list of fitted regression models from \code{\link{fit_marginal}}.}
 
-\item{family}{A string of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
+\item{family_use}{A string or a vector of strings of the marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
-\item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'vine'.}
+\item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.}
 
 \item{DT}{A logic variable. If TRUE, perform the distributional transformation
 to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
-Default is TRUE.}
+Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.}
 
 \item{pseudo_obs}{A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 Default is FALSE.}
 
 \item{epsilon}{A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.}
 
-\item{cor_formula}{A string or a string vector which indicates the groups for correlation structure.}
+\item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gaussian", "indep").}
 
-\item{family_set}{A string or a string vector of the bivarate copula families. Default is c("gaussian", "indep").}
+\item{important_feature}{A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
+this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
+gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
+The default value for is "all".}
 
 \item{n_cores}{An integer. The number of cores to use.}
+
+\item{parallelization}{A string indicating the specific parallelization function to use.
+Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+\code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.}
+
+\item{BPPARAM}{A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+\code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
 }
 \value{
 A list with the components:
 \describe{
   \item{\code{new_mvu}}{A matrix of the new multivariate uniform distribution from the copula.}
-  \item{\code{cor_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
+  \item{\code{copula_list}}{A list of the fitted copula model. If using Gaussian copula, a list of correlation matrices; if vine, a list of vine objects.}
   \item{\code{model_aic}}{A vector of the marginal AIC and the copula AIC.}
+  \item{\code{model_bic}}{A vector of the marginal BIC and the copula BIC.}
 }
 }
 \description{
@@ -65,4 +81,34 @@ A list with the components:
 \details{
 This function takes the result from \code{\link{fit_marginal}} as the input and
 and fit the copula model on the residuals.
+}
+\examples{
+  data(example_sce)
+  my_data <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = "pseudotime",
+  spatial = NULL,
+  other_covariates = NULL,
+  corr_by = "1"
+  )
+  my_marginal <- fit_marginal(
+  data = my_data,
+  mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 1,
+  usebam = FALSE
+  )
+  my_copula <- fit_copula(
+  sce = example_sce,
+  assay_use = "counts",
+  marginal_list = my_marginal,
+  family_use = c(rep("nb", 5), rep("zip", 5)),
+  copula = "vine",
+  n_cores = 1,
+  input_data = my_data$dat
+  )
+  
 }

@@ -7,32 +7,36 @@
 scdesign3(
   sce,
   assay_use = "counts",
-  covariate_use = "celltype",
-  celltype = "cell_type",
-  pseudotime = "pseudotime",
-  spatial = c("spatial1", "spatial2"),
-  other_covariates = c("batch", "condition"),
+  celltype,
+  pseudotime,
+  spatial,
+  other_covariates,
   ncell = dim(sce)[2],
-  predictor = "gene",
-  mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
+  mu_formula,
   sigma_formula = "1",
-  family = "nb",
+  family_use = "nb",
   n_cores = 2,
   usebam = FALSE,
-  cor_formula = "cell_type",
-  copula = "vine",
+  corr_formula,
+  empirical_quantile = FALSE,
+  copula = "gaussian",
+  fastmvn = FALSE,
   DT = TRUE,
   pseudo_obs = FALSE,
-  family_set = c("gaussian", "indep")
+  family_set = c("gauss", "indep"),
+  important_feature = "all",
+  nonnegative = TRUE,
+  nonzerovar = FALSE,
+  return_model = FALSE,
+  parallelization = "mcmapply",
+  BPPARAM = NULL,
+  trace = FALSE
 )
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object.}
 
 \item{assay_use}{A string which indicates the assay you will use in the sce. Default is 'counts'.}
-
-\item{covariate_use}{A string of the primary covariate.
-Must be one of 'celltype', 'pseudotime' or 'spatial'.}
 
 \item{celltype}{A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.}
 
@@ -41,43 +45,95 @@ multiple lineages. Default is NULL.}
 
 \item{spatial}{A length two string vector of the names of spatial coordinates. Defualt is NULL.}
 
-\item{other_covariates}{A string or a string vector of the other covaraites you want to include in the data.}
+\item{other_covariates}{A string or a string vector of the other covariates you want to include in the data.}
 
 \item{ncell}{The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).}
-
-\item{predictor}{Default is gene. ## Fix later}
 
 \item{mu_formula}{A string of the mu parameter formula}
 
 \item{sigma_formula}{A string of the sigma parameter formula}
 
-\item{family}{A string of the marginal distribution.
+\item{family_use}{A string of the marginal distribution.
 Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{n_cores}{An integer. The number of cores to use.}
 
 \item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.}
 
-\item{cor_formula}{A string of the correlation structure.}
+\item{corr_formula}{A string of the correlation structure.}
 
-\item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'vine'.}
+\item{empirical_quantile}{Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL CDF values of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
+
+\item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.}
+
+\item{fastmvn}{An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE. It only matters for Gaussian copula.}
 
 \item{DT}{A logic variable. If TRUE, perform the distributional transformation
 to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
-Default is TRUE.}
+Default is TRUE. Note that for continuous data (e.g., Gaussian), DT does not make sense and should be set as FALSE.}
 
 \item{pseudo_obs}{A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 Default is FALSE.}
 
-\item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gaussian", "indep").}
+\item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gauss", "indep"). For more information please check package \code{rvinecoplib}.}
+
+\item{important_feature}{A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
+this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
+for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
+gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
+The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.}
+
+\item{nonnegative}{A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
+
+\item{nonzerovar}{A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA. Default is FALSE.}
+
+\item{return_model}{A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.}
+
+\item{parallelization}{A string indicating the specific parallelization function to use.
+Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+\code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.}
+
+\item{BPPARAM}{A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+\code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
+
+\item{trace}{A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss
+will be returned, FALSE otherwise. Default is FALSE.}
 }
 \value{
 A list with the components:
 \describe{
   \item{\code{new_count}}{A matrix of the new simulated count (expression) matrix.}
   \item{\code{new_covariate}}{A data.frame of the new covariate matrix.}
+  \item{\code{model_aic}}{The model AIC.}
+  \item{\code{marginal_list}}{A list of marginal regression models if return_model = TRUE.}
+  \item{\code{corr_list}}{A list of correlation models (conditional copulas) if return_model = TRUE.}
 }
 }
 \description{
 \code{scdesign3} takes the input data, fits the model and
+}
+\examples{
+data(example_sce)
+my_simu <- scdesign3(
+sce = example_sce,
+assay_use = "counts",
+celltype = "cell_type",
+pseudotime = "pseudotime",
+spatial = NULL,
+other_covariates = NULL,
+mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
+family_use = c(rep("nb", 5), rep("zip", 5)),
+n_cores = 2,
+usebam = FALSE,
+corr_formula = "pseudotime",
+copula = "vine",
+DT = TRUE,
+pseudo_obs = FALSE,
+ncell = 1000,
+return_model = FALSE
+)
+
 }

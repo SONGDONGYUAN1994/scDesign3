@@ -9,26 +9,42 @@ fit_marginal(
   predictor = "gene",
   mu_formula,
   sigma_formula,
-  family,
+  family_use,
   n_cores,
-  usebam
+  usebam,
+  parallelization = "mcmapply",
+  BPPARAM = NULL,
+  trace = FALSE
 )
 }
 \arguments{
-\item{data}{An object from \code{\link{construct_data}}. ## Fix later}
+\item{data}{An object from \code{\link{construct_data}}.}
 
-\item{predictor}{Default is gene. ## Fix later}
+\item{predictor}{A string of the predictor for the gam/gamlss model. Default is gene. This is essentially just a name.}
 
 \item{mu_formula}{A string of the mu parameter formula}
 
 \item{sigma_formula}{A string of the sigma parameter formula}
 
-\item{family}{A string of the marginal distribution.
-Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
+\item{family_use}{A string or a vector of strings of the marginal distribution.
+Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
+'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+and 'gaussian distribution' respectively.}
 
 \item{n_cores}{An integer. The number of cores to use.}
 
 \item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.}
+
+\item{parallelization}{A string indicating the specific parallelization function to use.
+Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+\code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.}
+
+\item{BPPARAM}{A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+\code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
+
+\item{trace}{A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss
+will be returned, FALSE otherwise. Default is FALSE.}
 }
 \value{
 A list of fitted regression models. The length is equal to the total feature number.
@@ -39,4 +55,25 @@ A list of fitted regression models. The length is equal to the total feature num
 \details{
 The function takes the result from \code{\link{construct_data}} as the input,
 and fit the regression models for each feature based on users' specification.
+}
+\examples{
+  data(example_sce)
+  my_data <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = "pseudotime",
+  spatial = NULL,
+  other_covariates = NULL,
+  corr_by = "1"
+  )
+  my_marginal <- fit_marginal(
+  data = my_data,
+  mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 1,
+  usebam = FALSE
+  )
+
 }

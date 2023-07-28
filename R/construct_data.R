@@ -8,8 +8,6 @@
 #'
 #' @param sce A \code{SingleCellExperiment} object.
 #' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.
-#' @param covariate_use A string of the primary covariate.
-#' Must be one of 'celltype', 'pseudotime' or 'spatial'.
 #' @param celltype A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.
 #' @param pseudotime A string or a string vector of the name of pseudotime and (if exist)
 #' multiple lineages. Default is NULL.
@@ -18,28 +16,54 @@
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 #' If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.
 #' @param corr_by A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.
+#' @param parallelization A string indicating the specific parallelization function to use.
+#' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
+#' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
+#' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
+#' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
+#' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #'
 #' @return A list with the components:
 #' \describe{
 #'   \item{\code{count_mat}}{The expression matrix}
 #'   \item{\code{dat}}{The original covariate matrix}
-#'   \item{\code{newCovariate}}{The simulated new covariate matrix}
+#'   \item{\code{newCovariate}}{The simulated new covariate matrix, is NULL if the parameter ncell is default}
 #' }
+#' @examples
+#'   data(example_sce)
+#'   my_data <- construct_data(
+#'   sce = example_sce,
+#'   assay_use = "counts",
+#'   celltype = "cell_type",
+#'   pseudotime = "pseudotime",
+#'   spatial = NULL,
+#'   other_covariates = NULL,
+#'   corr_by = "1"
+#'   )
+#'
 #'
 #' @export construct_data
 construct_data <- function(sce,
                           assay_use = "counts",
-                          covariate_use,
                           celltype,
                           pseudotime,
                           spatial,
                           other_covariates,
                           ncell = dim(sce)[2],
-                          corr_by) {
+                          corr_by,
+                          parallelization = "mcmapply",
+                          BPPARAM = NULL) {
+
+  ## check unique cell names and gene names
+  if(length(unique(colnames(sce))) != dim(sce)[2]){
+    stop("Please make sure your inputted SingleCellExperiment object does not have duplicate cell names")
+  }
+  if(length(unique(rownames(sce))) != dim(sce)[1]){
+    stop("Please make sure your inputted SingleCellExperiment object does not have duplicate gene names")
+  }
   ## Extract expression matrix
   count_mat <-
-    t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
-
+      t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
   ## Extract col data
   coldata_mat <- data.frame(SummarizedExperiment::colData(sce))
 
@@ -50,6 +74,9 @@ construct_data <- function(sce,
     primary_covariate <- c(celltype, pseudotime, spatial)
     dat <- as.data.frame(coldata_mat[, primary_covariate, drop = FALSE])
   }
+
+  if(!is.null(celltype)) {
+    dat[, celltype] <- as.factor(dat[, celltype])}
 
   # ## Extract pseudotime / cell type / spatial
   # if (!is.null(celltype)) {
@@ -94,9 +121,9 @@ construct_data <- function(sce,
 
   ## check if user wants to simulate new number of cells
   if(ncell != dim(dat)[1]){
-    newCovariate <- as.data.frame(simuCovariateMat(dat,ncell))
+    newCovariate <- as.data.frame(simuCovariateMat(dat,ncell, parallelization, BPPARAM))
   }else{
-    newCovariate <- NULL
+    newCovariate <- dat
   }
 
   # identify groups
@@ -108,20 +135,20 @@ construct_data <- function(sce,
       corr_group <- rep(1, n_cell)
       corr_group2 <- rep(1, dim(newCovariate)[1])
     } else if (group[1] == "ind"){
-      corr_group <- rep(NULL, n_cell)
-      corr_group2 <- rep(NULL, dim(newCovariate)[1])
+      corr_group <- rep("ind", n_cell)
+      corr_group2 <- rep("ind", dim(newCovariate)[1])
     } else if (group[1] == "pseudotime" | length(group) > 1) {
       ## For continuous pseudotime, discretize it
       corr_group <- SummarizedExperiment::colData(sce)[, group]
-      mclust_mod <- mclust::Mclust(corr_group, G = 1:5)
+      mclust_mod <- mclust::Mclust(corr_group, G = seq_len(5))
       corr_group <- mclust_mod$classification
 
-      corr_group2 <- newCovariate[,group]
+      corr_group2 <- newCovariate[, group]
       corr_group2 <- mclust::predict.Mclust(mclust_mod, newdata = corr_group2)$classification
 
     } else {
       corr_group <- SummarizedExperiment::colData(sce)[, group]
-      corr_group2 <- newCovariate[,group]
+      corr_group2 <- newCovariate[, group]
     }
     newCovariate$corr_group <- corr_group2
   }else{
@@ -132,7 +159,7 @@ construct_data <- function(sce,
     }else if (group[1] == "pseudotime" | length(group) > 1) {
       ## For continuous pseudotime, discretize it
       corr_group <- SummarizedExperiment::colData(sce)[, group]
-      mclust_mod <- mclust::Mclust(corr_group, G = 1:5)
+      mclust_mod <- mclust::Mclust(corr_group, G = seq_len(5))
 
       corr_group <- mclust_mod$classification
 
@@ -148,7 +175,9 @@ construct_data <- function(sce,
 
 ## Simulate covariate matrix
 simuCovariateMat <- function(covariate_mat,
-                             n_cell_new = 50000) {
+                             n_cell_new = 50000,
+                             parallelization = "mcmapply",
+                             BPPARAM = NULL) {
 
   n_cell_ori <- dim(covariate_mat)[1]
   n_covraite_ori <- dim(covariate_mat)[2]
@@ -168,8 +197,17 @@ simuCovariateMat <- function(covariate_mat,
     group_prop <-  table(df_all$discrete_group)/dim(df_all)[1]
     group_name <- names(group_prop)
     group_n_new <- stats::rmultinom(1, size = n_cell_new, prob = group_prop)
+    paraFunc <- parallel::mcmapply
+
+    if(parallelization == "bpmapply"){
+      paraFunc <- BiocParallel::bpmapply
+    }
+    if(parallelization == "pbmcmapply"){
+      paraFunc <- pbmcapply::pbmcmapply
+    }
+
     if(if_numeric_exist) {
-      new_dat_list <- pbmcapply::pbmcmapply(FUN = function(df, n) {
+      dat_function <- {function(df, n) {
         df <- dplyr::select(df, -"discrete_group")
         df_numeric <- dplyr::select_if(df, is.numeric)
         df_factor <- dplyr::select_if(df, is.factor)
@@ -180,18 +218,32 @@ simuCovariateMat <- function(covariate_mat,
         new_dat[colnames(df_factor)] <- df_factor[1, ]
         new_dat
 
-      }, df = df_list, n = group_n_new, SIMPLIFY = FALSE)
+      }}
+
+      if(parallelization == "bpmapply"){
+        new_dat_list <- paraFunc(FUN = dat_function , df = df_list, n = group_n_new, BPPARAM = BPPARAM,SIMPLIFY = FALSE)
+      }else{
+        new_dat_list <- paraFunc(FUN = dat_function , df = df_list, n = group_n_new,SIMPLIFY = FALSE)
+      }
       covariate_new <- do.call("rbind", new_dat_list)
     }
     else {
-      new_dat_list <- pbmcapply::pbmcmapply(FUN = function(df, n) {
+      dat_function <- function(df, n) {
         df <- dplyr::select(df, -"discrete_group")
         df_factor <- dplyr::select_if(df, is.factor)
         df_onerow <- as.data.frame(df_factor[1, ])
+        colnames(df_onerow) <- colnames(df_factor)
         new_dat <- as.data.frame(df_onerow[rep(1, n), ])
-      }, df = df_list, n = group_n_new, SIMPLIFY = FALSE)
+        colnames(new_dat) <- colnames(df_onerow)
+        new_dat
+      }
+      if(parallelization == "bpmapply"){
+          new_dat_list <- paraFunc(FUN = dat_function, df = df_list, n = group_n_new, BPPARAM = BPPARAM, SIMPLIFY = FALSE)
+        }else{
+          new_dat_list <- paraFunc(FUN = dat_function, df = df_list, n = group_n_new,SIMPLIFY = FALSE)
+        }
       covariate_new <- do.call("rbind", new_dat_list)
-      colnames(covariate_new) <- colnames(covariate_mat)
+
     }
   }
   else {
