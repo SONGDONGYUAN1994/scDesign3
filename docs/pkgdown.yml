@@ -1,0 +1,22 @@
+pandoc: '2.5'
+pkgdown: 2.0.7
+pkgdown_sha: ~
+articles:
+  scDesign3-CITEseq-vignette: scDesign3-CITEseq-vignette.html
+  scDesign3-DEanalysis-vignette: scDesign3-DEanalysis-vignette.html
+  scDesign3-batchEffect-vignette: scDesign3-batchEffect-vignette.html
+  scDesign3-clusterGOF-vignette: scDesign3-clusterGOF-vignette.html
+  scDesign3-conditionEffect-vignette: scDesign3-conditionEffect-vignette.html
+  scDesign3-copulaCompare-vignette: scDesign3-copulaCompare-vignette.html
+  scDesign3-introduction-vignette: scDesign3-introduction-vignette.html
+  scDesign3-librarySize-vignette: scDesign3-librarySize-vignette.html
+  scDesign3-marginal-vignette: scDesign3-marginal-vignette.html
+  scDesign3-multiomics-vignette: scDesign3-multiomics-vignette.html
+  scDesign3-multipleLineages-vignette: scDesign3-multipleLineages-vignette.html
+  scDesign3-pseudotimeGOF-vignette: scDesign3-pseudotimeGOF-vignette.html
+  scDesign3-scATACseq-vignette: scDesign3-scATACseq-vignette.html
+  scDesign3-spatial-deconvolution: scDesign3-spatial-deconvolution.html
+  scDesign3-spatial-vignette: scDesign3-spatial-vignette.html
+  scDesign3: scDesign3.html
+last_built: 2023-07-16T00:00Z
+

@@ -1,0 +1,222 @@
+---
+title: "Simulate datasets with batch effect"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+  - name: Qingyang Wang
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: qw802@g.ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign3-batchEffect-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{css, echo=FALSE}
+pre {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+}
+```
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+tools::R_user_dir("scDesign3", which="cache")
+```
+
+```{r setup, message=FALSE}
+library(scDesign3)
+library(ggplot2)
+library(SingleCellExperiment)
+theme_set(theme_bw())
+```
+
+
+## Introduction
+In this tutorial, we will show how to use scDesign3 to simulate data with original batch effects and how to remove the batch effects. We will also demostrate how to add ariticial batch effects.
+
+## Read in the reference data
+The raw data is from the `SeuratData` package. The data is called `pbmcsca` in the package; it is PBMC Systematic Comparative Analysis dataset from the Broad Institute.
+```{r, message=FALSE}
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581965")))
+print(example_sce)
+```
+To save computational time, we only use the top 100 genes.
+```{r, message=FALSE}
+example_sce <- example_sce[1:100, ]
+```
+
+The column `batch` in this example dataset's colData contains the batch information.
+```{r, message=FALSE}
+head(colData(example_sce))
+```
+
+
+## Simulation
+We can simulate a new data with batch effect information.
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
+simu_res <- scdesign3(sce = example_sce, 
+                              assay_use = "counts", 
+                              celltype = "cell_type", 
+                              pseudotime = NULL, 
+                              spatial = NULL, 
+                              other_covariates = c("batch"), 
+                              mu_formula = "cell_type + batch", 
+                              sigma_formula = "1", 
+                              family_use = "nb", 
+                              n_cores = 2, 
+                              usebam = FALSE, 
+                              corr_formula = "1", 
+                              copula = "gaussian", 
+                              DT = TRUE, 
+                              pseudo_obs = FALSE, 
+                              return_model = FALSE)
+```
+
+
+We can also remove the batch effect and generate new data.
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+BATCH_data <- construct_data(
+  sce = example_sce,
+  assay_use = "counts",
+  celltype = "cell_type",
+  pseudotime = NULL,
+  spatial = NULL,
+  other_covariates = c("batch"),
+  corr_by = "1"
+)
+```
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+BATCH_marginal <- fit_marginal(
+  data = BATCH_data,
+  predictor = "gene",
+  mu_formula = "cell_type + batch",
+  sigma_formula = "1",
+  family_use = "nb",
+  n_cores = 2,
+  usebam = FALSE
+)
+```
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
+BATCH_copula <- fit_copula(
+    sce = example_sce,
+    assay_use = "counts",
+    marginal_list = BATCH_marginal,
+    family_use = "nb",
+    copula = "gaussian",
+    n_cores = 2,
+    input_data = BATCH_data$dat
+  )
+```
+In here, we remove  the batch effect by setting its coefficient to zero for all genes' marginal fits. Then, we use the new sets of coefficients to generate the parameters for all genes across all cells.
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+BATCH_marginal_null <- lapply(BATCH_marginal, function(x) {
+  x$fit$coefficients[length(x$fit$coefficients)] <- 0
+  x
+})
+```
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+BATCH_para_null <- extract_para(
+    sce = example_sce,
+    marginal_list = BATCH_marginal_null,
+    n_cores = 2,
+    family_use = "nb",
+    new_covariate =  BATCH_data$newCovariate,
+    data = BATCH_data$dat
+  )
+```
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
+BATCH_newcount_null <- simu_new(
+    sce = example_sce,
+    mean_mat = BATCH_para_null$mean_mat,
+    sigma_mat = BATCH_para_null$sigma_mat,
+    zero_mat = BATCH_para_null$zero_mat,
+    quantile_mat = NULL,
+    copula_list = BATCH_copula$copula_list,
+    n_cores = 2,
+    family_use = "nb",
+    input_data = BATCH_data$dat,
+    new_covariate = BATCH_data$newCovariate,
+    important_feature = BATCH_copula$important_feature
+  )
+```
+
+Additionally, we can alter the batch effect information by mannually change the estimated coefficient for batch effect in each gene's marginal model. Then, we can simulate new dataset with altered batch effect information.
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+BATCH_marginal_alter <- lapply(BATCH_marginal, function(x) {
+  x$fit$coefficients[length(x$fit$coefficients)] <- rnorm(1, mean = 5, sd = 2)
+  x
+})
+```
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+BATCH_para_alter <- extract_para(
+    sce = example_sce,
+    marginal_list = BATCH_marginal_alter,
+    n_cores = 2,
+    family_use = "nb",
+    new_covariate = BATCH_data$newCovariate,
+    data = BATCH_data$dat
+  )
+```
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
+BATCH_newcount_alter <- simu_new(
+    sce = example_sce,
+    mean_mat = BATCH_para_alter$mean_mat,
+    sigma_mat = BATCH_para_alter$sigma_mat,
+    zero_mat = BATCH_para_alter$zero_mat,
+    quantile_mat = NULL,
+    copula_list = BATCH_copula$copula_list,
+    n_cores = 2,
+    family_use = "nb",
+    input_data = BATCH_data$dat,
+    new_covariate = BATCH_data$newCovariate,
+    important_feature = BATCH_copula$important_feature
+  )
+```
+We create three `SingleCellExperiment` objects using three count matrices generated above and store their `logcounts`.
+```{r, message=FALSE, eval=TRUE}
+simu_res_list <- lapply(list(simu_res$new_count, BATCH_newcount_null, BATCH_newcount_alter), function(x){
+  simu_sce <- SingleCellExperiment(list(counts = x), colData = BATCH_data$newCovariate)
+  logcounts(simu_sce) <- log1p(counts(simu_sce))
+  return(simu_sce)
+})
+
+```
+
+## Visulization
+```{r, message=FALSE, fig.width=12, eval=TRUE}
+set.seed(123)
+compare_figure <- plot_reduceddim(ref_sce = example_sce, 
+                                  sce_list = simu_res_list, 
+                                  name_vec = c("Reference", "w/ Batch", "w/o Batch","Aritifical Batch"),
+                                  assay_use = "logcounts", 
+                                  if_plot = TRUE, 
+                                  color_by = "cell_type", 
+                                  shape_by = "batch",
+                                  n_pc = 20)
+plot(compare_figure$p_umap)
+```
+
+
+## Session information
+```{r}
+sessionInfo()
+```

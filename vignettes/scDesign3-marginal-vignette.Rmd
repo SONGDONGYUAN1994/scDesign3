@@ -1,0 +1,82 @@
+---
+title: "scDesign3 marginal distribution for genes"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+  - name: Qingyang Wang
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: qw802@g.ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign3-marginal-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+---
+```{r setup, echo=FALSE}
+library(kableExtra)
+```
+
+## Introduction
+In this tutorial, we explain different forms of the function that can be used when fitting the marginal distribution for each gene.
+
+## Notation
+The following notations are used:
+
+* ${\mathbf{Y}} = [Y_{ij}] \in \mathbb{R}^{n \times m}$: the cell-by-feature matrix with $n$ cells as rows, $m$ features as columns, and $Y_{ij}$ as the measurement of feature $j$ in cell $i$; for single-cell sequencing data, ${\mathbf{Y}}$ is often a count matrix.
+* $\mathbf{X} = [\mathbf{x}_1, \cdots, \mathbf{x}_n]^T \in \mathbb{R}^{n\times p}$: the cell-by-state-covariate matrix with $n$ cells as rows and $p$ cell-state covariates as columns; example covariates are cell type, cell pseudotime, and cell spatial locations.
+* $\mathbf{Z} = [\mathbf{b}, \mathbf{c}]$: $\mathbf{b} = (b_1, \ldots, b_n)^T$ has $b_i \in \{1, \ldots, B \}$ representing cell $i$'s batch, and $\mathbf{c} = (c_1, \ldots, c_n)^T$ has $c_i \in \{1, \ldots, C \}$ representing cell $i$'s condition. 
+
+
+For each feature $j=1,\ldots,m$ in every cell $i=1,\ldots,n$, the measurement $Y_{ij}$---conditional on cell $i$'s state covariates $\mathbf{x_i}$ and design covariates $\mathbf{z}_i = (b_i, c_i)^T$---is assumed to follow a distribution $F_{j}( \cdot~|~\mathbf{x}_i, \mathbf{z}_i~;~\mu_{ij}, \sigma_{ij}, p_{ij})$, which is specified as the generalized additive model for location, scale and shape (GAMLSS). The various specifications of $f_{jc_i}(\cdot)$, $g_{jc_i}(\cdot)$, and $h_{jc_i}(\cdot)$ are summarized in the next section.
+\begin{equation}
+\begin{cases}
+            Y_{ij}~|~\mathbf{x}_i, \mathbf{z}_i &\overset{\mathrm{ind}}{\sim} F_{j}( \cdot~|~\mathbf{x}_i, \mathbf{z}_i~;~\mu_{ij}, \sigma_{ij}, p_{ij})\\
+            \theta_{j}(\mu_{ij}) &= \alpha_{j0} + \alpha_{jb_i} + \alpha_{jc_i} + f_{jc_i}(\mathbf{x}_i) \\
+            \log(\sigma_{ij}) &= \beta_{j0}+ \beta_{jb_i} + \beta_{jc_i} + g_{jc_i}(\mathbf{x}_i) \\
+            \operatorname{logit}(p_{ij}) &= \gamma_{j0} + \gamma_{jb_i}+ \gamma_{jc_i}+ h_{jc_i}(\mathbf{x}_i) \\
+\end{cases} \,
+\end{equation}
+
+## Summary
+```{r, echo=FALSE}
+cov_type = c("Discrete cell type","Continuous pseudotime in one lineage","Continuous pseudotimes in $p$ lineages","Spatial location")
+form = c("$x_i \\in \\left\\{1, \\ldots, K_C\\right\\}$",
+         "$x_i \\in [0,\\infty)$",
+         "$\\mathbf{x}_i = (x_{i1}, \\ldots, x_{ip})^T \\in [0,\\infty)^{p}$",
+         "$\\mathbf{x}_i = (x_{i1}, x_{i2})^T \\in \\mathbb{R}^{2}$")
+function_form = c("$f_{jc_i}(x_i) = \\alpha_{jc_ix_i}$",
+                  "$f_{jc_i}({x}_i) = \\sum_{k = 1}^Kb_{jc_ik}(x_{i})\\beta_{jc_ik}$",
+                  "$f_{jc_i}(\\mathbf{x}_i) = \\sum_{l = 1}^p \\sum_{k = 1}^Kb_{jc_ilk}(x_{il})\\beta_{jc_ilk}$",
+                  "$f_{jc_i}(\\mathbf{x}_i) = f_{jc_i}^{\\operatorname{GP}}(x_{i1}, x_{i2}, K)$")
+expla = c("Cell type $x_i$ has the effect $\\alpha_{jc_ix_i}$; for identifiability, $\\alpha_{jc_ix_i} = 0$ if $x_i = 1$",
+          "$b_{jc_ik}(\\cdot)$ is a basis function of cubic spline; $K$ is the dimension of the basis",
+          "$b_{jc_ilk}(\\cdot)$ is a basis function of cubic spline; $K$ is the the dimension of the basis (default $K=10$)",
+          "$f_{jc_i}^{\\operatorname{GP}}(\\cdot, \\cdot, K)$ is a Gaussian process smoother; $K$ is the dimension of the basis (default $K=400$)")
+meaning = c("One intercept for each cell type",
+            "A curve along the pseudotime",
+            "One curve along each lineage",
+            "A smooth surface")
+code = c("mu_formula = \"cell_type\"",
+         "mu_formula = \"s(pseudotime)\"",
+         "mu_formula = \"s(pseudotime1, k = 10, by = l1, bs = 'cr') + s(pseudotime2, k = 10, by = l2, bs = 'cr')\", $p = 2$ in this case",
+         "mu_formula = \"s(spatial1, spatial2, bs = 'gp', k = 400)\"")
+df = data.frame(cbind(cov_type, form, function_form,expla, meaning, code))
+colnames(df) = c("Covariate type","Covariate form","Function form","Explaination","Geometric meaning", "Code Example")
+knitr::kable(format="html",
+                        df, 
+                        escape = FALSE) %>% 
+  kable_styling() %>% footnote(general="For simplicity, we only show the form of $f_{jc_i}(\\cdot)$ because $g_{jc_i}(\\cdot)$ and $h_{jc_i}(\\cdot)$ have the same form.",
+         footnote_as_chunk=TRUE, 
+         escape=FALSE)
+```

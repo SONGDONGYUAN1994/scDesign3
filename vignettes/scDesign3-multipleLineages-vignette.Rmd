@@ -1,0 +1,135 @@
+---
+title: "Simulate datasets with multiple lineages"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+  - name: Qingyang Wang
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: qw802@g.ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign3-multipleLineages_vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{css, echo=FALSE}
+pre {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+}
+```
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+tools::R_user_dir("scDesign3", which="cache")
+```
+
+
+```{r setup, message=FALSE}
+library(scDesign3)
+library(SingleCellExperiment)
+library(useful)
+library(gridExtra)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+
+## Introduction
+In this tutorial, we will show how to use scDesign3 to simulate the multiple lineages single-cell data.
+
+## Read in the reference data
+The raw data is from the [GEO with ID GSE72859](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE72859), which describes myeloid progenitors from mouse bone marrow. We pre-select the top 1000 highly variable genes. 
+
+```{r, message=FALSE}
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581980")))
+print(example_sce)
+```
+To save computational time, we only use the top 100 genes.
+```{r, message=FALSE}
+example_sce <- example_sce[1:100, ]
+```
+
+As we can see, this example dataset has two sets of pseudotime, thus two lineages. The variables `pseudotime1` and `pseudotime2` contain the corresponding pseudotime for each cell. The variables `l1` and `l2` indicate whether a particular cell belong to the first and/or second lineages.
+```{r, message=FALSE}
+head(colData(example_sce))[,c("pseudotime1","pseudotime2","l1","l2")]
+```
+
+## Simulation
+Then, we can use this multiple-lineage dataset to generate new data by setting the parameter `mu_formula` as two smooth terms for each lineage.
+```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
+set.seed(123)
+example_simu <- scdesign3(
+    sce = example_sce,
+    assay_use = "counts",
+    celltype = "cell_type",
+    pseudotime = c("pseudotime1", "pseudotime2", "l1", "l2"),
+    spatial = NULL,
+    other_covariates = NULL,
+    mu_formula = "s(pseudotime1, k = 10, by = l1, bs = 'cr') + s(pseudotime2, k = 10, by = l2, bs = 'cr')",
+    sigma_formula = "1",
+    family_use = "nb",
+    n_cores = 2,
+    usebam = FALSE,
+    corr_formula = "1",
+    copula = "gaussian",
+    DT = TRUE,
+    pseudo_obs = FALSE,
+    return_model = FALSE,
+    nonzerovar = FALSE
+  )
+```
+
+
+Then, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
+```{r, message=FALSE, eval=TRUE}
+logcounts(example_sce) <- log1p(counts(example_sce))
+simu_sce <- SingleCellExperiment(list(counts = example_simu$new_count), colData = example_simu$new_covariate)
+logcounts(simu_sce) <- log1p(counts(simu_sce))
+```
+
+
+
+## Visualization
+```{r, message=FALSE,eval=TRUE}
+set.seed(123)
+compare_figure <- plot_reduceddim(ref_sce = example_sce, 
+                                  sce_list = list(simu_sce), 
+                                  name_vec = c("Reference", "scDesign3"),
+                                  assay_use = "logcounts", 
+                                  if_plot = TRUE, 
+                                  color_by =  "pseudotime1",
+                                  n_pc = 20)
+compare_figure2 <- plot_reduceddim(ref_sce = example_sce, 
+                                  sce_list = list(simu_sce), 
+                                  name_vec = c("Reference", "scDesign3"),
+                                  assay_use = "logcounts", 
+                                  if_plot = TRUE, 
+                                  color_by =  "pseudotime2", 
+                                  n_pc = 20)
+grid.arrange(compare_figure$p_umap, compare_figure2$p_umap)
+```
+
+
+
+
+## Session information
+```{r}
+sessionInfo()
+```
+
