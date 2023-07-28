@@ -1,6 +1,7 @@
 #' Dimensionality reduction and visualization
 #' 
 #' \code{plot_reduceddim} performs the dimensionality reduction
+#' 
 #' This function takes a reference sce and a list of new sces, performs the dimensionality reduction on the reference data, 
 #' projects the synthetic datasets on the same low dimensional space,
 #' then visualize the results.
