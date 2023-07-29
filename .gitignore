@@ -60,3 +60,6 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+.git/
+.Rproj.user/
