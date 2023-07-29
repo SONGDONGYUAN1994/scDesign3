@@ -109,6 +109,8 @@ The output of `scdesign3()` is a list which includes:
     -   If the parameter `return_model` is set to `TRUE`, this will be a list which contains either a correlation matrix (when `copula = "gaussian"`) or the fitted Vine copula (when `copula = "vine"`) for each user specified correlation groups (based on the parameter `corr_by`).
     -   If the parameter `return_model` is set to the default value `FALSE`, this will be `NULL`.
 
+For more details about the `mu_formula` and `sigma_formula` formula specification, please check online materials about the package [mgcv](https://cran.r-project.org/web/packages/mgcv/index.html). Technically speaking, you can try any formulas as long as they are available for **mgcv**.
+
 ## Tutorials<a name="tutorials"></a>
 
 For all detailed tutorials, please check the [website](https://songdongyuan1994.github.io/scDesign3/docs/index.html). The tutorials will demonstrate the applications of **scDesign3** from the following four perspectives: data simulation, model parameters, model selection, and model alteration.
@@ -144,4 +146,4 @@ Any questions or suggestions on `scDesign3` are welcomed! Please report it on [i
     -   **scDesign**: [Li, W. V., & Li, J. J. (2019). A statistical simulator scDesign for rational scRNA-seq experimental design. Bioinformatics, 35(14), i41-i50.](https://academic.oup.com/bioinformatics/article/35/14/i41/5529133)
     -   **scDesign2**: [Sun, T., Song, D., Li, W. V., & Li, J. J. (2021). scDesign2: a transparent simulator that generates high-fidelity single-cell gene expression count data with gene correlations captured. Genome biology, 22(1), 1-37.](https://link.springer.com/article/10.1186/s13059-021-02367-2)
 -   The simulator for single-cell multi-omics reads developed by our lab memeber Guanao Yan
-    -   **scReadSim**: [Yan, G., & Li, J. J. (2022). scReadSim: a single-cell multi-omics read simulator. bioRxiv.](https://www.biorxiv.org/content/10.1101/2022.05.29.493924v1.abstract)
+    -   **scReadSim**: [Yan, G., Song, D., & Li, J. J. (2022). scReadSim: a single-cell multi-omics read simulator. bioRxiv.](https://www.biorxiv.org/content/10.1101/2022.05.29.493924v1.abstract)
