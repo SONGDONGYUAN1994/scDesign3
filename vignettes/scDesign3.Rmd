@@ -37,6 +37,7 @@ knitr::opts_chunk$set(
     comment = "#>",
     crop = NULL ## Related to https://stat.ethz.ch/pipermail/bioc-devel/2020-April/016656.html
 )
+tools::R_user_dir("scDesign3", which="cache")
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
