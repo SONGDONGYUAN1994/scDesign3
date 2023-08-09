@@ -226,7 +226,7 @@ extract_para <-  function(sce,
     }
 
     if(length(mean_vec) < total_cells){
-      full_means <- rep(NA, total_cells)
+      full_means <- rep(0, total_cells)
       names(full_means) <- cell_names
       full_means[names(mean_vec)] <- mean_vec
       full_theta <- rep(NA, total_cells)
