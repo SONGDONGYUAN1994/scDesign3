@@ -35,6 +35,7 @@
 #' @param nonnegative A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
 #' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA. Default is FALSE.
 #' @param return_model A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
+#' @param simplify A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}, otherwise the fitted models can be VERY large. Default is FALSE.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
 #' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
@@ -97,6 +98,7 @@ scdesign3 <- function(sce,
                       nonnegative = TRUE,
                       nonzerovar = FALSE,
                       return_model = FALSE,
+                      simplify = FALSE,
                       parallelization = "mcmapply",
                       BPPARAM = NULL,
                       trace = FALSE) {
@@ -126,7 +128,8 @@ scdesign3 <- function(sce,
     usebam = usebam,
     parallelization = parallelization,
     BPPARAM = BPPARAM,
-    trace = trace
+    trace = trace, 
+    simplify = simplify
   )
   message("Marginal Fitting End")
 

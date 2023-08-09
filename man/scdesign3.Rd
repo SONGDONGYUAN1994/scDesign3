@@ -28,6 +28,7 @@ scdesign3(
   nonnegative = TRUE,
   nonzerovar = FALSE,
   return_model = FALSE,
+  simplify = FALSE,
   parallelization = "mcmapply",
   BPPARAM = NULL,
   trace = FALSE
@@ -89,6 +90,8 @@ The default value for is a vector with length equal to the number of inputted ge
 \item{nonzerovar}{A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA. Default is FALSE.}
 
 \item{return_model}{A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.}
+
+\item{simplify}{A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}, otherwise the fitted models can be VERY large. Default is FALSE.}
 
 \item{parallelization}{A string indicating the specific parallelization function to use.
 Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package

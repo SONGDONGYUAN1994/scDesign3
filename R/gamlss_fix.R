@@ -7,6 +7,7 @@
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
 #' @noRd
+#' @export
 ga <- function(formula, envir, control = ga.control(...), ...)
 {
   #------------------------------------------
@@ -100,6 +101,7 @@ ga <- function(formula, envir, control = ga.control(...), ...)
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
 #' @noRd
+#' @export
 ba <-function(formula, control = ba.control(...), ...)
 {
   #------------------------------------------
@@ -368,6 +370,8 @@ model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), pa
 ##' @param xeval If xeval=TRUE then predicion is used
 ##' @param ... Other arguments
 ##' @noRd
+##' 
+##' @export
 gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting
@@ -409,6 +413,8 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
 ##' @param xeval If xeval=TRUE then predicion is used
 ##' @param ... Other arguments
 ##' @noRd
+##' 
+##' @export
 gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting

@@ -23,6 +23,8 @@
 #' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
 #' @param trace A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss
 #' will be returned, FALSE otherwise. Default is FALSE.
+#' @param simplify A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}. Default is FALSE.
+#' 
 #' @return A list of fitted regression models. The length is equal to the total feature number.
 #' @examples
 #'   data(example_sce)
@@ -55,7 +57,8 @@ fit_marginal <- function(data,
                          usebam,
                          parallelization = "mcmapply",
                          BPPARAM = NULL,
-                         trace = FALSE) {
+                         trace = FALSE, 
+                         simplify = FALSE) {
 
   count_mat <-  data$count_mat
   dat_cov <- data$dat
@@ -518,6 +521,10 @@ fit_marginal <- function(data,
       }
     }
 
+    if(simplify) {
+      fit <- simplify_fit(fit)
+    }
+    
     if(trace){
       return(list(fit = fit, warning = logs, time = time_list, removed_cell = remove_cell))
     }
@@ -563,4 +570,44 @@ fit_marginal <- function(data,
   #   model_fit <- model_fit$value
   # }
   return(model_fit)
+}
+
+##' @noRd
+##' 
+##' @export
+simplify_fit <- function(cm) {
+  ## This function is modified from https://win-vector.com/2014/05/30/trimming-the-fat-from-glm-models-in-r/
+  #cm$y = c()
+  #cm$model = c()
+  
+  #cm$residuals = c()
+  #cm$fitted.values = c()
+  #cm$effects = c()
+  #cm$qr$qr = c()  
+  #cm$linear.predictors = c()
+  #cm$weights = c()
+  #cm$prior.weights = c()
+  #cm$data = c()
+  
+  #cm$mu.x = c()
+  #cm$sigma.x = c()
+  #cm$nu.x = c()
+  
+  #cm$family$variance = c()
+  #cm$family$dev.resids = c()
+  #cm$family$aic = c()
+  #cm$family$validmu = c()
+  #cm$family$simulate = c()
+  attr(cm$terms,".Environment") = c()
+  attr(cm$formula,".Environment") = c()
+  
+  attr(cm$mu.terms,".Environment") = c()
+  attr(cm$mu.formula,".Environment") = c()
+ 
+  attr(cm$sigma.terms,".Environment") = c()
+  attr(cm$sigma.formula,".Environment") = c()
+
+  attr(cm$nu.terms,".Environment") = c()
+  attr(cm$nu.formula,".Environment") = c()
+  cm
 }

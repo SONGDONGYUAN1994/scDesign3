@@ -14,7 +14,8 @@ fit_marginal(
   usebam,
   parallelization = "mcmapply",
   BPPARAM = NULL,
-  trace = FALSE
+  trace = FALSE,
+  simplify = FALSE
 )
 }
 \arguments{
@@ -45,6 +46,8 @@ this parameter must be NULL. When the parameter parallelization = 'bpmapply',  t
 
 \item{trace}{A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss
 will be returned, FALSE otherwise. Default is FALSE.}
+
+\item{simplify}{A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}. Default is FALSE.}
 }
 \value{
 A list of fitted regression models. The length is equal to the total feature number.

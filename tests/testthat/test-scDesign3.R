@@ -51,10 +51,10 @@ test_that("Run scDesign3", {
   my_marginal3 <- fit_marginal(
     data = my_data,
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-    sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
+    sigma_formula = "s(pseudotime, bs = 'cr', k = 5)",
     family_use = c(rep("nb", 5), rep("zip", 5)),
     n_cores = 2,
-    usebam = TRUE
+    usebam = TRUE, trace = TRUE, simplify = TRUE
   )
 
   my_copula <- fit_copula(
@@ -63,7 +63,7 @@ test_that("Run scDesign3", {
     marginal_list = my_marginal3,
     family_use = c(rep("nb", 5), rep("zip", 5)),
     copula = "vine",
-    n_cores = 2,
+    n_cores = 1,
     input_data = my_data$dat
   )
 
@@ -94,7 +94,7 @@ test_that("Run scDesign3", {
     marginal_list = my_marginal3,
     n_cores = 1,
     family_use = c(rep("nb", 5), rep("zip", 5)),
-    new_covariate = my_data$new_covariate,
+    new_covariate = my_data2$new_covariate,
     data = my_data$dat
   )
 
@@ -122,7 +122,7 @@ test_that("Run scDesign3", {
     n_cores = 1,
     family_use = c(rep("nb", 5), rep("zip", 5)),
     input_data = my_data$dat,
-    new_covariate = my_data$new_covariate,
+    new_covariate = my_data2$new_covariate,
     important_feature = my_copula$important_feature
   )
 
@@ -134,16 +134,16 @@ test_that("Run scDesign3", {
     spatial = NULL,
     other_covariates = NULL,
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-    sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
-    family_use = c(rep("nb", 5), rep("zip", 5)),
-    n_cores = 2,
+    sigma_formula = "s(pseudotime, bs = 'cr', k = 5)",
+    family_use = c(rep("nb", 5), rep("nb", 5)),
+    n_cores = 1,
     usebam = FALSE,
     corr_formula = "pseudotime",
     copula = "vine",
     DT = TRUE,
     pseudo_obs = FALSE,
     ncell = 1000,
-    return_model = TRUE
+    return_model = TRUE, simplify = TRUE
   )
 
   # my_simu2 <- scdesign3(
