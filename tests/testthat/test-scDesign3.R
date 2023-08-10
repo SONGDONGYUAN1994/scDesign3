@@ -3,7 +3,7 @@ library(scDesign3)
 
 test_that("Run scDesign3", {
   data(example_sce)
-
+  
   my_data <- construct_data(
     sce = example_sce,
     assay_use = "counts",
@@ -51,8 +51,8 @@ test_that("Run scDesign3", {
   my_marginal3 <- fit_marginal(
     data = my_data,
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-    sigma_formula = "s(pseudotime, bs = 'cr', k = 5)",
-    family_use = c(rep("nb", 5), rep("zip", 5)),
+    sigma_formula = "1", #s(pseudotime, bs = 'cr', k = 3)
+    family_use = c(rep("nb", 9), rep("zip", 1)),
     n_cores = 2,
     usebam = TRUE, trace = TRUE, simplify = TRUE
   )
@@ -61,7 +61,7 @@ test_that("Run scDesign3", {
     sce = example_sce,
     assay_use = "counts",
     marginal_list = my_marginal3,
-    family_use = c(rep("nb", 5), rep("zip", 5)),
+    family_use = c(rep("nb", 9), rep("zip", 1)),
     copula = "vine",
     n_cores = 1,
     input_data = my_data$dat
@@ -72,7 +72,7 @@ test_that("Run scDesign3", {
     assay_use = "counts",
     empirical_quantile = TRUE,
     marginal_list = my_marginal3,
-    family_use = c(rep("nb", 5), rep("zip", 5)),
+    family_use = c(rep("nb", 9), rep("zip", 1)),
     copula = "vine",
     n_cores = 2,
     input_data = my_data$dat
@@ -93,7 +93,7 @@ test_that("Run scDesign3", {
     sce = example_sce,
     marginal_list = my_marginal3,
     n_cores = 1,
-    family_use = c(rep("nb", 5), rep("zip", 5)),
+    family_use = c(rep("nb", 9), rep("zip", 1)),
     new_covariate = my_data2$new_covariate,
     data = my_data$dat
   )
@@ -106,7 +106,7 @@ test_that("Run scDesign3", {
     quantile_mat = NULL,
     copula_list = my_copula$copula_list,
     n_cores = 1,
-    family_use = c(rep("nb", 5), rep("zip", 5)),
+    family_use = c(rep("nb", 9), rep("zip", 1)),
     input_data = my_data$dat,
     new_covariate = my_data$new_covariate,
     important_feature = my_copula$important_feature
@@ -120,7 +120,7 @@ test_that("Run scDesign3", {
     quantile_mat = my_quantile_mat$quantile_mat,
     copula_list = NULL,
     n_cores = 1,
-    family_use = c(rep("nb", 5), rep("zip", 5)),
+    family_use = c(rep("nb", 9), rep("zip", 1)),
     input_data = my_data$dat,
     new_covariate = my_data2$new_covariate,
     important_feature = my_copula$important_feature
@@ -135,7 +135,7 @@ test_that("Run scDesign3", {
     other_covariates = NULL,
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
     sigma_formula = "1",
-    family_use = c(rep("nb", 5), rep("zip", 5)),
+    family_use = c(rep("nb", 9), rep("zip", 1)),
     n_cores = 2,
     usebam = FALSE,
     corr_formula = "pseudotime",

@@ -574,17 +574,17 @@ fit_marginal <- function(data,
 
 simplify_fit <- function(cm) {
   ## This function is modified from https://win-vector.com/2014/05/30/trimming-the-fat-from-glm-models-in-r/
-  #cm$y = c()
+  cm$y = c()
   #cm$model = c()
   
-  #cm$residuals = c()
-  #cm$fitted.values = c()
-  #cm$effects = c()
-  #cm$qr$qr = c()  
-  #cm$linear.predictors = c()
-  #cm$weights = c()
-  #cm$prior.weights = c()
-  #cm$data = c()
+  cm$residuals = c()
+  cm$fitted.values = c()
+  cm$effects = c()
+  cm$qr$qr = c()  
+  cm$linear.predictors = c()
+  cm$weights = c()
+  cm$prior.weights = c()
+  cm$data = c()
   
   #cm$mu.x = c()
   #cm$sigma.x = c()
