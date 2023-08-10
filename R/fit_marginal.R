@@ -585,7 +585,7 @@ simplify_fit <- function(cm) {
   cm$weights = c()
   cm$prior.weights = c()
   cm$data = c()
-  
+
   #cm$mu.x = c()
   #cm$sigma.x = c()
   #cm$nu.x = c()
