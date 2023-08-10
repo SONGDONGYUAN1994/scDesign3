@@ -556,6 +556,9 @@ predict.gamlss <- function(object,
   offsetVar <- if (!is.null(off.num <- attr(Terms, "offset"))) # new
     eval(attr(Terms, "variables")[[off.num + 1]], data)
   ## model frame
+  if(is.null(environment(Terms))){
+    environment(Terms) <- globalenv()
+  }
   m <- stats::model.frame(Terms, data, xlev = object[[paste(what,"xlevels",sep=".")]])
   ## model design matrix y and w
   X <- stats::model.matrix(Terms, data, contrasts = object$contrasts)
