@@ -648,7 +648,7 @@ convert_u <- function(sce,
       data<- data[-removed_cell,]
     }
     if (methods::is(fit, "gamlss")) {
-      mean_vec <- stats::predict(fit, type = "response", what = "mu", data = data)
+      mean_vec <- stats::predict(fit, type = "response", what = "mu", data = data) #
       if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
@@ -656,7 +656,7 @@ convert_u <- function(sce,
           stats::predict(fit, type = "response", what = "sigma", data = data) # called the theta_vec but actually used as sigma_vec for Gaussian
       } else if (y == "nb") {
         theta_vec <-
-          1 / stats::predict(fit, type = "response", what = "sigma", data = data)
+          1 / stats::predict(fit, type = "response", what = "sigma", data = data) #
         #theta_vec[theta_vec < 1e-3] <- 1e-3
       } else if (y == "zip") {
         theta_vec <- rep(NA, length(mean_vec))

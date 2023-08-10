@@ -136,14 +136,14 @@ test_that("Run scDesign3", {
     mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
     sigma_formula = "s(pseudotime, bs = 'cr', k = 5)",
     family_use = c(rep("nb", 5), rep("nb", 5)),
-    n_cores = 1,
+    n_cores = 2,
     usebam = FALSE,
     corr_formula = "pseudotime",
     copula = "vine",
     DT = TRUE,
     pseudo_obs = FALSE,
     ncell = 1000,
-    return_model = TRUE, simplify = TRUE
+    return_model = TRUE, simplify = FALSE
   )
 
   # my_simu2 <- scdesign3(
