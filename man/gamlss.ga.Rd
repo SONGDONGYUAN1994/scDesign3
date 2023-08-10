@@ -17,6 +17,12 @@ gamlss.ga(x, y, w, xeval = NULL, ...)
 
 \item{...}{Other arguments}
 }
+\value{
+Not used
+}
 \description{
-This is support for the  smoother functions \code{ga()} intefaces for Simon Woood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
+This is support for the  smoother functions \code{ga()} interfaces for Simon Woood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
+}
+\examples{
+print("No example")
 }

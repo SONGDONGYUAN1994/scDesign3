@@ -13,6 +13,9 @@ ba(formula, control = ba.control(...), ...)
 
 \item{...}{Other arguments.}
 }
+\value{
+A xvar list.
+}
 \description{
 An additive function to be used while fitting GAMLSS models. The interface for \code{bam()} in the \pkg{mgcv} package.
 }
@@ -20,3 +23,6 @@ An additive function to be used while fitting GAMLSS models. The interface for \
 NA
 }
 
+\examples{
+print("No example")
+}

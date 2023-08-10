@@ -6,6 +6,12 @@
 #' @param envir The environment.
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
+#' 
+#' @return A xvar list.
+#' 
+#' @examples
+#' print("No example")
+#' 
 #' @export
 ga <- function(formula, envir, control = ga.control(...), ...)
 {
@@ -99,6 +105,9 @@ ga <- function(formula, envir, control = ga.control(...), ...)
 #' @param formula A formula of the model.
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
+#' @return A xvar list.
+#' @examples
+#' print("No example")
 #' @export
 ba <-function(formula, control = ba.control(...), ...)
 {
@@ -359,16 +368,18 @@ model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), pa
   mf
 }
 
-##' Support for Function ga()
-##'
-##'This is support for the  smoother functions \code{ga()} intefaces for Simon Woood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
-##' @param x The explanatory variables
-##' @param y Iterative y variable
-##' @param w Iterative weights
-##' @param xeval If xeval=TRUE then prediction is used
-##' @param ... Other arguments
-##' 
-##' @export
+#' Support for Function ga()
+#'
+#'This is support for the  smoother functions \code{ga()} interfaces for Simon Woood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
+#' @param x The explanatory variables
+#' @param y Iterative y variable
+#' @param w Iterative weights
+#' @param xeval If xeval=TRUE then prediction is used
+#' @param ... Other arguments
+#' @return Not used
+#' @examples
+#' print("No example")
+#' @export
 gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting
@@ -401,16 +412,18 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
 }
 
 
-##' Support for Function ba()
-##'
-##'This is support for the  smoother functions \code{ba()} intefaces for Simon Woood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
-##' @param x The explanatory variables
-##' @param y Iterative y variable
-##' @param w Iterative weights
-##' @param xeval If xeval=TRUE then prediction is used
-##' @param ... Other arguments
-##' 
-##' @export
+#' Support for Function ba()
+#'
+#'This is support for the  smoother functions \code{ba()} interfaces for Simon Woood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
+#' @param x The explanatory variables
+#' @param y Iterative y variable
+#' @param w Iterative weights
+#' @param xeval If xeval=TRUE then prediction is used
+#' @param ... Other arguments
+#' @return Not used
+#' @examples
+#' print("No example")
+#' @export
 gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting
