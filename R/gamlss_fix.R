@@ -6,7 +6,6 @@
 #' @param envir The environment.
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
-#' @noRd
 #' @export
 ga <- function(formula, envir, control = ga.control(...), ...)
 {
@@ -100,7 +99,6 @@ ga <- function(formula, envir, control = ga.control(...), ...)
 #' @param formula A formula of the model.
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
-#' @noRd
 #' @export
 ba <-function(formula, control = ba.control(...), ...)
 {
@@ -367,9 +365,8 @@ model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), pa
 ##' @param x The explanatory variables
 ##' @param y Iterative y variable
 ##' @param w Iterative weights
-##' @param xeval If xeval=TRUE then predicion is used
+##' @param xeval If xeval=TRUE then prediction is used
 ##' @param ... Other arguments
-##' @noRd
 ##' 
 ##' @export
 gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
@@ -410,9 +407,8 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
 ##' @param x The explanatory variables
 ##' @param y Iterative y variable
 ##' @param w Iterative weights
-##' @param xeval If xeval=TRUE then predicion is used
+##' @param xeval If xeval=TRUE then prediction is used
 ##' @param ... Other arguments
-##' @noRd
 ##' 
 ##' @export
 gamlss.ba <-function(x, y, w, xeval = NULL, ...) {

@@ -572,9 +572,6 @@ fit_marginal <- function(data,
   return(model_fit)
 }
 
-##' @noRd
-##' 
-##' @export
 simplify_fit <- function(cm) {
   ## This function is modified from https://win-vector.com/2014/05/30/trimming-the-fat-from-glm-models-in-r/
   #cm$y = c()
