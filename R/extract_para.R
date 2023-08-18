@@ -81,7 +81,9 @@ extract_para <-  function(sce,
 
   # find gene whose marginal is fitted
   qc_gene_idx <- which(!is.na(marginal_list))
-  
+  if(length(family_use) != 1){
+    family_use <- family_use[qc_gene_idx]
+  }
   # check if user inputted new covariates
   data_temp <- data[,colnames(new_covariate), drop = FALSE]
   if(identical(data_temp, new_covariate)){
@@ -298,7 +300,7 @@ extract_para <-  function(sce,
       colnames(sigma_mat) <- colnames(zero_mat) <- rownames(sce)
   }
 
-
+  zero_mat <- Matrix::Matrix(zero_mat, sparse = TRUE)
   return(list(
     mean_mat = mean_mat,
     sigma_mat = sigma_mat,

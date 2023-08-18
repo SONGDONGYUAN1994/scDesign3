@@ -21,7 +21,8 @@ simu_new(
   new_covariate,
   important_feature = "all",
   parallelization = "mcmapply",
-  BPPARAM = NULL
+  BPPARAM = NULL,
+  filtered_gene
 )
 }
 \arguments{
@@ -68,6 +69,9 @@ Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the
 \item{BPPARAM}{A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
+
+\item{filtered_gene}{A vector or NULL which contains genes that are excluded in the marginal and copula fitting 
+steps because these genes only express in less than two cells. This can be obtain from  \code{\link{construct_data}}}
 }
 \value{
 A feature by cell matrix of the new simulated count (expression) matrix or sparse matrix.
@@ -126,7 +130,8 @@ parameter matricies from \code{\link{extract_para}} and multivariate Unifs from 
   family_use = c(rep("nb", 5), rep("zip", 5)),
   input_data = my_data$dat,
   new_covariate = my_data$new_covariate,
-  important_feature = my_copula$important_feature
+  important_feature = my_copula$important_feature,
+  filtered_gene = my_data$filtered_gene
   )
 
 }

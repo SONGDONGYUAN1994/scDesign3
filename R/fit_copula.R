@@ -102,6 +102,9 @@ fit_copula <- function(sce,
   marginals <- lapply(marginal_list, function(x){x$fit})
   # find gene whose marginal is fitted
   qc_gene_idx <- which(!is.na(marginals))
+  if(length(family_use) != 1){
+    family_use <- family_use[qc_gene_idx]
+  }
   group_index <- unique(input_data$corr_group)
   ind <- group_index[1] == "ind"
   if(ind) {
@@ -184,7 +187,8 @@ fit_copula <- function(sce,
         n_cores = n_cores,
         family_use = family_use,
         epsilon = epsilon,
-        parallelization = parallelization
+        parallelization = parallelization,
+        BPPARAM = BPPARAM
       )
       message("Converting End")
     } else{
@@ -199,7 +203,8 @@ fit_copula <- function(sce,
         family_use = family_use,
         n_cores = n_cores,
         epsilon = epsilon,
-        parallelization = parallelization
+        parallelization = parallelization,
+        BPPARAM = BPPARAM
       )
       message("Converting End")
     }
@@ -416,7 +421,8 @@ convert_n <- function(sce,
                       epsilon = 1e-6,
                       family_use,
                       n_cores,
-                      parallelization) {
+                      parallelization,
+                      BPPARAM) {
   ## Extract count matrix
   count_mat <-
       t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
@@ -630,7 +636,8 @@ convert_u <- function(sce,
                       epsilon = 1e-6,
                       n_cores,
                       family_use,
-                      parallelization) {
+                      parallelization,
+                      BPPARAM) {
   ## Extract count matrix
   count_mat <-
       t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))

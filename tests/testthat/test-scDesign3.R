@@ -3,7 +3,6 @@ library(scDesign3)
 
 test_that("Run scDesign3", {
   data(example_sce)
-  
   my_data <- construct_data(
     sce = example_sce,
     assay_use = "counts",
@@ -109,7 +108,8 @@ test_that("Run scDesign3", {
     family_use = c(rep("nb", 9), rep("zip", 1)),
     input_data = my_data$dat,
     new_covariate = my_data$new_covariate,
-    important_feature = my_copula$important_feature
+    important_feature = my_copula$important_feature,
+    filtered_gene = my_data$filtered_gene
   )
   
   my_newcount2 <- simu_new(
@@ -123,7 +123,8 @@ test_that("Run scDesign3", {
     family_use = c(rep("nb", 9), rep("zip", 1)),
     input_data = my_data$dat,
     new_covariate = my_data2$new_covariate,
-    important_feature = my_copula$important_feature
+    important_feature = my_copula$important_feature,
+    filtered_gene = my_data$filtered_gene
   )
 
   my_simu <- scdesign3(

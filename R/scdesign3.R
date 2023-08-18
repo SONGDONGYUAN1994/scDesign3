@@ -203,7 +203,8 @@ Extraction End")
       new_covariate = input_data$newCovariate,
       important_feature = copula_res$important_feature,
       parallelization = parallelization,
-      BPPARAM = BPPARAM
+      BPPARAM = BPPARAM,
+      filtered_gene = input_data$filtered_gene
     )
   } else {
     new_count <- simu_new(
@@ -222,7 +223,8 @@ Extraction End")
       new_covariate = input_data$newCovariate,
       important_feature = copula_res$important_feature,
       parallelization = parallelization,
-      BPPARAM = BPPARAM
+      BPPARAM = BPPARAM,
+      filtered_gene = input_data$filtered_gene
     )
   }
   

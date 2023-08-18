@@ -28,6 +28,8 @@
 #'   \item{\code{count_mat}}{The expression matrix}
 #'   \item{\code{dat}}{The original covariate matrix}
 #'   \item{\code{newCovariate}}{The simulated new covariate matrix, is NULL if the parameter ncell is default}
+#'   \item{\code{filtered_gene}}{The genes that are excluded in the marginal and copula fitting 
+#' steps because these genes only express in less than two cells.}
 #' }
 #' @examples
 #'   data(example_sce)
@@ -168,8 +170,16 @@ construct_data <- function(sce,
     }
   }
   dat$corr_group <- corr_group
-
-  return(list(count_mat = count_mat, dat = dat, newCovariate = newCovariate))
+  
+  qc <- apply(count_mat, 2, function(x){
+    return(length(which(x < 1e-5)) > length(x) - 2)
+  })
+  if(length(which(qc)) == 0){
+    filtered_gene <- NULL
+  }else{
+    filtered_gene <- names(which(qc)) 
+  }
+  return(list(count_mat = count_mat, dat = dat, newCovariate = newCovariate, filtered_gene = filtered_gene))
 }
 
 

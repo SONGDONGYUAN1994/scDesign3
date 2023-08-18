@@ -32,7 +32,8 @@
 #' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 #' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
-#'
+#' @param filtered_gene A vector or NULL which contains genes that are excluded in the marginal and copula fitting 
+#' steps because these genes only express in less than two cells. This can be obtain from  \code{\link{construct_data}}
 #' @return A feature by cell matrix of the new simulated count (expression) matrix or sparse matrix.
 #' @examples
 #'   data(example_sce)
@@ -81,7 +82,8 @@
 #'   family_use = c(rep("nb", 5), rep("zip", 5)),
 #'   input_data = my_data$dat,
 #'   new_covariate = my_data$new_covariate,
-#'   important_feature = my_copula$important_feature
+#'   important_feature = my_copula$important_feature,
+#'   filtered_gene = my_data$filtered_gene
 #'   )
 #'
 #' @export simu_new
@@ -102,7 +104,8 @@ simu_new <- function(sce,
                      new_covariate,
                      important_feature = "all",
                      parallelization = "mcmapply",
-                     BPPARAM = NULL){
+                     BPPARAM = NULL,
+                     filtered_gene){
   if(!is.null(quantile_mat) & !is.null(copula_list)) {
     stop("You can only provide either the quantile_mat or the copula_list!")
   }
@@ -113,7 +116,10 @@ simu_new <- function(sce,
     new_covariate <- NULL
   }
   
-  qc_gene_idx <- which(apply(mean_mat, 2, function(x){!sum(x,na.rm = TRUE)==0}))
+  qc_gene_idx <- which(!rownames(sce) %in% filtered_gene)
+  if(length(family_use) != 1){
+    family_use <- family_use[qc_gene_idx]
+  }
  
     if(!is.null(quantile_mat)) {
       message("Multivariate quantile matrix is provided")

@@ -62,6 +62,7 @@ fit_marginal <- function(data,
 
   count_mat <-  data$count_mat
   dat_cov <- data$dat
+  filtered_gene <- data$filtered_gene
   feature_names <- colnames(count_mat)
 
   ## Check family_use
@@ -179,7 +180,7 @@ fit_marginal <- function(data,
 
     logs <- list()
     ## Don't fit marginal if gene only have two or less non-zero expression
-    if(length(which(dat_use$gene < 1e-5)) > length(dat_use$gene) - 2){
+    if(!is.null(filtered_gene) & gene %in% filtered_gene){
       add_log("fit_marginal","warning", paste0(gene, "is expressed in too few cells."))
       return(list(fit = NA, warning = logs, time = c(NA,NA)))
     }

@@ -50,6 +50,8 @@ A list with the components:
   \item{\code{count_mat}}{The expression matrix}
   \item{\code{dat}}{The original covariate matrix}
   \item{\code{newCovariate}}{The simulated new covariate matrix, is NULL if the parameter ncell is default}
+  \item{\code{filtered_gene}}{The genes that are excluded in the marginal and copula fitting 
+steps because these genes only express in less than two cells.}
 }
 }
 \description{
