@@ -175,7 +175,8 @@ set.seed(123)
     family_use = "nb",
     input_data = PANCREAS_data$dat,
     new_covariate = PANCREAS_data$newCovariate,
-    important_feature = PANCREAS_copula$important_feature
+    important_feature = PANCREAS_copula$important_feature,
+    filtered_gene = PANCREAS_data$filtered_gene
   )
 ```
 

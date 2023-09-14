@@ -167,7 +167,8 @@ RNA_res <- simu_new(
     family_use = "gaussian",
     input_data = RNA_data$dat,
     new_covariate = rbind(RNA_data$dat, METH_data$dat),
-    important_feature = RNA_copula$important_feature
+    important_feature = RNA_copula$important_feature,
+    filtered_gene = RNA_data$filtered_gene
   )
 METH_res <- simu_new(
     sce = SCGEMMETH_sce,
@@ -180,7 +181,8 @@ METH_res <- simu_new(
     family_use = "binomial",
     input_data = METH_data$dat,
     new_covariate = rbind(RNA_data$dat, METH_data$dat),
-    important_feature = METH_copula$important_feature
+    important_feature = METH_copula$important_feature,
+    filtered_gene = METH_data$filtered_gene
   )
 ```
 

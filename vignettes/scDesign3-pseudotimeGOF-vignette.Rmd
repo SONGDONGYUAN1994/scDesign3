@@ -78,7 +78,7 @@ example_sce <- out$dataset
 colData(example_sce)$pseudotime <- out$model$experiment$cell_info$time 
 ```
 
-Secondly, we perturb the pseudotime by generating random numbers from uniform distribution and replace various percentage of the original pseudotime by the random numbers. The percentage ranges from 0% to 100%.
+Secondly, we perturb the pseudotime by generating random numbers from uniform distribution and replacing various percentages of the original pseudotime with random numbers. The percentage ranges from 0% to 100%. In the code below, we generate 11 sets of perturbed pseudotime with the percentage of perturbation ranging from 0% to 100%. For each new set of perturbed pseudotime, we create a new `SingleCellExperiment` object, storing the original count matrix and the corresponding perturbed pseudotime. 
 ```{r, message=FALSE, eval=TRUE}
 set.seed(123)
 example_sce_list <- lapply(0:10, function(x) {
@@ -95,7 +95,7 @@ example_sce_list <- lapply(0:10, function(x) {
 })
 ```
 
-Thirdly, we run the function `scdesign3` on datasets with perturbed pseudotime.
+Thirdly, we iteratively run the function `scdesign3`; each iteration uses a different set of pseudotime that we generated above.
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 set.seed(123)
 scDesign3_result <- lapply(example_sce_list, function(x) {
@@ -118,11 +118,18 @@ scDesign3_result <- lapply(example_sce_list, function(x) {
 
 
 ## Visualization
-After the simulation, we can plot the BIC values from our function `scdesign3` vs calculated $r^2$ between the original pseudotime and perturbed pseudotime.
+After the simulations, we first extract out scDesign3's BIC, which is an unsupervised metric for evaluating the goodness-of-fit of the pseudotime. 
 ```{r, message=FALSE}
 bic_list <- lapply(scDesign3_result, function(x){return(x$model_bic)})
 bic_df <- data.frame(matrix(unlist(bic_list), nrow = length(bic_list), byrow = TRUE))
 colnames(bic_df) <- names(bic_list[[1]])
+bic_df
+```
+
+
+
+Since we also have the ground truth pseudotime, we also calculate the $r^2$ between the ground truth pseudotime and perturbed pseudotime. The $r^2$ is a supervised metric to evaluate the pseudotime qualities. The figure below demonstrates that scDesign3's BIC agrees with $r^2$.
+```{r, message=FALSE}
 r2 <- sapply(example_sce_list, function(x){
   cor(colData(example_sce_list[[1]])$pseudotime, colData(x)$pseudotime)^2
 })

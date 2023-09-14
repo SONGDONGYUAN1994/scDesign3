@@ -170,7 +170,8 @@ set.seed(123)
     family_use = "nb",
     input_data = example_data$dat,
     new_covariate = example_data$newCovariate,
-    important_feature = example_copula$important_feature
+    important_feature = example_copula$important_feature,
+    filtered_gene = example_data$filtered_gene
   )
 ```
 
@@ -352,7 +353,8 @@ set.seed(1)
     family_use = "nb",
     input_data = PANCREAS_data$dat,
     new_covariate = PANCREAS_data$newCovariate,
-    important_feature = PANCREAS_copula$important_feature
+    important_feature = PANCREAS_copula$important_feature,
+    filtered_gene = PANCREAS_data$filtered_gene
   )
 ```
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
@@ -599,7 +601,8 @@ set.seed(1)
     family_use = "nb",
     input_data = example_data$dat,
     new_covariate = example_data$newCovariate,
-    important_feature = rep(TRUE, dim(example_sce)[1])
+    important_feature = rep(TRUE, dim(example_sce)[1]),
+    filtered_gene = example_data$filtered_gene
   )
 ```
 ```{r, message=FALSE, eval=TRUE}

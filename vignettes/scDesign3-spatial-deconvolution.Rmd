@@ -117,7 +117,8 @@ MOBSC_newcount <- simu_new(
   n_cores = 2,
   family_use = "nb",
   input_data = MOBSC_data$dat,
-  new_covariate = MOBSC_data$newCovariate
+  new_covariate = MOBSC_data$newCovariate,
+  filtered_gene = MOBSC_data$filtered_gene
 )
 ```
 

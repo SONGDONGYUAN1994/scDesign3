@@ -81,7 +81,7 @@ train_sce <- sce[, train_index]
 ```
 
 ## Simulation
-We then use different cell-type clustering information to simulate new data.
+We then use the nine different cell-type clustering information (the results from k-means clustering with k = $2, \cdots, 10$) to simulate nine synthetic datasets. In the code below, we iteratively run scDesign3, and in each iteration, we use a different set of k-means clustering labels as the `celltype` covariate. 
 ```{r, message=FALSE, warning=FALSE, results='hide', eval=TRUE}
 set.seed(123)
 scDesign3_result <- lapply(kmeans_res, function(x) {
@@ -107,13 +107,19 @@ scDesign3_result <- lapply(kmeans_res, function(x) {
 
 
 ## Visualization
-After the simulations, we can check the BIC provided by our package and the calculated ARI to evaluate k-means clustering qualities.
-```{r, message=FALSE}
+After the simulations, we first extract out scDesign3's BIC, which is an unsupervised metric for evaluating the goodness-of-fit of the clustering labels. 
+```{r, message=TRUE}
 bic_list <- lapply(scDesign3_result, function(x){return(x$model_bic)})
 kmeans_ari <- sapply(kmeans_res, function(x){ARI(x$cluster, x$trueclass)})
 bic_df <- data.frame(matrix(unlist(bic_list), nrow = length(bic_list), byrow = TRUE))
 colnames(bic_df) <- names(bic_list[[1]])
 rownames(bic_df) <- paste0("k = ", 2:10)
+bic_df
+```
+
+Since we also have ground truth cell type labels from `DuoClustering2018`, we also calculate the Adjusted Rand Index (ARI) using each set of clustering labels from k-means clustering and the ground truth cell type labels. The ARI is a supervised metric to evaluate the clustering qualities. The figure below demonstrates that scDesign3's BIC agrees with ARI. 
+```{r, message=FALSE}
+
 metric <- tibble(ari = kmeans_ari, bic = bic_df$bic.marginal, Method = paste0("k = ", 2:10))
 p_cluster_metric <- metric %>% ggplot(aes(x =ari, y = bic,label = Method)) + geom_point() + theme_bw() + theme(aspect.ratio = 1,
     panel.grid.minor = element_blank(),
