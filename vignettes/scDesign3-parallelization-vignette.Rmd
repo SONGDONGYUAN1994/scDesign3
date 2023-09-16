@@ -1,0 +1,177 @@
+---
+title: "Parallelization in scDesign3"
+author: 
+  - name: Dongyuan Song
+    affiliation:
+    - Bioinformatics IDP, University of California, Los Angeles
+    email: dongyuansong@ucla.edu
+  - name: Qingyang Wang
+    affiliation:
+    - Department of Statistics, University of California, Los Angeles
+    email: qw802@g.ucla.edu
+output: 
+  BiocStyle::html_document:
+    self_contained: yes
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    code_folding: show
+date: "`r doc_date()`"
+package: "`r pkg_ver('scDesign3')`"
+vignette: >
+  %\VignetteIndexEntry{scDesign3-parallelization-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{css, echo=FALSE}
+pre {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+}
+```
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+tools::R_user_dir("scDesign3", which="cache")
+```
+
+```{r setup, message=FALSE}
+library(scDesign3)
+library(BiocParallel)
+```
+
+
+
+## Introduction
+In this tutorial, we will demonstrate how to use the parallelization functions from three packages: `parallel`, `pbmcapply`,`BiocParallel`. For the demonstration purpose, we will use our one-shot function `scdesign3` to show how to adjust the parameter to use different parallelization functions. Although we only show how to change parallelization functions for our one-shot function `scdesign3`, the same logic holds for all other methods in our package with the parameters `parallelization` and `BPPARAM`. 
+
+* For Linux/Mac users:
+The possible parallel methods include `mcmapply`, `pbmcmapply` and `bpmapply`, which are parallelization functions from `parallel`, `pbmcapply`,`BiocParallel`, respectively. If you are using the `bpmapply` method, then you should give the parameter `BPPARAM` in `scdesign3` 
+the output from `MulticoreParam` or `SnowParam`, which are two functions from `BiocParallel`.
+
+* For Windows users:
+The only choice is to choose `bpmapply` method and run this function by using the `BPPARAM` parameter in `scdesign3` to the output from the `SnowParam` function in `BiocParallel`. **Setting more than 1 core is not allowed in other methods**.
+
+
+## Read in the reference data
+The raw data is from the [scvelo](https://scvelo.readthedocs.io/scvelo.datasets.pancreas/), which describes pancreatic endocrinogenesis. We pre-select the top 1000 highly variable genes and filter out some cell types to ensure a **single trajectory**.
+```{r}
+example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581992")))
+print(example_sce)
+```
+
+To save computational time, we only use the top 100 genes.
+```{r}
+example_sce <- example_sce[1:100, ]
+```
+
+
+## Paralleization function from `parallel`
+The parameter `parallelization` in `scdesign3` is set to use `mcmapply` from the R package `parallel` by default. Therefore, if you want to use the 
+parallelization function from `parallel`, you do not need to modify the parameter `parallelization` in `scdesign3`.
+```{r, message=FALSE, warning=FALSE}
+set.seed(123)
+example_simu <- scdesign3(
+    sce = example_sce,
+    assay_use = "counts",
+    celltype = "cell_type",
+    pseudotime = "pseudotime",
+    spatial = NULL,
+    other_covariates = NULL,
+    mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
+    sigma_formula = "1",
+    family_use = "nb",
+    n_cores = 2,
+    usebam = FALSE,
+    corr_formula = "1",
+    copula = "gaussian",
+    DT = TRUE,
+    pseudo_obs = FALSE,
+    return_model = FALSE,
+    nonzerovar = FALSE
+  )
+```
+
+
+## Paralleization function from `pbmcapply`
+The `pbmcmapply` function from the R package `pbmcapply` gives users a progress bar of the paralleilization. To use `pbmcmapply`, you need to set the parameter `paralleilization` to "pbmcmapply".
+```{r, message=FALSE, warning=FALSE}
+set.seed(123)
+example_simu <- scdesign3(
+    sce = example_sce,
+    assay_use = "counts",
+    celltype = "cell_type",
+    pseudotime = "pseudotime",
+    spatial = NULL,
+    other_covariates = NULL,
+    mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
+    sigma_formula = "1",
+    family_use = "nb",
+    n_cores = 2,
+    usebam = FALSE,
+    corr_formula = "1",
+    copula = "gaussian",
+    DT = TRUE,
+    pseudo_obs = FALSE,
+    return_model = FALSE,
+    nonzerovar = FALSE,
+    parallelization = "pbmcmapply"
+  )
+```
+
+
+
+## Paralleization function from `BiocParallel`
+The `pbmapply` function from the R package `BicoParallel` is another choice of parallelization. To use `pbmapply`, you need to set the parameter `parallelization` to "pbmapply" and set the parameter `BPPARAM` to the output of the function `MulticoreParam()` or `SnowParam()` from `BiocParallel`. More detail documentation about how to set the parameter `BPPARAM` can be found [here](https://www.bioconductor.org/packages/devel/bioc/manuals/BiocParallel/man/BiocParallel.pdf).
+```{r, message=FALSE, warning=FALSE}
+set.seed(123)
+example_simu <- scdesign3(
+    sce = example_sce,
+    assay_use = "counts",
+    celltype = "cell_type",
+    pseudotime = "pseudotime",
+    spatial = NULL,
+    other_covariates = NULL,
+    mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
+    sigma_formula = "1",
+    family_use = "nb",
+    n_cores = 2,
+    usebam = FALSE,
+    corr_formula = "1",
+    copula = "gaussian",
+    DT = TRUE,
+    pseudo_obs = FALSE,
+    return_model = FALSE,
+    nonzerovar = FALSE,
+    parallelization = "pbmapply",
+    BPPARAM = MulticoreParam()
+  )
+```
+
+```{r, message=FALSE, warning=FALSE}
+set.seed(123)
+example_simu <- scdesign3(
+    sce = example_sce,
+    assay_use = "counts",
+    celltype = "cell_type",
+    pseudotime = "pseudotime",
+    spatial = NULL,
+    other_covariates = NULL,
+    mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
+    sigma_formula = "1",
+    family_use = "nb",
+    n_cores = 2,
+    usebam = FALSE,
+    corr_formula = "1",
+    copula = "gaussian",
+    DT = TRUE,
+    pseudo_obs = FALSE,
+    return_model = FALSE,
+    nonzerovar = FALSE,
+    parallelization = "pbmapply",
+    BPPARAM = SnowParam()
+  )
+```

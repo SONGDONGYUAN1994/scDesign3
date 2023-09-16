@@ -372,6 +372,8 @@ check out our manuscript on Nature Biotechnology:</p>
 D., Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico
 data for multimodal single-cell and spatial omics. <em>Nat
 Biotechnol</em> (2023).</a></p>
+<p>Please note that the parallel computing of scDesign3 is mainly
+designed for UNIX OS; be careful when you set <code>n_cores</code>.</p>
 </div>
 <div id="table-of-contents" class="section level1">
 <h1>Table of contents</h1>
@@ -419,7 +421,7 @@ link</a>.</p>
     DT = TRUE,
     pseudo_obs = FALSE,
     family_set = c(&quot;gauss&quot;, &quot;indep&quot;),
-    important_feature = rep(TRUE, dim(sce)[1]),
+    important_feature = &quot;all&quot;,
     nonnegative = TRUE,
     return_model = FALSE,
     nonzerovar = FALSE,
@@ -487,17 +489,16 @@ Default is FALSE.</li>
 bivariate copula families. Default is c(“gauss”, “indep”).</li>
 <li><code>important_feature</code>: A string or vector which indicates
 whether a gene will be used in correlation estimation or not. If this is
-a string, then this string must be “auto”, which indicates that the
-genes will be automatically selected based on the proportion of zero
-expression across cells for each gene. Gene with zero proportion greater
-than 0.8 will be excluded form gene-gene correlation estimation. If this
-is a vector, then this should be a logical vector with length equal to
-the number of genes in sce. TRUE in the logical vector means the
-corresponding gene will be included in gene-gene correlation estimation
-and FALSE in the logical vector means the corresponding gene will be
-excluded from the gene-gene correlation estimation. The default value
-for is a vector with length equal to the number of inputted genes and
-every value equals to TRUE.</li>
+a string, then this string must be “all” or “auto”, which indicates that
+all genes are used or the genes will be automatically selected based on
+the proportion of zero expression across cells for each gene. Gene with
+zero proportion greater than 0.8 will be excluded form gene-gene
+correlation estimation. If this is a vector, then this should be a
+logical vector with length equal to the number of genes in sce. TRUE in
+the logical vector means the corresponding gene will be included in
+gene-gene correlation estimation and FALSE in the logical vector means
+the corresponding gene will be excluded from the gene-gene correlation
+estimation. The default value is “all”.</li>
 <li><code>nonnegative</code>: A logical variable. If TRUE, values &lt; 0
 in the synthetic data will be converted to 0. Default is TRUE (since the
 expression matrix is nonnegative).</li>
@@ -559,6 +560,11 @@ correlation groups (based on the parameter <code>corr_by</code>).</li>
 value <code>FALSE</code>, this will be <code>NULL</code>.</li>
 </ul></li>
 </ul>
+<p>For more details about the <code>mu_formula</code> and
+<code>sigma_formula</code> formula specification, please check online
+materials about the package <a href="https://cran.r-project.org/web/packages/mgcv/index.html">mgcv</a>.
+Technically speaking, you can try any formulas as long as they are
+available for <strong>mgcv</strong>.</p>
 </div>
 <div id="tutorials" class="section level2">
 <h2>Tutorials<a name="tutorials"></a></h2>
@@ -592,6 +598,8 @@ introduction</a></li>
 marginal distribution for genes</a></li>
 <li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-copulaCompare-vignette.html">Compare
 Gaussian copula and Vine copula</a></li>
+<li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-parallelization-vignette.html">Parallelization
+in scDesign3</a></li>
 </ul></li>
 <li>Model selection
 <ul>
@@ -620,6 +628,13 @@ or contact Dongyuan Song (<a href="mailto:dongyuansong@ucla.edu" class="email">d
 <div id="related-manuscripts" class="section level2">
 <h2>Related Manuscripts<a name="related-manuscripts"></a></h2>
 <ul>
+<li>The original <strong>scDesign3</strong> paper
+<ul>
+<li><strong>scDesign3</strong>: <a href="https://www.nature.com/articles/s41587-023-01772-1">Song, D.,
+Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico data
+for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em>
+(2023).</a></li>
+</ul></li>
 <li>The predecessors of <strong>scDesign3</strong>
 <ul>
 <li><strong>scDesign</strong>: <a href="https://academic.oup.com/bioinformatics/article/35/14/i41/5529133">Li,
@@ -636,8 +651,8 @@ expression count data with gene correlations captured. Genome biology,
 memeber Guanao Yan
 <ul>
 <li><strong>scReadSim</strong>: <a href="https://www.biorxiv.org/content/10.1101/2022.05.29.493924v1.abstract">Yan,
-G., &amp; Li, J. J. (2022). scReadSim: a single-cell multi-omics read
-simulator. bioRxiv.</a></li>
+G., Song, D., &amp; Li, J. J. (2022). scReadSim: a single-cell
+multi-omics read simulator. bioRxiv.</a></li>
 </ul></li>
 </ul>
 </div>

@@ -75,7 +75,7 @@ example_simu <- scdesign3(
     spatial = NULL,
     other_covariates = NULL,
     mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
-    sigma_formula = "s(pseudotime, k = 5, bs = 'cr')",
+    sigma_formula = "1", # If you want your dispersion also varies along pseudotime, use "s(pseudotime, k = 5, bs = 'cr')"
     family_use = "nb",
     n_cores = 2,
     usebam = FALSE,
@@ -84,8 +84,7 @@ example_simu <- scdesign3(
     DT = TRUE,
     pseudo_obs = FALSE,
     return_model = FALSE,
-    nonzerovar = FALSE,
-    parallelization = "pbmcmapply"
+    nonzerovar = FALSE
   )
 ```
 The output of `scdesign3()` is a list which includes:

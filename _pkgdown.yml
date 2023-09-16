@@ -9,6 +9,7 @@ articles:
   - scDesign3-introduction-vignette
   - scDesign3-marginal-vignette
   - scDesign3-copulaCompare-vignette
+  - scDesign3-parallelization-vignette
   - scDesign3-librarySize-vignette
   - scDesign3-multipleLineages-vignette
   - scDesign3-conditionEffect-vignette
