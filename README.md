@@ -127,6 +127,7 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
     -   [scDesign3 introduction](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-introduction-vignette.html)
     -   [scDesign3 marginal distribution for genes](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-marginal-vignette.html)
     -   [Compare Gaussian copula and Vine copula](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-copulaCompare-vignette.html)
+    -   [Parallelization in scDesign3](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-parallelization-vignette.html)
 -   Model selection
     -   [Evaluate clustering goodness-of-fit by scDesign3](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-clusterGOF-vignette.html)
     -   [Evaluate pseudotime goodness-of-fit by scDesign3](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-pseudotimeGOF-vignette.html)

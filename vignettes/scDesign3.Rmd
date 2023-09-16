@@ -109,8 +109,7 @@ dim(example_simu$new_count)
 Then, we can create the `SinglecellExperiment` object using the synthetic count matrix and store the `logcounts` to the input and synthetic `SinglecellExperiment` objects.
 ```{r}
 logcounts(example_sce) <- log1p(counts(example_sce))
-simu_sce <- example_sce
-counts(simu_sce) <- example_simu$new_count
+simu_sce <- SingleCellExperiment(list(counts = example_simu$new_count), colData = example_simu$new_covariate)
 logcounts(simu_sce) <- log1p(counts(simu_sce))
 ```
 

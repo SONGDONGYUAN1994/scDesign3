@@ -121,17 +121,20 @@ plot_reduceddim <- function(ref_sce,
     p_pca <- ggplot(rd_tbl, aes_string(x = "PC1", y = "PC2", color = color_by)) +
       geom_point(alpha = 0.5, size = point_size, aes_string(shape = shape_by)) +
       facet_wrap(~Method, nrow = 1) +
-      theme(aspect.ratio = 1, legend.position = "bottom") +
-      guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
+      theme(aspect.ratio = 1, legend.position = "bottom") 
+      
     p_umap <- ggplot(rd_tbl, aes_string(x = "UMAP1", y = "UMAP2", color = color_by)) +
       geom_point(alpha = 0.5, size = point_size, aes_string(shape = shape_by)) +
       facet_wrap(~Method, nrow = 1) +
-      theme(aspect.ratio = 1, legend.position = "bottom") +
-      guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
+      theme(aspect.ratio = 1, legend.position = "bottom") 
+      
 
     if(is.numeric(unlist(rd_tbl[, color_by]))) {
       p_pca <- p_pca + viridis::scale_color_viridis()
       p_umap <- p_umap + viridis::scale_color_viridis()
+    }else{
+      p_pca <- p_pca + guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
+      p_umap <- p_umap + guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
     }
 
     return(list(p_pca = p_pca, p_umap = p_umap))
