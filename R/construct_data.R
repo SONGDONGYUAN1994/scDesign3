@@ -111,8 +111,8 @@ construct_data <- function(sce,
 
   ## dat is the input covariate matrix
   if (!is.null(other_covariates)) {
-    other_covariates <- as.matrix(coldata_mat[, other_covariates, drop = FALSE])
-    dat <- cbind(dat, other_covariates)
+    other_covariates <- (coldata_mat[, other_covariates, drop = FALSE])
+    dat <- dplyr::bind_cols(dat, other_covariates)
     if("condition" %in% colnames(other_covariates)){
       dat$condition <- as.factor(dat$condition)
     }
