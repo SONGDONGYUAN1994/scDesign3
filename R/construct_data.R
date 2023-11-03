@@ -221,6 +221,9 @@ simuCovariateMat <- function(covariate_mat,
         df <- dplyr::select(df, -"discrete_group")
         df_numeric <- dplyr::select_if(df, is.numeric)
         df_factor <- dplyr::select_if(df, is.factor)
+        if(n == 0){
+          return(NA)
+        }
         fit_kde <- rvinecopulib::vine(df_numeric, cores = 1)
         new_dat <- rvinecopulib::rvine(n, fit_kde)
 
@@ -235,7 +238,7 @@ simuCovariateMat <- function(covariate_mat,
       }else{
         new_dat_list <- paraFunc(FUN = dat_function , df = df_list, n = group_n_new,SIMPLIFY = FALSE)
       }
-      covariate_new <- do.call("rbind", new_dat_list)
+      covariate_new <- do.call("rbind", new_dat_list[!is.na(new_dat_list)])
     }
     else {
       dat_function <- function(df, n) {
