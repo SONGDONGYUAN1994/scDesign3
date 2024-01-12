@@ -534,16 +534,20 @@ fit_marginal <- function(data,
   }
 
   paraFunc <- parallel::mcmapply
-
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
   if(parallelization == "pbmcmapply"){
     paraFunc <- pbmcapply::pbmcmapply
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     model_fit <- suppressMessages(paraFunc(fit_model_func, gene = feature_names,
                                            family_gene = family_use,
                                            MoreArgs = list(dat_use = dat_cov,
