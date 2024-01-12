@@ -298,7 +298,10 @@ simu_new <- function(sce,
 
   ## New count
   paraFunc <- parallel::mcmapply
-
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
@@ -313,9 +316,10 @@ simu_new <- function(sce,
     total_cells <- dim(new_covariate)[1]
     cell_names <- rownames(new_covariate)
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use, SIMPLIFY = TRUE

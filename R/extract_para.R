@@ -258,15 +258,20 @@ extract_para <-  function(sce,
     para_mat
   }
   paraFunc <- parallel::mcmapply
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
   if(parallelization == "pbmcmapply"){
     paraFunc <- pbmcapply::pbmcmapply
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE))
   }else{
     mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,SIMPLIFY = FALSE
