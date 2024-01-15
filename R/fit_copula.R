@@ -599,16 +599,20 @@ convert_n <- function(sce,
   }
 
   paraFunc <- parallel::mcmapply
-
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
   if(parallelization == "pbmcmapply"){
     paraFunc <- pbmcapply::pbmcmapply
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
@@ -807,16 +811,20 @@ convert_u <- function(sce,
   }
 
   paraFunc <- parallel::mcmapply
-
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
   if(parallelization == "pbmcmapply"){
     paraFunc <- pbmcapply::pbmcmapply
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)

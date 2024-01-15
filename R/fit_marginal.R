@@ -6,7 +6,7 @@
 #' and fit the regression models for each feature based on users' specification.
 #'
 #' @param data An object from \code{\link{construct_data}}.
-#' @param predictor A string of the predictor for the gam/gamlss model. Default is gene. This is essentially just a name.
+#' @param predictor A string of the predictor for the gam/gamlss model. Default is "gene". This is just a name.
 #' @param mu_formula A string of the mu parameter formula
 #' @param sigma_formula A string of the sigma parameter formula
 #' @param family_use A string or a vector of strings of the marginal distribution.
@@ -21,7 +21,7 @@
 #' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 #' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
-#' @param trace A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss
+#' @param trace A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss will be returned.
 #' will be returned, FALSE otherwise. Default is FALSE.
 #' @param simplify A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}. Default is FALSE.
 #' 
@@ -534,16 +534,20 @@ fit_marginal <- function(data,
   }
 
   paraFunc <- parallel::mcmapply
-
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
   if(parallelization == "pbmcmapply"){
     paraFunc <- pbmcapply::pbmcmapply
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     model_fit <- suppressMessages(paraFunc(fit_model_func, gene = feature_names,
                                            family_gene = family_use,
                                            MoreArgs = list(dat_use = dat_cov,
