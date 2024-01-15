@@ -13,7 +13,7 @@
 #' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
 #' 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
 #' and 'gaussian distribution' respectively.
-#' @param new_covariate A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}} and the
+#' @param new_covariate A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}} and the
 #' correlation group assignment for each cell in the column 'corr_group'.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
