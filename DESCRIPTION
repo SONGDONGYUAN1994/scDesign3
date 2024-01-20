@@ -2,7 +2,6 @@ Package: scDesign3
 Type: Package
 Title: A unified framework of realistic in silico data generation and statistical model inference for single-cell and spatial omics
 Version: 1.1.1
-
 Authors@R: 
     c(person("Dongyuan", "Song", , "dongyuansong@ucla.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-1114-1215")),
@@ -12,7 +11,7 @@ Description: We present a statistical simulator, scDesign3, to generate realisti
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
-Depends: R (>= 4.2.0)
+Depends: R (>= 4.3.0)
 Imports:
     dplyr,
     tibble,
