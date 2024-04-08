@@ -168,18 +168,22 @@ simu_new <- function(sce,
           if(curr_ncell == 0) {
             new_mvu <- NULL
           } else {
-            if (methods::is(cor.mat, "matrix")) {
+            if (methods::is(cor.mat, "matrix") | methods::is(cor.mat, "dsCMatrix")) {
               #message(paste0("Group ", group_index, " Start"))
               
               #message("Sample MVN")
               #sample from mvn for important genes only
               corr_gene_idx <- apply(cor.mat, 2, function(x) length(which(x < 1e-5)) != length(x)-1)
               corr_gene <- colnames(cor.mat)[which(corr_gene_idx)]
-              new_mvn_important <- sampleMVN(n = curr_ncell,
-                                   Sigma = cor.mat[corr_gene, corr_gene],
-                                   n_cores = n_cores,
-                                   fastmvn = fastmvn)
-              colnames(new_mvn_important) <- corr_gene
+              if(length(corr_gene)!=0) {
+                new_mvn_important <- sampleMVN(n = curr_ncell,
+                                               Sigma = cor.mat[corr_gene, corr_gene],
+                                               n_cores = n_cores,
+                                               fastmvn = fastmvn)
+              
+              colnames(new_mvn_important) <- corr_gene} else {
+                new_mvn_important <- NULL
+              }
               #message("MVN Sampling End")
               ind_gene <- colnames(cor.mat)[which(corr_gene_idx==FALSE)]
               if(length(ind_gene) > 0){
@@ -340,8 +344,6 @@ simu_new <- function(sce,
   new_count <- as.matrix(t(new_count))
 
   if(nonnegative) new_count[new_count < 0] <- 0
-
-
 
   if(nonzerovar) {
     row_vars <- matrixStats::rowVars(new_count[qc_gene_idx,])

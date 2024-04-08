@@ -26,12 +26,11 @@
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
 #' @param family_set A string or a string vector of the bivariate copula families. Default is c("gauss", "indep"). For more information please check package \code{rvinecoplib}.
-#' @param important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-#' this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
-#' for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+#' @param important_feature A numeric value or vector which indicates whether a gene will be used in correlation estimation or not. If this is a numeric value, then
+#' gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 #' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 #' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-#' The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.
+#' The default value for is "all".
 #' @param nonnegative A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
 #' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA. Default is FALSE.
 #' @param return_model A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
