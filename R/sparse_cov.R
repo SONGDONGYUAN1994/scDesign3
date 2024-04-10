@@ -1,5 +1,67 @@
-## Part from Chenxin Jiang, thresholding for sparse matrix
-### Thresholding Operator
+#' This function computes the thresholding sparse covariance/correlation estimator 
+#' with the optimal threshold level.
+#'
+#' Part from Chenxin Jiang
+#'
+#' @param data The data matrix.
+#' @param method The choice of method to select the optimal threshold level.
+#' @param operator The choice of the thresholding operator.
+#' @param corr The indicator of computing correlation or covariance matrix.
+#'
+#' @return The thresholding sparse covariance/correlation estimator.
+#' @export est_sparseCov
+#' @importFrom Rfast cova
+#' @importFrom stats runif pnorm optimize
+#' @import Matrix
+#' @import sparseMVN
+#' @import mvnfast
+#' @import methods
+#' 
+#' @examples
+#' ## generate data from a block diagonal covariance matrix structure
+#' n <- 50
+#' p <- 30
+#' data.true.cov <- block.true.cov(p)
+#' data <- sampleMVN(n, data.true.cov, sparse=TRUE)
+#' ## compute the thresholding sparse covariance/correlation estimator
+#' s <- est_sparseCov(data, method='cv', operator='scad', corr=FALSE)
+#' s[1:9, 1:9]
+
+est_sparseCov <- function(data, 
+                          method=c('cv', 'qiu'),
+                          operator=c('hard', 'soft', 'scad', 'al'),
+                          corr=TRUE){
+  p <- dim(data)[1]
+  n <- dim(data)[2]
+  
+  # sample covariance
+  z <- Rfast::cova(data) *(n-1)/n
+  
+  # select the optimal thresholding level
+  delta <- est_delta(data, method=method, operator=operator)
+  s <- thresh_op(z, operator=operator, delta=delta, n=n)
+  
+  # Modify s to make it psd
+  tol <- 1e-6
+  ev <- eigen(s, symmetric=TRUE, only.values = TRUE)$values
+  s1 <- s + (tol-min(ev))*diag(dim(s)[1]) 
+  
+  if(corr){
+    # make corr
+    s1_corr <- Matrix::cov2cor(s1)
+    output <- s1_corr
+  }else{
+    output <- s1
+  }
+  
+  return(output)
+}
+
+
+
+
+
+## This function computes the thresholding sparse covariance estimator for a given threshold level.
 thresh_op <- function(z, operator, delta, n){
   if(operator == 'hard'){
     s_method <- s_hard
@@ -19,12 +81,6 @@ thresh_op <- function(z, operator, delta, n){
 s_hard <- function(z, delta, n){
   
   p<-dim(z)[2]
-  
-  # if(is.null(theta)){
-  #   theta=diag(p)
-  # }
-  # lambda = sqrt(theta*log(p)/n)*delta
-  
   lambda <- sqrt(log(p)/n)*delta
   output <- (z>lambda)*z
   diag(output) <- diag(z)
@@ -33,7 +89,7 @@ s_hard <- function(z, delta, n){
 
 # Operator 2: Soft Thresholding
 s_soft <- function(z, delta, n){
-  p<-dim(z)[1]
+  p <- dim(z)[1]
   lambda <- sqrt(log(p)/n)*delta
   z0 <- abs(z)-lambda
   output <- sign(z)*(z0>0)*z0
@@ -41,9 +97,10 @@ s_soft <- function(z, delta, n){
   return(output)
 }
 
+
 # Operator 3: SCAD (smoothly clipped absolute deviation)
 s_scad <- function(z, delta, n, a=3.7){
-  p<-dim(z)[1]
+  p <- dim(z)[1]
   lambda <- sqrt(log(p)/n)*delta
   
   output <- matrix(NA, dim(z)[1], dim(z)[2])
@@ -65,7 +122,7 @@ s_scad <- function(z, delta, n, a=3.7){
 
 # Operator 4: Adaptive lasso
 s_al <- function(z, delta, n){
-  p<-dim(z)[1]
+  p <- dim(z)[1]
   lambda <- sqrt(log(p)/n)*delta
   
   eta <- 3
@@ -75,17 +132,21 @@ s_al <- function(z, delta, n){
   return(output)
 }
 
-# Delta
-### The function to select the optimal thresholding level
-delta.est = function(data, 
-                     method=c('cv', 'qiu'),
-                     operator=c('hard', 'soft', 'scad', 'al')){
-  n <- dim(data)[1]
-  if((method=='qiu') && (operator=='hard')){
-    s = covariance(data) *(n-1)/n
-    delta = qiu.select(data, s)
+
+
+
+
+
+## This function select the optimal thresholding level delta
+est_delta <- function(data, 
+                      method=c('cv', 'qiu'),
+                      operator=c('hard', 'soft', 'scad', 'al')){
+  n <- dim(data)[2]
+  if((method=='qiu') ){
+    s <- cova(data) *(n-1)/n
+    delta <- qiu.select(data, s)
   }else if(method=='cv'){
-    delta = cv.min(data, operator)
+    delta <- cv.min(data, operator)
   }else{
     stop('Please specify a valid thresholding method and an operator function.')
   }
@@ -95,32 +156,29 @@ delta.est = function(data,
 
 ### Qiu function to tune delta
 qiu.select = function(data, s=NULL){
-  n = dim(data)[1]
-  p = dim(data)[2]
+  n <- dim(data)[1]
+  p <- dim(data)[2]
   
   if(is.null(s)){
-    s = covariance(data) *(n-1)/n
+    s <- Rfast::cova(data) *(n-1)/n
   }
   
   # standardized covariance of Sigma
-  #theta = theta_est(data)
-  #eta = sqrt(n/log(p))*s*theta^(-1/2)
-  eta = sqrt(n/log(p))*s 
+  eta <- sqrt(n/log(p))*s 
   # select lower triangular
-  ltrig = abs(eta[lower.tri(eta, diag = FALSE)])
+  ltrig <- abs(eta[lower.tri(eta, diag = FALSE)])
   
-  # parameter to select optimal thr
-  a = min(sqrt(2+log(n)/log(p)), 2)
-  a1 = 2 - a
-  a0 = (log(log(p)))^(-1/2)
-  M = sum(((a1+a0)<ltrig) & (ltrig<=2))
-  q = (p-1)*p/2
-  plog = (log(p))^(1/2)
-  V = 2*q*(pnorm(2*plog)-pnorm((a1+a0)*plog))
-  N2 = max(M-V, plog)
+  # parameter to select the optimal thr
+  a <- min(sqrt(2+log(n)/log(p)), 2)
+  a1 <- 2 - a
+  a0 <- (log(log(p)))^(-1/2)
+  M <- sum(((a1+a0)<ltrig) & (ltrig<=2))
+  q <- (p-1)*p/2
+  plog <- (log(p))^(1/2)
+  V <- 2*q*(pnorm(2*plog)-pnorm((a1+a0)*plog))
+  N2 <- max(M-V, plog)
   
-  #N2 = sum((a1<=ltrig) & (ltrig<=2))
-  delta = sqrt(2*(2-log(N2*1/plog)/log(p)))
+  delta <- sqrt(2*(2-log(N2*1/plog)/log(p)))
   
   return(delta)
 }
@@ -133,37 +191,20 @@ qiu.select = function(data, s=NULL){
 # instead of really solving the optimization problem.
 # lambda.list ranges in [0,lambda.max], with a user specified length.
 
-# cv.min: solve the optimization problem directly
+# cv.min: solve the optimization problem directly (currently use this)
 
 cv.select <- function(data, 
                       operator, 
                       fold=5, 
                       delta.length=10, 
-                      delta.max=2,
-                      random.select=FALSE,
-                      random.size=500,
-                      seed=123){
+                      delta.max=2){
   
-  n = dim(data)[1]
-  p = dim(data)[2]
+  n <- dim(data)[1]
+  p <- dim(data)[2]
   
-  if(p<100){
-    random.select = FALSE
-  }
-  
-  if(random.select){
-    set.seed(seed)
-    gene_idx = sample(1:p, size=random.size)
-    data = data[,gene_idx]
-  }
-  
-  
-  # # Randomly shuffle the data
-  # data0 <- data[sample(nrow(data)),]
-  # sample.cov =  covariance(data, large = TRUE)
   
   # Create delta list
-  delta.list = seq(0, delta.max, length.out=delta.length)
+  delta.list <- seq(0, delta.max, length.out=delta.length)
   
   # Create equal size folds
   folds <- cut(seq(1, nrow(data)), breaks=fold, labels=FALSE)
@@ -175,73 +216,60 @@ cv.select <- function(data,
   ## Perform k fold cross validation
   
   # iterate over the values of lambda
-  for(j in seq_len(delta.length)){
+  for(j in 1:delta.length){
     
     # iterate over CV folds
-    for(i in seq_len(fold)){
+    for(i in 1:fold){
       # Segment the data by fold 
       testIndexes <- which(folds==i, arr.ind=TRUE) # i-th fold as the testing data
       #trainIndexes <- which(folds!=i, arr.ind=TRUE) # i-th fold as the testing data
       testData <- data[testIndexes, ]
       trainData <- data[-testIndexes, ]
       # Get the covariance matrix estimator s based on the training data
-      sample.cov.train = covariance(trainData, center=TRUE, large = TRUE)
-      theta = theta_est(trainData)
-      s = thresh_op(sample.cov.train, operator=operator, delta = delta.list[j], n=n)
+      sample.cov.train <- cova(trainData, center=TRUE, large = TRUE)
+      s <- thresh_op(sample.cov.train, operator=operator, delta = delta.list[j], n=n)
       # Compute Frobenius risk = norm(distance of s and covariance of testing data)
-      sample.cov.test = covariance(testData, center=TRUE, large = TRUE)
-      fold_losses[i] = norm(s - sample.cov.test, type='F')
+      sample.cov.test <- cova(testData, center=TRUE, large = TRUE)
+      fold_losses[i] <- norm(s - sample.cov.test, type='F')
     }
     # Get the average estimated loss of CV
     cv_errors[j] <-  mean(fold_losses)
   }
   
   # Find the lambda that minimize cv_errors
-  delta = delta.list[which.min(cv_errors)]
+  delta <- delta.list[which.min(cv_errors)]
   
   delta
 }
 
+
+
 cv.min <- function(data, 
                    operator, 
                    fold=5,
-                   delta.max=2,
-                   random.select=FALSE,
-                   random.size=100){
-  n = dim(data)[1]
+                   delta.max=2){
+  n <- dim(data)[1]
   p = dim(data)[2]
   
-  if(p<100){
-    random.select = FALSE
-  }
-  
-  if(random.select){
-    #set.seed(seed)
-    gene_idx = sample(1:p, size=random.size)
-    data = data[,gene_idx]
-  }
   
   ## Perform k fold cross validation
-  cv.loss = function(delta){
+  cv.loss <- function(delta){
     # Create equal size folds
     folds <- cut(seq(1, nrow(data)), breaks=fold, labels=FALSE)
     fold_losses <- rep(0, fold) # Record fold loss 
     
     # iterate over CV folds
-    for(i in seq_len(fold)){
+    for(i in 1:fold){
       # Segment the data by fold 
       testIndexes <- which(folds==i, arr.ind=TRUE) # i-th fold as the testing data
-      #trainIndexes <- which(folds!=i, arr.ind=TRUE) # i-th fold as the testing data
       testData <- data[testIndexes, ]
       trainData <- data[-testIndexes, ]
       # Get the covariance matrix estimator s based on the training data
-      sample.cov.train = covariance(trainData, center=TRUE, large = TRUE)
-      #theta = theta_est(trainData)
-      #s = s_method(sample.cov.train, delta = delta, n=n)
-      s = thresh_op(sample.cov.train, operator=operator, delta = delta, n=n)
+      sample.cov.train <- cova(trainData, center=TRUE, large = TRUE)
+      s <- thresh_op(sample.cov.train, operator=operator, delta = delta, n=n)
       # Compute Frobenius risk = norm(distance of s and covariance of testing data)
-      sample.cov.test = covariance(testData, center=TRUE, large = TRUE)
-      fold_losses[i] = norm(s - sample.cov.test, type='F')
+      sample.cov.test <- cova(testData, center=TRUE, large = TRUE)
+      fold_losses[i] <- norm(s - sample.cov.test, type='F')
     }
     # Get the average estimated loss of CV
     cv_errors <-  mean(fold_losses)
@@ -249,52 +277,106 @@ cv.min <- function(data,
   }
   
   # Solve the optimization problem
-  res = optimize(cv.loss, c(0, delta.max))
-  delta = res$minimum
+  res <- optimize(cv.loss, c(0, delta.max))
+  delta <- res$minimum
+  
   delta
 }
 
-# variation of sample variance
-theta_est <- function(data){
-  n <- dim(data)[1]
-  p <- dim(data)[2]
-  
-  theta <- matrix(0, p, p)
-  for(i in 1:n){
-    v <- data[i,] - colMeans(data)
-    theta <- (Matrix::tcrossprod(v,v) - s)^2 + theta
+
+
+
+### This function samples MVN based on a given covariance matrix
+sampleMVN <- function(n,
+                      Sigma, 
+                      sparse=TRUE,
+                      n_cores = 1, 
+                      fastmvn = FALSE) {
+  if(sparse){
+    mvnrv <- sampleMVN.sparse(n, Sigma)
+  }else{
+    if(fastmvn) {
+      mvnrv <- mvnfast::rmvn(n, mu = rep(0, dim(Sigma)[1]), sigma = Sigma, ncores = n_cores)
+    } else {
+      mvnrv <-
+        rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma, checkSymmetry = FALSE, method="eigen")
+    }
   }
-  theta <- theta/n
-  theta
+  
+  #mvnrvq <- apply(mvnrv, 2, stats::pnorm)
+  
+  return(mvnrv)
 }
 
-### Thresholding
-est_threshold <- function(data, 
-                          method = c('cv', 'qiu'),
-                          operator = c('hard', 'soft', 'scad', 'al'),
-                          corr = TRUE){
-  p <- dim(data)[1]
-  n <- dim(data)[2]
+
+## Sparse version
+sampleMVN.sparse <- function(n, Sigma){
+  CH <- Cholesky(as(Sigma, 'dsCMatrix'))
+  p <- dim(Sigma)[1]
+  mvnrv <- rmvn.sparse(n=n, rep(0,p), CH, prec=FALSE) 
+  return(mvnrv)
+}
+
+
+## Dense version
+## fix integer overflow issue when # of gene* # of cell is too larger in rnorm(n * ncol(sigma))
+## This function comes from package Mvnorm.
+rmvnorm <- function(n, mean = rep(0, nrow(sigma)), sigma = diag(length(mean)),
+                    method=c("eigen", "svd", "chol"), pre0.9_9994 = FALSE, checkSymmetry = TRUE)
+{
+  if (checkSymmetry && !isSymmetric(sigma, tol = sqrt(.Machine$double.eps),
+                                    check.attributes = FALSE)) {
+    stop("sigma must be a symmetric matrix")
+  }
+  if (length(mean) != nrow(sigma))
+    stop("mean and sigma have non-conforming size")
   
-  # sample covariance
-  z <- covariance(data) *(n-1)/n
+  method <- match.arg(method)
   
-  # select the optimal thresholding level
-  delta.cv <- delta.est(data, method=method, operator=operator)
-  s <- thresh_op(z, operator=operator, delta=delta.cv, n=n)
-  
-  # Modify s to make is psd
-  tol <- 1e-6
-  ev <- eigen(s, symmetric=TRUE, only.values = TRUE)$values
-  s1 <- s + (tol-min(ev))*diag(dim(s)[1]) 
-  
-  if(corr){
-    # make corr
-    s1_corr <- stats::cov2cor(s1)
-    output <- s1_corr
-  }else{
-    output <- s1
+  R <- if(method == "eigen") {
+    ev <- eigen(sigma, symmetric = TRUE)
+    if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))){
+      warning("sigma is numerically not positive semidefinite")
+    }
+    ## ev$vectors %*% diag(sqrt(ev$values), length(ev$values)) %*% t(ev$vectors)
+    ## faster for large  nrow(sigma):
+    t(ev$vectors %*% (t(ev$vectors) * sqrt(pmax(ev$values, 0))))
+  }
+  else if(method == "svd"){
+    s. <- svd(sigma)
+    if (!all(s.$d >= -sqrt(.Machine$double.eps) * abs(s.$d[1]))){
+      warning("sigma is numerically not positive semidefinite")
+    }
+    t(s.$v %*% (t(s.$u) * sqrt(pmax(s.$d, 0))))
+  }
+  else if(method == "chol"){
+    R <- chol(sigma, pivot = TRUE)
+    R[, order(attr(R, "pivot"))]
   }
   
-  return(output)
+  retval <- matrix(stats::rnorm(as.double(n) * ncol(sigma)), nrow = n, byrow = !pre0.9_9994) %*%  R
+  retval <- sweep(retval, 2, mean, "+")
+  colnames(retval) <- names(mean)
+  retval
 }
+
+
+
+
+### This function construct a covariance matrix with a block diagonal structure.
+
+block.true.cov <- function(p, block.size = 3){
+  block.ind <- as.integer(p/block.size)
+  block.list <- list()
+  for(b in 1:block.ind){
+    
+    A <- matrix(runif(block.size^2, 0.1, 0.6), ncol=block.size) 
+    diag(A) <- rep(1, block.size)
+    A <- forceSymmetric(A)
+    
+    block.list[[b]] <- A
+  }
+  as.matrix(bdiag(block.list))
+}
+
+
