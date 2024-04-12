@@ -384,7 +384,7 @@ cal_cor <- function(norm.mat,
                                operator = 'hard', 
                                corr = TRUE)
     } else {
-      important_cor.mat <- corrlation(important.mat)
+      important_cor.mat <- correlation(important.mat)
     }
 
     #s_d <- apply(norm.mat, 2, stats::sd)
@@ -908,7 +908,7 @@ cal_bic <- function(norm.mat,
 }
 
 ## Similar to the cora function from "Rfast" but uses different functions to calculate column means and row sums.
-corrlation <- function(x) {
+correlation <- function(x) {
   # mat <- t(x) - matrixStats::colMeans2(x)
   # mat <- mat / sqrt(matrixStats::rowSums2(mat^2))
   # tcrossprod(mat)
