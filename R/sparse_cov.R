@@ -10,12 +10,6 @@
 #'
 #' @return The thresholding sparse covariance/correlation estimator.
 #' @export est_sparseCov
-#' @importFrom Rfast cova
-#' @importFrom stats runif pnorm optimize
-#' @import Matrix
-#' @import sparseMVN
-#' @import mvnfast
-#' @import methods
 #' 
 #' @examples
 #' ## generate data from a block diagonal covariance matrix structure
@@ -143,7 +137,7 @@ est_delta <- function(data,
                       operator=c('hard', 'soft', 'scad', 'al')){
   n <- dim(data)[2]
   if((method=='qiu') ){
-    s <- cova(data) *(n-1)/n
+    s <- covariance(data) *(n-1)/n
     delta <- qiu.select(data, s)
   }else if(method=='cv'){
     delta <- cv.min(data, operator)
@@ -160,7 +154,7 @@ qiu.select = function(data, s=NULL){
   p <- dim(data)[2]
   
   if(is.null(s)){
-    s <- Rfast::cova(data) *(n-1)/n
+    s <- covariance(data) *(n-1)/n
   }
   
   # standardized covariance of Sigma
@@ -175,7 +169,7 @@ qiu.select = function(data, s=NULL){
   M <- sum(((a1+a0)<ltrig) & (ltrig<=2))
   q <- (p-1)*p/2
   plog <- (log(p))^(1/2)
-  V <- 2*q*(pnorm(2*plog)-pnorm((a1+a0)*plog))
+  V <- 2*q*(stats::pnorm(2*plog)-stats::pnorm((a1+a0)*plog))
   N2 <- max(M-V, plog)
   
   delta <- sqrt(2*(2-log(N2*1/plog)/log(p)))
@@ -226,10 +220,10 @@ cv.select <- function(data,
       testData <- data[testIndexes, ]
       trainData <- data[-testIndexes, ]
       # Get the covariance matrix estimator s based on the training data
-      sample.cov.train <- cova(trainData, center=TRUE, large = TRUE)
+      sample.cov.train <- covariance(trainData, center=TRUE, large = TRUE)
       s <- thresh_op(sample.cov.train, operator=operator, delta = delta.list[j], n=n)
       # Compute Frobenius risk = norm(distance of s and covariance of testing data)
-      sample.cov.test <- cova(testData, center=TRUE, large = TRUE)
+      sample.cov.test <- covariance(testData, center=TRUE, large = TRUE)
       fold_losses[i] <- norm(s - sample.cov.test, type='F')
     }
     # Get the average estimated loss of CV
@@ -268,7 +262,7 @@ cv.min <- function(data,
       sample.cov.train <- cova(trainData, center=TRUE, large = TRUE)
       s <- thresh_op(sample.cov.train, operator=operator, delta = delta, n=n)
       # Compute Frobenius risk = norm(distance of s and covariance of testing data)
-      sample.cov.test <- cova(testData, center=TRUE, large = TRUE)
+      sample.cov.test <- covariance(testData, center=TRUE, large = TRUE)
       fold_losses[i] <- norm(s - sample.cov.test, type='F')
     }
     # Get the average estimated loss of CV
@@ -277,106 +271,10 @@ cv.min <- function(data,
   }
   
   # Solve the optimization problem
-  res <- optimize(cv.loss, c(0, delta.max))
+  res <- stats::optimize(cv.loss, c(0, delta.max))
   delta <- res$minimum
   
   delta
-}
-
-
-
-
-### This function samples MVN based on a given covariance matrix
-sampleMVN <- function(n,
-                      Sigma, 
-                      sparse=TRUE,
-                      n_cores = 1, 
-                      fastmvn = FALSE) {
-  if(sparse){
-    mvnrv <- sampleMVN.sparse(n, Sigma)
-  }else{
-    if(fastmvn) {
-      mvnrv <- mvnfast::rmvn(n, mu = rep(0, dim(Sigma)[1]), sigma = Sigma, ncores = n_cores)
-    } else {
-      mvnrv <-
-        rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma, checkSymmetry = FALSE, method="eigen")
-    }
-  }
-  
-  #mvnrvq <- apply(mvnrv, 2, stats::pnorm)
-  
-  return(mvnrv)
-}
-
-
-## Sparse version
-sampleMVN.sparse <- function(n, Sigma){
-  CH <- Cholesky(as(Sigma, 'dsCMatrix'))
-  p <- dim(Sigma)[1]
-  mvnrv <- rmvn.sparse(n=n, rep(0,p), CH, prec=FALSE) 
-  return(mvnrv)
-}
-
-
-## Dense version
-## fix integer overflow issue when # of gene* # of cell is too larger in rnorm(n * ncol(sigma))
-## This function comes from package Mvnorm.
-rmvnorm <- function(n, mean = rep(0, nrow(sigma)), sigma = diag(length(mean)),
-                    method=c("eigen", "svd", "chol"), pre0.9_9994 = FALSE, checkSymmetry = TRUE)
-{
-  if (checkSymmetry && !isSymmetric(sigma, tol = sqrt(.Machine$double.eps),
-                                    check.attributes = FALSE)) {
-    stop("sigma must be a symmetric matrix")
-  }
-  if (length(mean) != nrow(sigma))
-    stop("mean and sigma have non-conforming size")
-  
-  method <- match.arg(method)
-  
-  R <- if(method == "eigen") {
-    ev <- eigen(sigma, symmetric = TRUE)
-    if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))){
-      warning("sigma is numerically not positive semidefinite")
-    }
-    ## ev$vectors %*% diag(sqrt(ev$values), length(ev$values)) %*% t(ev$vectors)
-    ## faster for large  nrow(sigma):
-    t(ev$vectors %*% (t(ev$vectors) * sqrt(pmax(ev$values, 0))))
-  }
-  else if(method == "svd"){
-    s. <- svd(sigma)
-    if (!all(s.$d >= -sqrt(.Machine$double.eps) * abs(s.$d[1]))){
-      warning("sigma is numerically not positive semidefinite")
-    }
-    t(s.$v %*% (t(s.$u) * sqrt(pmax(s.$d, 0))))
-  }
-  else if(method == "chol"){
-    R <- chol(sigma, pivot = TRUE)
-    R[, order(attr(R, "pivot"))]
-  }
-  
-  retval <- matrix(stats::rnorm(as.double(n) * ncol(sigma)), nrow = n, byrow = !pre0.9_9994) %*%  R
-  retval <- sweep(retval, 2, mean, "+")
-  colnames(retval) <- names(mean)
-  retval
-}
-
-
-
-
-### This function construct a covariance matrix with a block diagonal structure.
-
-block.true.cov <- function(p, block.size = 3){
-  block.ind <- as.integer(p/block.size)
-  block.list <- list()
-  for(b in 1:block.ind){
-    
-    A <- matrix(runif(block.size^2, 0.1, 0.6), ncol=block.size) 
-    diag(A) <- rep(1, block.size)
-    A <- forceSymmetric(A)
-    
-    block.list[[b]] <- A
-  }
-  as.matrix(bdiag(block.list))
 }
 
 
