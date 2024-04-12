@@ -1,9 +1,9 @@
 bibentry(
   bibtype  = "Article",
-  title = {scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics},
-  author = {Song, Dongyuan and Wang, Qingyang and Yan, Guanao and Liu, Tianyang and Sun, Tianyi and Li, Jingyi Jessica},
-  journal = {Nature Biotechnology},
-  year = {2023},
-  publisher = {Nature Publishing Group US New York}
-  doi = {10.1038/s41587-023-01772-1}
+  title = "scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics",
+  author = "Song, Dongyuan and Wang, Qingyang and Yan, Guanao and Liu, Tianyang and Sun, Tianyi and Li, Jingyi Jessica",
+  journal = "Nature Biotechnology",
+  year = 2023,
+  publisher = "Nature Publishing Group US New York",
+  doi = "10.1038/s41587-023-01772-1",
 )

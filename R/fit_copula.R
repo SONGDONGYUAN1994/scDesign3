@@ -24,7 +24,7 @@
 #' gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 #' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 #' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-#' The default value for is "all".
+#' The default value for is "all" (a special string which means no filtering).
 #' @param if_sparse A logic variable. Only works for Gaussian copula (\code{family_set = "gaussian"}). If TRUE, a thresholding strategy will make the corr matrix sparse. 
 #' @param n_cores An integer. The number of cores to use.
 #' @param parallelization A string indicating the specific parallelization function to use.
@@ -379,7 +379,7 @@ cal_cor <- function(norm.mat,
     colnames(cor.mat) <- colnames(norm.mat)
     important.mat <- norm.mat[,which(important_feature)]
     if (if_sparse) {
-      important_cor.mat <- est_threshold(important.mat, 
+      important_cor.mat <- sparse_cov(important.mat, 
                                method = 'qiu', 
                                operator = 'hard', 
                                corr = TRUE)
@@ -419,7 +419,7 @@ cal_cor <- function(norm.mat,
   #   cor.mat <- scor$Sigma
   # }
   if (if_sparse) {
-  cor.mat <- as(as(as(cor.mat, "dMatrix"), "symmetricMatrix"), "CsparseMatrix")
+  cor.mat <- methods::as(methods::as(methods::as(cor.mat, "dMatrix"), "symmetricMatrix"), "CsparseMatrix")
   }
   cor.mat
 }
@@ -909,17 +909,19 @@ cal_bic <- function(norm.mat,
 
 ## Similar to the cora function from "Rfast" but uses different functions to calculate column means and row sums.
 corrlation <- function(x) {
-  mat <- t(x) - matrixStats::colMeans2(x)
-  mat <- mat / sqrt(matrixStats::rowSums2(mat^2))
-  tcrossprod(mat)
+  # mat <- t(x) - matrixStats::colMeans2(x)
+  # mat <- mat / sqrt(matrixStats::rowSums2(mat^2))
+  # tcrossprod(mat)
+  coop::pcor(x)
 }
 
 ## Similar to the cova function from "Rfast" but uses different functions to calculate column means and row sums.
 covariance <- function(x) {
-  n <- dim(x)[1]
-  m <- sqrt(n) * matrixStats::colMeans2(x) 
-  s <- (crossprod(x) - tcrossprod(m))/(n - 1)
-  s
+  # n <- dim(x)[1]
+  # m <- sqrt(n) * matrixStats::colMeans2(x) 
+  # s <- (crossprod(x) - tcrossprod(m))/(n - 1)
+  # s
+  coop::covar(x)
 }
 
 ### Sample MVN based on cor
@@ -930,7 +932,7 @@ sampleMVN <- function(n,
   if_sparse <- methods::is(Sigma, "dsCMatrix")
   p <- dim(Sigma)[1]
   if(if_sparse) {
-    CH <- Matrix::Cholesky(as(as(as(Sigma, "dMatrix"), "symmetricMatrix"), "CsparseMatrix"))
+    CH <- Matrix::Cholesky(methods::as(methods::as(methods::as(Sigma, "dMatrix"), "symmetricMatrix"), "CsparseMatrix"))
     mvnrv <- sparseMVN::rmvn.sparse(n = n, rep(0, p), CH, prec = FALSE)
   } else {
     if(fastmvn) {
