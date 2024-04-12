@@ -34,7 +34,8 @@ Imports:
     BiocParallel,
     matrixStats,
     Matrix,
-    sparseMVN
+    sparseMVN,
+    coop
 Suggests:
     mvnfast,
     igraph,

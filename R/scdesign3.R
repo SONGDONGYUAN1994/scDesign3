@@ -19,6 +19,7 @@
 #' @param corr_formula A string of the correlation structure.
 #' @param empirical_quantile Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL CDF values of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.
 #' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.
+#' @param if_sparse A logic variable. Only works for Gaussian copula (\code{family_set = "gaussian"}). If TRUE, a thresholding strategy will make the corr matrix sparse.
 #' @param fastmvn An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE. It only matters for Gaussian copula.
 #' @param DT A logic variable. If TRUE, perform the distributional transformation
 #' to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
@@ -61,12 +62,13 @@
 #' spatial = NULL,
 #' other_covariates = NULL,
 #' mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-#' sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
-#' family_use = c(rep("nb", 5), rep("zip", 5)),
+#' sigma_formula = "1",
+#' family_use = "nb",
 #' n_cores = 2,
 #' usebam = FALSE,
 #' corr_formula = "pseudotime",
-#' copula = "vine",
+#' copula = "gaussian",
+#' if_sparse = TRUE,
 #' DT = TRUE,
 #' pseudo_obs = FALSE,
 #' ncell = 1000,
@@ -89,6 +91,7 @@ scdesign3 <- function(sce,
                       corr_formula,
                       empirical_quantile = FALSE,
                       copula = "gaussian",
+                      if_sparse = FALSE,
                       fastmvn = FALSE,
                       DT = TRUE,
                       pseudo_obs = FALSE,
@@ -145,6 +148,7 @@ scdesign3 <- function(sce,
       family_set = family_set,
       n_cores = n_cores,
       important_feature = important_feature,
+      if_sparse = if_sparse,
       parallelization = parallelization,
       BPPARAM = BPPARAM
     )
@@ -160,6 +164,7 @@ scdesign3 <- function(sce,
       family_set = family_set,
       n_cores = n_cores,
       important_feature = important_feature,
+      if_sparse = if_sparse,
       parallelization = parallelization,
       BPPARAM = BPPARAM
     )
