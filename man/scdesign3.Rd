@@ -20,6 +20,7 @@ scdesign3(
   corr_formula,
   empirical_quantile = FALSE,
   copula = "gaussian",
+  if_sparse = FALSE,
   fastmvn = FALSE,
   DT = TRUE,
   pseudo_obs = FALSE,
@@ -67,6 +68,8 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.}
 
+\item{if_sparse}{A logic variable. Only works for Gaussian copula (\code{family_set = "gaussian"}). If TRUE, a thresholding strategy will make the corr matrix sparse.}
+
 \item{fastmvn}{An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE. It only matters for Gaussian copula.}
 
 \item{DT}{A logic variable. If TRUE, perform the distributional transformation
@@ -78,12 +81,11 @@ Default is FALSE.}
 
 \item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gauss", "indep"). For more information please check package \code{rvinecoplib}.}
 
-\item{important_feature}{A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
-for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+\item{important_feature}{A numeric value or vector which indicates whether a gene will be used in correlation estimation or not. If this is a numeric value, then
+gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.}
+The default value for is "all".}
 
 \item{nonnegative}{A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
 
@@ -127,12 +129,13 @@ pseudotime = "pseudotime",
 spatial = NULL,
 other_covariates = NULL,
 mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
-family_use = c(rep("nb", 5), rep("zip", 5)),
+sigma_formula = "1",
+family_use = "nb",
 n_cores = 2,
 usebam = FALSE,
 corr_formula = "pseudotime",
-copula = "vine",
+copula = "gaussian",
+if_sparse = TRUE,
 DT = TRUE,
 pseudo_obs = FALSE,
 ncell = 1000,

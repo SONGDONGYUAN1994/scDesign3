@@ -33,7 +33,9 @@ Imports:
     viridis,
     BiocParallel,
     matrixStats,
-    Matrix
+    Matrix,
+    sparseMVN,
+    coop
 Suggests:
     mvnfast,
     igraph,

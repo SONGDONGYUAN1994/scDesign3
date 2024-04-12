@@ -30,7 +30,7 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'po
 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
 and 'gaussian distribution' respectively.}
 
-\item{new_covariate}{A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}} and the
+\item{new_covariate}{A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}} and the
 correlation group assignment for each cell in the column 'corr_group'.}
 
 \item{parallelization}{A string indicating the specific parallelization function to use.

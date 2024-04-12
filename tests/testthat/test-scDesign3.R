@@ -77,16 +77,16 @@ test_that("Run scDesign3", {
     input_data = my_data$dat
   )
   
-  # my_copula1 <- fit_copula(
-  #   sce = example_sce,
-  #   assay_use = "counts",
-  #   marginal_list = my_marginal3,
-  #   family_use = c(rep("nb", 5), rep("zip", 5)),
-  #   copula = "gaussian",
-  #   n_cores = 1,
-  #   new_covariate = NULL,
-  #   input_data = my_data$dat
-  # )
+  my_copula1 <- fit_copula(
+    sce = example_sce,
+    assay_use = "counts",
+    marginal_list = my_marginal3,
+    family_use = c(rep("nb", 5), rep("zip", 5)),
+    copula = "gaussian",
+    n_cores = 1,
+    input_data = my_data$dat,
+    if_sparse = TRUE
+  )
 
   my_para <- extract_para(
     sce = example_sce,
@@ -127,6 +127,21 @@ test_that("Run scDesign3", {
     filtered_gene = my_data$filtered_gene
   )
 
+  my_newcount3 <- simu_new(
+    sce = example_sce,
+    mean_mat = my_para$mean_mat,
+    sigma_mat = my_para$sigma_mat,
+    zero_mat = my_para$zero_mat,
+    quantile_mat = NULL,
+    copula_list = my_copula1$copula_list,
+    n_cores = 1,
+    family_use = c(rep("nb", 9), rep("zip", 1)),
+    input_data = my_data$dat,
+    new_covariate = my_data2$new_covariate,
+    important_feature = my_copula$important_feature,
+    filtered_gene = my_data$filtered_gene
+  )
+  
   my_simu <- scdesign3(
     sce = example_sce,
     assay_use = "counts",
