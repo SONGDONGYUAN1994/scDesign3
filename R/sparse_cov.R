@@ -9,20 +9,28 @@
 #' @param corr The indicator of computing correlation or covariance matrix.
 #'
 #' @return The thresholding sparse covariance/correlation estimator.
-#' @export sparse_cov
+#' @export est_sparseCov
 #' 
 #' @examples
-#' print("No example")
+#' ## generate data from a block diagonal covariance matrix structure
+#' n <- 50
+#' p <- 30
+#' data.true.cov <- block.true.cov(p)
+#' data <- sampleMVN(n, data.true.cov, sparse=TRUE)
+#' ## compute the thresholding sparse covariance/correlation estimator
+#' s <- est_sparseCov(data, method='cv', operator='scad', corr=FALSE)
+#' s[1:9, 1:9]
 
-sparse_cov <- function(data, 
-                       method=c('cv', 'qiu'),
-                       operator=c('hard', 'soft', 'scad', 'al'),
-                       corr=TRUE){
-  p <- dim(data)[1]
-  n <- dim(data)[2]
+est_sparseCov <- function(data, 
+                          method=c('cv', 'qiu'),
+                          operator=c('hard', 'soft', 'scad', 'al'),
+                          corr=FALSE){
+  n <- dim(data)[1]
+  p <- dim(data)[2]
   
+
   # sample covariance
-  z <- covariance(data)*(n-1)/n
+  z <- covariance(data) *(n-1)/n
   
   # select the optimal thresholding level
   delta <- est_delta(data, method=method, operator=operator)
@@ -66,8 +74,7 @@ thresh_op <- function(z, operator, delta, n){
 
 # Operator 1: Hard Thresholding
 s_hard <- function(z, delta, n){
-  
-  p<-dim(z)[2]
+  p<-dim(z)[1]
   lambda <- sqrt(log(p)/n)*delta
   output <- (z>lambda)*z
   diag(output) <- diag(z)
@@ -128,7 +135,7 @@ s_al <- function(z, delta, n){
 est_delta <- function(data, 
                       method=c('cv', 'qiu'),
                       operator=c('hard', 'soft', 'scad', 'al')){
-  n <- dim(data)[2]
+  n <- dim(data)[1]
   if((method=='qiu') ){
     s <- covariance(data) *(n-1)/n
     delta <- qiu.select(data, s)
@@ -142,7 +149,7 @@ est_delta <- function(data,
 
 
 ### Qiu function to tune delta
-qiu.select <- function(data, s=NULL){
+qiu.select = function(data, s=NULL){
   n <- dim(data)[1]
   p <- dim(data)[2]
   
@@ -236,7 +243,7 @@ cv.min <- function(data,
                    fold=5,
                    delta.max=2){
   n <- dim(data)[1]
-  p = dim(data)[2]
+  p <- dim(data)[2]
   
   
   ## Perform k fold cross validation
@@ -252,7 +259,7 @@ cv.min <- function(data,
       testData <- data[testIndexes, ]
       trainData <- data[-testIndexes, ]
       # Get the covariance matrix estimator s based on the training data
-      sample.cov.train <- covariance(trainData)
+      sample.cov.train <- cova(trainData)
       s <- thresh_op(sample.cov.train, operator=operator, delta = delta, n=n)
       # Compute Frobenius risk = norm(distance of s and covariance of testing data)
       sample.cov.test <- covariance(testData)
@@ -270,28 +277,4 @@ cv.min <- function(data,
   delta
 }
 
-block.true.cov <- function(p, block.size = 3){
-  block.ind <- as.integer(p/block.size)
-  block.list <- list()
-  for(b in 1:block.ind){
-    
-    #  x = matrix(NA, block.size, block.size)
-    # for(i in 1:block.size){
-    #   for(j in i:block.size){
-    #     x[i,j] = runif(1, 0.1, 0.6)
-    #   }
-    # }
-    #x = Matrix::forceSymmetric(x) # make the block symmetric
-    
-    #A = matrix(runif(block.size^2)*2-1, ncol=block.size) 
-    #x = t(A) %*% A
-    
-    
-    A <- matrix(stats::runif(block.size^2, 0.1, 0.6), ncol=block.size) 
-    diag(A) <- rep(1, block.size)
-    A <- Matrix::forceSymmetric(A)
-    
-    block.list[[b]] <- A
-  }
-  as.matrix(Matrix::bdiag(block.list))
-}
+
