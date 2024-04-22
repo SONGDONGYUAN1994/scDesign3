@@ -9,28 +9,20 @@
 #' @param corr The indicator of computing correlation or covariance matrix.
 #'
 #' @return The thresholding sparse covariance/correlation estimator.
-#' @export est_sparseCov
+#' @export sparse_cov
 #' 
 #' @examples
-#' ## generate data from a block diagonal covariance matrix structure
-#' n <- 50
-#' p <- 30
-#' data.true.cov <- block.true.cov(p)
-#' data <- sampleMVN(n, data.true.cov, sparse=TRUE)
-#' ## compute the thresholding sparse covariance/correlation estimator
-#' s <- est_sparseCov(data, method='cv', operator='scad', corr=FALSE)
-#' s[1:9, 1:9]
+#' print("No example")
 
-est_sparseCov <- function(data, 
-                          method=c('cv', 'qiu'),
-                          operator=c('hard', 'soft', 'scad', 'al'),
-                          corr=FALSE){
-  n <- dim(data)[1]
+sparse_cov <- function(data, 
+                       method=c('cv', 'qiu'),
+                       operator=c('hard', 'soft', 'scad', 'al'),
+                       corr=TRUE){
   p <- dim(data)[2]
+  n <- dim(data)[1]
   
-
   # sample covariance
-  z <- covariance(data) *(n-1)/n
+  z <- covariance(data)
   
   # select the optimal thresholding level
   delta <- est_delta(data, method=method, operator=operator)
