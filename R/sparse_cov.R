@@ -129,7 +129,7 @@ est_delta <- function(data,
                       operator=c('hard', 'soft', 'scad', 'al')){
   n <- dim(data)[1]
   if((method=='qiu') ){
-    s <- covariance(data) *(n-1)/n
+    s <- covariance(data)
     delta <- qiu.select(data, s)
   }else if(method=='cv'){
     delta <- cv.min(data, operator)
@@ -146,7 +146,7 @@ qiu.select = function(data, s=NULL){
   p <- dim(data)[2]
   
   if(is.null(s)){
-    s <- covariance(data) *(n-1)/n
+    s <- covariance(data)
   }
   
   # standardized covariance of Sigma
@@ -245,20 +245,20 @@ cv.min <- function(data,
     fold_losses <- rep(0, fold) # Record fold loss 
     
     # iterate over CV folds
-    for(i in 1:fold){
+    for(i in seq_len(fold)){
       # Segment the data by fold 
       testIndexes <- which(folds==i, arr.ind=TRUE) # i-th fold as the testing data
       testData <- data[testIndexes, ]
       trainData <- data[-testIndexes, ]
       # Get the covariance matrix estimator s based on the training data
-      sample.cov.train <- cova(trainData)
+      sample.cov.train <- covariance(trainData)
       s <- thresh_op(sample.cov.train, operator=operator, delta = delta, n=n)
       # Compute Frobenius risk = norm(distance of s and covariance of testing data)
       sample.cov.test <- covariance(testData)
       fold_losses[i] <- norm(s - sample.cov.test, type='F')
     }
     # Get the average estimated loss of CV
-    cv_errors <-  mean(fold_losses)
+    cv_errors <- mean(fold_losses)
     cv_errors
   }
   
