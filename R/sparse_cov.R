@@ -66,8 +66,7 @@ thresh_op <- function(z, operator, delta, n){
 
 # Operator 1: Hard Thresholding
 s_hard <- function(z, delta, n){
-  
-  p<-dim(z)[2]
+  p<-dim(z)[1]
   lambda <- sqrt(log(p)/n)*delta
   output <- (z>lambda)*z
   diag(output) <- diag(z)
@@ -128,9 +127,9 @@ s_al <- function(z, delta, n){
 est_delta <- function(data, 
                       method=c('cv', 'qiu'),
                       operator=c('hard', 'soft', 'scad', 'al')){
-  n <- dim(data)[2]
+  n <- dim(data)[1]
   if((method=='qiu') ){
-    s <- covariance(data) *(n-1)/n
+    s <- covariance(data)
     delta <- qiu.select(data, s)
   }else if(method=='cv'){
     delta <- cv.min(data, operator)
@@ -142,12 +141,12 @@ est_delta <- function(data,
 
 
 ### Qiu function to tune delta
-qiu.select <- function(data, s=NULL){
+qiu.select = function(data, s=NULL){
   n <- dim(data)[1]
   p <- dim(data)[2]
   
   if(is.null(s)){
-    s <- covariance(data) *(n-1)/n
+    s <- covariance(data)
   }
   
   # standardized covariance of Sigma
@@ -236,7 +235,7 @@ cv.min <- function(data,
                    fold=5,
                    delta.max=2){
   n <- dim(data)[1]
-  p = dim(data)[2]
+  p <- dim(data)[2]
   
   
   ## Perform k fold cross validation
@@ -246,7 +245,7 @@ cv.min <- function(data,
     fold_losses <- rep(0, fold) # Record fold loss 
     
     # iterate over CV folds
-    for(i in 1:fold){
+    for(i in seq_len(fold)){
       # Segment the data by fold 
       testIndexes <- which(folds==i, arr.ind=TRUE) # i-th fold as the testing data
       testData <- data[testIndexes, ]
@@ -259,7 +258,7 @@ cv.min <- function(data,
       fold_losses[i] <- norm(s - sample.cov.test, type='F')
     }
     # Get the average estimated loss of CV
-    cv_errors <-  mean(fold_losses)
+    cv_errors <- mean(fold_losses)
     cv_errors
   }
   
@@ -270,28 +269,4 @@ cv.min <- function(data,
   delta
 }
 
-block.true.cov <- function(p, block.size = 3){
-  block.ind <- as.integer(p/block.size)
-  block.list <- list()
-  for(b in 1:block.ind){
-    
-    #  x = matrix(NA, block.size, block.size)
-    # for(i in 1:block.size){
-    #   for(j in i:block.size){
-    #     x[i,j] = runif(1, 0.1, 0.6)
-    #   }
-    # }
-    #x = Matrix::forceSymmetric(x) # make the block symmetric
-    
-    #A = matrix(runif(block.size^2)*2-1, ncol=block.size) 
-    #x = t(A) %*% A
-    
-    
-    A <- matrix(stats::runif(block.size^2, 0.1, 0.6), ncol=block.size) 
-    diag(A) <- rep(1, block.size)
-    A <- Matrix::forceSymmetric(A)
-    
-    block.list[[b]] <- A
-  }
-  as.matrix(Matrix::bdiag(block.list))
-}
+
