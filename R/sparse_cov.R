@@ -18,11 +18,11 @@ sparse_cov <- function(data,
                        method=c('cv', 'qiu'),
                        operator=c('hard', 'soft', 'scad', 'al'),
                        corr=TRUE){
-  p <- dim(data)[1]
-  n <- dim(data)[2]
+  p <- dim(data)[2]
+  n <- dim(data)[1]
   
   # sample covariance
-  z <- covariance(data)*(n-1)/n
+  z <- covariance(data)
   
   # select the optimal thresholding level
   delta <- est_delta(data, method=method, operator=operator)
