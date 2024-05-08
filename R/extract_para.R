@@ -90,12 +90,15 @@ extract_para <-  function(sce,
     new_covariate <- NULL
   }
   
+  count_mat <- SummarizedExperiment::assay(sce, assay_use)
+  
   mat_function <-function(x, y) {
     fit <- marginal_list[[x]]
     removed_cell <- removed_cell_list[[x]]
-    count_mat <-
-      t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
-    data$gene <- count_mat[,x]
+    #count_mat <-
+    #  t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
+    #data$gene <- count_mat[,x]
+    data$gene <- count_mat[x, ]
     # if(!"gamlss" %in% class(fit)){
     #   modelframe <- model.frame(fit)
     # }else{
