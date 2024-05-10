@@ -8,8 +8,8 @@ scdesign3(
   sce,
   assay_use = "counts",
   celltype,
-  pseudotime,
-  spatial,
+  pseudotime = NULL,
+  spatial = NULL,
   other_covariates,
   ncell = dim(sce)[2],
   mu_formula,
@@ -85,7 +85,7 @@ Default is FALSE.}
 gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-The default value for is "all".}
+The default value for is "all" (a special string which means no filtering).}
 
 \item{nonnegative}{A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
 

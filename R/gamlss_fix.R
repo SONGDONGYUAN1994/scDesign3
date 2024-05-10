@@ -465,7 +465,8 @@ gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
   }
 }
 
-## Accessed from gamlss's github 04/10/2023
+# Accessed from gamlss's github 04/10/2023
+#' @export
 predict.gamlss <- function(object,
                            what = c("mu", "sigma", "nu", "tau"),
                            parameter = NULL,
