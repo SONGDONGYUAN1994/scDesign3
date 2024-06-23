@@ -7,7 +7,7 @@
 #'
 #' @param data An object from \code{\link{construct_data}}.
 #' @param predictor A string of the predictor for the gam/gamlss model. Default is "gene". This is just a name.
-#' @param mu_formula A string of the mu parameter formula
+#' @param mu_formula A string of the mu parameter formula. It follows the format of formula in \code{\link[mgcv]{bam}}. Note: if the formula has multiple smoothers (\code{s()}) (we do not recommend this), please put the one with largest k (most complex one) as the first one. 
 #' @param sigma_formula A string of the sigma parameter formula
 #' @param family_use A string or a vector of strings of the marginal distribution.
 #' Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
@@ -15,6 +15,7 @@
 #' and 'gaussian distribution' respectively.
 #' @param n_cores An integer. The number of cores to use.
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
+#' @param edf_flexible A logic variable. It uses simpler model to accelerate the marginal fitting with a mild loss of accuracy. If TRUE, the fitted regression model will use the fitted relationship between Gini coefficient and the effective degrees of freedom on a random selected gene sets. Default is FALSE.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
 #' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
@@ -24,9 +25,6 @@
 #' @param trace A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss will be returned.
 #' will be returned, FALSE otherwise. Default is FALSE.
 #' @param simplify A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}. Default is FALSE.
-#' @param edf_flexible A logic variable. If TRUE, the fitted regression model will use the fitted relationship between gini coefficient and the effective degrees of freedom on a random selected gene sets. Default is FALSE.
-#' @param seed A seed to control the random selection of genes.
-#' 
 #' @return A list of fitted regression models. The length is equal to the total feature number.
 #' @examples
 #'   data(example_sce)
@@ -56,13 +54,12 @@ fit_marginal <- function(data,
                          sigma_formula,
                          family_use,
                          n_cores,
-                         usebam,
+                         usebam = FALSE,
+                         edf_flexible = FALSE,
                          parallelization = "mcmapply",
                          BPPARAM = NULL,
                          trace = FALSE, 
-                         simplify = FALSE,
-                         edf_flexible = FALSE,  
-                         seed = 123) {
+                         simplify = FALSE) {
   
   count_mat <-  data$count_mat
   dat_cov <- data$dat
@@ -74,20 +71,21 @@ fit_marginal <- function(data,
   matches <- regexpr("k\\s*=\\s*([0-9]+)", mu_formula, perl = TRUE)
   extracted_value <- regmatches(mu_formula, matches)
   extracted_K <- as.numeric(sub("k\\s*=\\s*", "", extracted_value))
+  if(identical(extracted_K, numeric(0))) {
+    extracted_K <- 0
+  }
   
-  
-  set.seed(seed)
   # Randomly select genes for edf fitting
-  if(dim(count_mat)[2]>100 & extracted_K>200 & edf_flexible==TRUE){
+  if(dim(count_mat)[2] > 100 & extracted_K >= 100 & edf_flexible == TRUE){
     edf_fitting <- TRUE
     
     # genes for fitting edf-gini relationship
-    edf_gini_genes <- sample(1:dim(count_mat)[2], 100)
+    edf_gini_genes <- sample(seq_len(dim(count_mat)[2]), 100)
     edf_gini_count_mat <-  count_mat[,edf_gini_genes]
     edf_gini_feature_names <- feature_names[edf_gini_genes]
     
     # genes for flexible edf
-    edf_flexible_genes <- (1:dim(count_mat)[2])[-edf_gini_genes]
+    edf_flexible_genes <- seq_len(dim(count_mat)[2])[-edf_gini_genes]
     edf_flexible_count_mat <- count_mat[,-edf_gini_genes]
     edf_flexible_feature_names <- feature_names[-edf_gini_genes]
     
@@ -98,9 +96,11 @@ fit_marginal <- function(data,
   
   ## Check family_use
   if(length(family_use) == 1) {
-    edf_gini_family_use <- rep(family_use, length(edf_gini_feature_names))
-    edf_flexible_family_use <- rep(family_use, length(edf_flexible_feature_names))
-    family_use <- rep(family_use, length(feature_names))
+    if(edf_fitting == TRUE) {
+      edf_gini_family_use <- rep(family_use, length(edf_gini_feature_names))
+      edf_flexible_family_use <- rep(family_use, length(edf_flexible_feature_names))
+    }
+        family_use <- rep(family_use, length(feature_names))
   }
   if(length(family_use) != length(feature_names)) {
     stop("The family_use must be either a single string or a vector with the same length as all features!")
@@ -656,17 +656,17 @@ fit_marginal <- function(data,
     }
     
     # Fit a edf-gini relationship for edf_gini_genes
-    edf_gini_count_gini <- apply(log(edf_gini_count_mat+1), MARGIN=2, FUN=reldist::gini)
+    edf_gini_count_gini <- apply(log(edf_gini_count_mat+1), MARGIN=2, FUN=gini)
     edf_gini_df <- data.frame(edf=edf, gini=edf_gini_count_gini)
-    lm_edf_gini <- lm(edf~gini, data=edf_gini_df)
+    lm_edf_gini <- stats::lm(edf~gini, data=edf_gini_df)
     # Upper bound for the lm coef
     #coef <- confint(lm_edf_gini)[,2]
     
     
     # Predict edf for edf_flexible_genes
-    edf_flexible_count_gini <- apply(log(edf_flexible_count_mat+1), MARGIN=2, FUN=reldist::gini)
+    edf_flexible_count_gini <- apply(log(edf_flexible_count_mat+1), MARGIN=2, FUN=gini)
     edf_flexible_df <- data.frame(gini=edf_flexible_count_gini)
-    edf_flexible_predicted <- predict(lm_edf_gini, edf_flexible_df, se.fit = TRUE, interval = "confidence", level = 0.95)
+    edf_flexible_predicted <- stats::predict(lm_edf_gini, edf_flexible_df, se.fit = TRUE, interval = "confidence", level = 0.95)
     edf_flexible_predicted_upr <- edf_flexible_predicted$fit[,3]
     
     
@@ -755,4 +755,15 @@ simplify_fit <- function(cm) {
   attr(cm$nu.terms,".Environment") = c()
   attr(cm$nu.formula,".Environment") = c()
   cm
+}
+
+gini <- function(x, weights=rep(1,length=length(x))){
+  ox <- order(x)
+  x <- x[ox]
+  weights <- weights[ox]/sum(weights)
+  p <- cumsum(weights)
+  nu <- cumsum(weights*x)
+  n <- length(nu)
+  nu <- nu / nu[n]
+  sum(nu[-1]*p[-n]) - sum(nu[-n]*p[-1])
 }

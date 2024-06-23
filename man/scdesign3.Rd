@@ -17,6 +17,7 @@ scdesign3(
   family_use = "nb",
   n_cores = 2,
   usebam = FALSE,
+  edf_flexible = FALSE,
   corr_formula,
   empirical_quantile = FALSE,
   copula = "gaussian",
@@ -60,7 +61,9 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{n_cores}{An integer. The number of cores to use.}
 
-\item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.}
+\item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration in marginal fitting.}
+
+\item{edf_flexible}{A logic variable. It is used for accelerating for spatial model if k is large in 'mu_formula'. Default is FALSE.}
 
 \item{corr_formula}{A string of the correlation structure.}
 
@@ -133,6 +136,7 @@ sigma_formula = "1",
 family_use = "nb",
 n_cores = 2,
 usebam = FALSE,
+edf_flexible = FALSE,
 corr_formula = "pseudotime",
 copula = "gaussian",
 if_sparse = TRUE,

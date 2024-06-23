@@ -9,7 +9,7 @@ The R package **scDesign3** is an all-in-one single-cell data simulation tool by
 
 To find out more details about **scDesign3**, you can check out our manuscript on Nature Biotechnology:
 
-[Song, D., Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> (2023).](https://www.nature.com/articles/s41587-023-01772-1)
+[Song, D., Wang, Q., Yan, G. *et al.* scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. *Nat Biotechnol* **42**, 247–252 (2024).](https://www.nature.com/articles/s41587-023-01772-1)
 
 Please note that the parallel computing of scDesign3 is mainly designed for UNIX OS; be careful when you set `n_cores`.
 
@@ -78,8 +78,8 @@ The parameters of `scdesign3()` are:
 - `sigma_formula`: A string of the sigma parameter formula for fitting each gene's marginal distribution.
 - `family_use`: A string of the marginal distribution you want to use when fitting each gene's marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 - `n_cores`: An integer. The number of cores to use.
-- `usebam`: A logic variable. If use bam (generalized additive models for very large datasets
-) for acceleration.
+- `usebam`: A logic variable. If TRUE, use bam (generalized additive models for very large datasets) for acceleration.
+- `edf_flexible`: A logic variable. If TRUE, the degree of freedom for each gene's regression model will be automatically selected for acceleration.
 - `corr_formula`: A string of the correlation structure. For example, if you want to obtain a correlation structure for each cell type, then this parameter should be the column name of the cell type variable in the colData of sce.
 - `copula`: A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.
 - `fastmvn`: An logical variable. If TRUE, the sampling of multivariate Gaussian is done by mvnfast, otherwise by mvtnorm. Default is FALSE. It only matters for Gaussian copula.
@@ -140,11 +140,16 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
 
 Any questions or suggestions on `scDesign3` are welcomed! Please report it on [issues](https://github.com/SONGDONGYUAN1994/scDesign3/issues), or contact Dongyuan Song ([dongyuansong\@ucla.edu](mailto:dongyuansong@ucla.edu){.email}) or Qingyang Wang ([qw802\@g.ucla.edu](mailto:qw802@g.ucla.edu){.email}).
 
+## Changelog
+-   2024-06-22 Important changes
+    - Add sparse Gaussian copula for `fit_copula`
+    - Add automatic k selection for `fit_marginal`
+    
 ## Related Manuscripts<a name="related-manuscripts"></a>
 -   The original **scDesign3** paper
-    -   **scDesign3**: [Song, D., Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> (2023).](https://www.nature.com/articles/s41587-023-01772-1)
+    -   **scDesign3**: [Song, D., Wang, Q., Yan, G. *et al.* scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. *Nat Biotechnol* **42**, 247–252 (2024).](https://www.nature.com/articles/s41587-023-01772-1)
 -   The predecessors of **scDesign3**
-    -   **scDesign**: [Li, W. V., & Li, J. J. (2019). A statistical simulator scDesign for rational scRNA-seq experimental design. Bioinformatics, 35(14), i41-i50.](https://academic.oup.com/bioinformatics/article/35/14/i41/5529133)
-    -   **scDesign2**: [Sun, T., Song, D., Li, W. V., & Li, J. J. (2021). scDesign2: a transparent simulator that generates high-fidelity single-cell gene expression count data with gene correlations captured. Genome biology, 22(1), 1-37.](https://link.springer.com/article/10.1186/s13059-021-02367-2)
--   The simulator for single-cell multi-omics reads developed by our lab memeber Guanao Yan
-    -   **scReadSim**: [Yan, G., Song, D., & Li, J. J. (2022). scReadSim: a single-cell multi-omics read simulator. bioRxiv.](https://www.biorxiv.org/content/10.1101/2022.05.29.493924v1.abstract)
+    -   **scDesign**: [Li, W. V., & Li, J. J. (2019). A statistical simulator scDesign for rational scRNA-seq experimental design. *Bioinformatics*, **35**(14), i41-i50.](https://academic.oup.com/bioinformatics/article/35/14/i41/5529133)
+    -   **scDesign2**: [Sun, T., Song, D., Li, W. V., & Li, J. J. (2021). scDesign2: a transparent simulator that generates high-fidelity single-cell gene expression count data with gene correlations captured. *Genome biology*, **22**(1), 1-37.](https://link.springer.com/article/10.1186/s13059-021-02367-2)
+-   The simulator for single-cell multi-omics reads developed by our lab member Guanao Yan
+    -   **scReadSim**: [Yan, G., Song, D. & Li, J.J. scReadSim: a single-cell RNA-seq and ATAC-seq read simulator. *Nat Commun* **14**, 7482 (2023)](https://doi.org/10.1038/s41467-023-43162-w)

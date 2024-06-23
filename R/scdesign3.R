@@ -15,7 +15,8 @@
 #' @param family_use A string of the marginal distribution.
 #' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param n_cores An integer. The number of cores to use.
-#' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
+#' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration in marginal fitting.
+#' @param edf_flexible A logic variable. It is used for accelerating for spatial model if k is large in 'mu_formula'. Default is FALSE.
 #' @param corr_formula A string of the correlation structure.
 #' @param empirical_quantile Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL CDF values of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.
 #' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.
@@ -66,6 +67,7 @@
 #' family_use = "nb",
 #' n_cores = 2,
 #' usebam = FALSE,
+#' edf_flexible = FALSE,
 #' corr_formula = "pseudotime",
 #' copula = "gaussian",
 #' if_sparse = TRUE,
@@ -88,6 +90,7 @@ scdesign3 <- function(sce,
                       family_use = "nb",
                       n_cores = 2,
                       usebam = FALSE,
+                      edf_flexible = FALSE,
                       corr_formula,
                       empirical_quantile = FALSE,
                       copula = "gaussian",
@@ -115,7 +118,7 @@ scdesign3 <- function(sce,
     other_covariates = other_covariates,
     ncell = ncell,
     corr_by = corr_formula,
-    parallelization = "mcmapply",
+    parallelization = parallelization,
     BPPARAM = BPPARAM
   )
   message("Input Data Construction End")
@@ -128,6 +131,7 @@ scdesign3 <- function(sce,
     data = input_data,
     family_use = family_use,
     usebam = usebam,
+    edf_flexible = edf_flexible,
     parallelization = parallelization,
     BPPARAM = BPPARAM,
     trace = trace, 
