@@ -11,7 +11,8 @@ fit_marginal(
   sigma_formula,
   family_use,
   n_cores,
-  usebam,
+  usebam = FALSE,
+  edf_flexible = FALSE,
   parallelization = "mcmapply",
   BPPARAM = NULL,
   trace = FALSE,
@@ -23,7 +24,7 @@ fit_marginal(
 
 \item{predictor}{A string of the predictor for the gam/gamlss model. Default is "gene". This is just a name.}
 
-\item{mu_formula}{A string of the mu parameter formula}
+\item{mu_formula}{A string of the mu parameter formula. It follows the format of formula in \code{\link[mgcv]{bam}}. Note: if the formula has multiple smoothers (\code{s()}) (we do not recommend this), please put the one with largest k (most complex one) as the first one.}
 
 \item{sigma_formula}{A string of the sigma parameter formula}
 
@@ -35,6 +36,8 @@ and 'gaussian distribution' respectively.}
 \item{n_cores}{An integer. The number of cores to use.}
 
 \item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.}
+
+\item{edf_flexible}{A logic variable. It uses simpler model to accelerate the marginal fitting with a mild loss of accuracy. If TRUE, the fitted regression model will use the fitted relationship between Gini coefficient and the effective degrees of freedom on a random selected gene sets. Default is FALSE.}
 
 \item{parallelization}{A string indicating the specific parallelization function to use.
 Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
