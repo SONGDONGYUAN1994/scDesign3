@@ -113,7 +113,8 @@ fit_marginal <- function(data,
                                mu_formula,
                                sigma_formula,
                                predictor,
-                               count_mat
+                               count_mat,
+                               edf=NULL
     ) {
       
       ## formula
