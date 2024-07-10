@@ -2,7 +2,7 @@
 % Please edit documentation in R/construct_data.R
 \name{construct_data}
 \alias{construct_data}
-\title{Construct the input data (covaraite matrix and expression matrix)}
+\title{Construct the input data (covariate matrix and expression matrix)}
 \usage{
 construct_data(
   sce,
@@ -29,10 +29,10 @@ multiple lineages. Default is NULL.}
 
 \item{spatial}{A length two string vector of the names of spatial coordinates. Default is NULL.}
 
-\item{other_covariates}{A string or a string vector of the other covaraites you want to include in the data.}
+\item{other_covariates}{A string or a string vector of the other covariates you want to include in the data.}
 
 \item{ncell}{The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
-If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.}
+If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covariate matrix.}
 
 \item{corr_by}{A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.}
 
@@ -59,7 +59,7 @@ This function constructs the input data for \code{\link{fit_marginal}}.
 }
 \details{
 This function takes a \code{SingleCellExperiment} object as the input.
-Based on users' choice, it constructs the matrix of covaraites
+Based on users' choice, it constructs the matrix of covariates
 (explainary variables) and the expression matrix (e.g., count matrix for scRNA-seq).
 }
 \examples{

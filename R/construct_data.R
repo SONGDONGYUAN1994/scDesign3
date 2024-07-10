@@ -1,9 +1,9 @@
-#' Construct the input data (covaraite matrix and expression matrix)
+#' Construct the input data (covariate matrix and expression matrix)
 #'
 #' This function constructs the input data for \code{\link{fit_marginal}}.
 #'
 #' This function takes a \code{SingleCellExperiment} object as the input.
-#' Based on users' choice, it constructs the matrix of covaraites
+#' Based on users' choice, it constructs the matrix of covariates
 #' (explainary variables) and the expression matrix (e.g., count matrix for scRNA-seq).
 #'
 #' @param sce A \code{SingleCellExperiment} object.
@@ -12,9 +12,9 @@
 #' @param pseudotime A string or a string vector of the name of pseudotime and (if exist)
 #' multiple lineages. Default is NULL.
 #' @param spatial A length two string vector of the names of spatial coordinates. Default is NULL.
-#' @param other_covariates A string or a string vector of the other covaraites you want to include in the data.
+#' @param other_covariates A string or a string vector of the other covariates you want to include in the data.
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
-#' If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covaraite matrix.
+#' If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covariate matrix.
 #' @param corr_by A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
