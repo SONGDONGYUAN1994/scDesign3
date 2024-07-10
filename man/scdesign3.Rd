@@ -46,7 +46,7 @@ scdesign3(
 \item{pseudotime}{A string or a string vector of the name of pseudotime and (if exist)
 multiple lineages. Default is NULL.}
 
-\item{spatial}{A length two string vector of the names of spatial coordinates. Defualt is NULL.}
+\item{spatial}{A length two string vector of the names of spatial coordinates. Default is NULL.}
 
 \item{other_covariates}{A string or a string vector of the other covariates you want to include in the data.}
 
