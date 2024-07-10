@@ -11,7 +11,7 @@
 #' @param sigma_formula A string of the sigma parameter formula
 #' @param family_use A string or a vector of strings of the marginal distribution.
 #' Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
-#' 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+#' 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomial distribution',
 #' and 'gaussian distribution' respectively.
 #' @param n_cores An integer. The number of cores to use.
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.

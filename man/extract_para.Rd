@@ -27,7 +27,7 @@ extract_para(
 
 \item{family_use}{A string of the marginal distribution.
 Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
-'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomial distribution',
 and 'gaussian distribution' respectively.}
 
 \item{new_covariate}{A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}} and the

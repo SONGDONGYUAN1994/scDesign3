@@ -11,7 +11,7 @@
 #' @param n_cores An integer. The number of cores to use.
 #' @param family_use A string of the marginal distribution.
 #' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
-#' 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+#' 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomial distribution',
 #' and 'gaussian distribution' respectively.
 #' @param new_covariate A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}} and the
 #' correlation group assignment for each cell in the column 'corr_group'.
