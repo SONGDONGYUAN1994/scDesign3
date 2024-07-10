@@ -32,7 +32,7 @@ multiple lineages. Default is NULL.}
 \item{other_covariates}{A string or a string vector of the other covariates you want to include in the data.}
 
 \item{ncell}{The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
-If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covariate matrix.}
+If an arbitrary number is provided, the function will use Vine Copula to simulate a new covariate matrix.}
 
 \item{corr_by}{A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.}
 

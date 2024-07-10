@@ -14,7 +14,7 @@
 #' @param spatial A length two string vector of the names of spatial coordinates. Default is NULL.
 #' @param other_covariates A string or a string vector of the other covariates you want to include in the data.
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
-#' If an arbitrary number is provided, the fucntion will use Vine Copula to simulate a new covariate matrix.
+#' If an arbitrary number is provided, the function will use Vine Copula to simulate a new covariate matrix.
 #' @param corr_by A string or a string vector which indicates the groups for correlation structure. If '1', all cells have one estimated corr. If 'ind', no corr (features are independent). If others, this variable decides the corr structures.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
