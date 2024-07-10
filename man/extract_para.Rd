@@ -52,7 +52,7 @@ A list with the components:
 }
 }
 \description{
-\code{extract_para} generates parameter matricies which determine each cell's distribution
+\code{extract_para} generates parameter matrices which determine each cell's distribution
 }
 \details{
 The function takes the new covariate (if use) from \code{\link{construct_data}} and
