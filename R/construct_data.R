@@ -4,7 +4,7 @@
 #'
 #' This function takes a \code{SingleCellExperiment} object as the input.
 #' Based on users' choice, it constructs the matrix of covariates
-#' (explainary variables) and the expression matrix (e.g., count matrix for scRNA-seq).
+#' (explanatory variables) and the expression matrix (e.g., count matrix for scRNA-seq).
 #'
 #' @param sce A \code{SingleCellExperiment} object.
 #' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.

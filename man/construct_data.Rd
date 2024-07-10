@@ -60,7 +60,7 @@ This function constructs the input data for \code{\link{fit_marginal}}.
 \details{
 This function takes a \code{SingleCellExperiment} object as the input.
 Based on users' choice, it constructs the matrix of covariates
-(explainary variables) and the expression matrix (e.g., count matrix for scRNA-seq).
+(explanatory variables) and the expression matrix (e.g., count matrix for scRNA-seq).
 }
 \examples{
   data(example_sce)
