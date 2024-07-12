@@ -370,7 +370,7 @@ model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), pa
 
 #' Support for Function ga()
 #'
-#'This is support for the  smoother functions \code{ga()} interfaces for Simon Woood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
+#'This is support for the  smoother functions \code{ga()} interfaces for Simon Wood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
 #' @param x The explanatory variables
 #' @param y Iterative y variable
 #' @param w Iterative weights
@@ -414,7 +414,7 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
 
 #' Support for Function ba()
 #'
-#'This is support for the  smoother functions \code{ba()} interfaces for Simon Woood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
+#'This is support for the  smoother functions \code{ba()} interfaces for Simon Wood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
 #' @param x The explanatory variables
 #' @param y Iterative y variable
 #' @param w Iterative weights

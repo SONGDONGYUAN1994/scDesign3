@@ -7,7 +7,7 @@
 #' @param celltype A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.
 #' @param pseudotime A string or a string vector of the name of pseudotime and (if exist)
 #' multiple lineages. Default is NULL.
-#' @param spatial A length two string vector of the names of spatial coordinates. Defualt is NULL.
+#' @param spatial A length two string vector of the names of spatial coordinates. Default is NULL.
 #' @param other_covariates A string or a string vector of the other covariates you want to include in the data.
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 #' @param mu_formula A string of the mu parameter formula

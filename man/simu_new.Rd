@@ -81,7 +81,7 @@ A feature by cell matrix of the new simulated count (expression) matrix or spars
 }
 \details{
 The function takes the new covariate (if use) from \code{\link{construct_data}},
-parameter matricies from \code{\link{extract_para}} and multivariate Unifs from \code{\link{fit_copula}}.
+parameter matrices from \code{\link{extract_para}} and multivariate Unifs from \code{\link{fit_copula}}.
 }
 \examples{
   data(example_sce)

@@ -3,7 +3,7 @@
 #' \code{simu_new} generates new simulated data based on fitted marginal and copula models.
 #'
 #' The function takes the new covariate (if use) from \code{\link{construct_data}},
-#' parameter matricies from \code{\link{extract_para}} and multivariate Unifs from \code{\link{fit_copula}}.
+#' parameter matrices from \code{\link{extract_para}} and multivariate Unifs from \code{\link{fit_copula}}.
 #'
 #' @param sce A \code{SingleCellExperiment} object.
 #' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.
