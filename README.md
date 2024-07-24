@@ -35,7 +35,7 @@ We are now working on submitting it to Bioconductor and will provide the link on
 
 ## Quick Start<a name="quick-start"></a>
 
-The following code is a quick example of running our simulator. The function `scdesign3()` takes in a `SinglecellExperiment` object with the cell covariates(such as cell types, pesudotime, or spatial coordinates) stored in the `colData` of the `SinglecellExperiment` object. For more details on the `SinlgeCellExperiment` object, please check on its [Bioconductor link](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
+The following code is a quick example of running our simulator. The function `scdesign3()` takes in a `SinglecellExperiment` object with the cell covariates(such as cell types, pseudotime, or spatial coordinates) stored in the `colData` of the `SinglecellExperiment` object. For more details on the `SinlgeCellExperiment` object, please check on its [Bioconductor link](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html).
 
 ``` r
 example_simu <- scdesign3(
@@ -71,8 +71,8 @@ The parameters of `scdesign3()` are:
 - `sce`: A SingleCellExperiment object.
 - `assay_use`: A string which indicates the assay you will use in the sce. Default is 'counts'.
 - `celltype`: A string of the column name of the cell type variable in the colData of the sce. Default is 'cell_type'. The cell type variable in the colData of the sce should be a factor variable. Use NULL if there is no column in the colData that contains the cell-type information. 
-- `pseudotime`: A string or a string vector of the name of pseudotime and (if exist) multiple lineages. Default is NULL. If the data only has one lineage, then this parameter should be the column name of the pesudotime variable in the colData of the sce. If the data has multiple lingaes, then this parameter be the column names of the pseudotime variables for each lineage and the vaiables indicating which lineage that a cell belongs to. The pseudotime variables should be continuous numeric variables.
-- `spatial`: A length-two string vector of the column names of spatial coordinates in the colData of sce. Defualt is NULL. 
+- `pseudotime`: A string or a string vector of the name of pseudotime and (if exist) multiple lineages. Default is NULL. If the data only has one lineage, then this parameter should be the column name of the pseudotime variable in the colData of the sce. If the data has multiple lingaes, then this parameter be the column names of the pseudotime variables for each lineage and the variables indicating which lineage that a cell belongs to. The pseudotime variables should be continuous numeric variables.
+- `spatial`: A length-two string vector of the column names of spatial coordinates in the colData of sce. Default is NULL. 
 - `other_covariate`: A string or a string vector of the other covariates in the colData of sce you want to include in the data. For example, you can put the column names of the batch variables and/or condition variables in the colData of sce here if your sce contains these information and you want to include these variables in`mu_formula` or `sigma_formula` or `corr_formula`.
 - `mu_formula`: A string of the mu parameter formula for fitting each gene's marginal distribution.
 - `sigma_formula`: A string of the sigma parameter formula for fitting each gene's marginal distribution.
