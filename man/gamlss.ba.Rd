@@ -21,7 +21,7 @@ gamlss.ba(x, y, w, xeval = NULL, ...)
 Not used
 }
 \description{
-This is support for the  smoother functions \code{ba()} interfaces for Simon Woood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
+This is support for the  smoother functions \code{ba()} interfaces for Simon Wood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
 }
 \examples{
 print("No example")
