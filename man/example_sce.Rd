@@ -3,7 +3,7 @@
 \docType{data}
 \name{example_sce}
 \alias{example_sce}
-\title{A SingelCellExperiment object containing both cell type and pseudotime}
+\title{A SingleCellExperiment object containing both cell type and pseudotime}
 \format{
 A dataset with 10 rows (genes) and 1289 cols (cells)
 }
@@ -14,6 +14,6 @@ data("example_sce")
 The corresponding SingleCellExperiment object
 }
 \description{
-A SingelCellExperiment object containing both cell type and pseudotime
+A SingleCellExperiment object containing both cell type and pseudotime
 }
 \keyword{datasets}
