@@ -25,6 +25,7 @@
 #' @param trace A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss will be returned.
 #' will be returned, FALSE otherwise. Default is FALSE.
 #' @param simplify A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}. Default is FALSE.
+#' @param filter_cell A logic variable. If TRUE, when all covariates used for fitting the GAM/GAMLSS model are categorical, the code will check each unique combination of categories and remove cells in that category if it has all zero gene expression for each fitted gene.
 #' @return A list of fitted regression models. The length is equal to the total feature number.
 #' @examples
 #'   data(example_sce)
@@ -59,7 +60,8 @@ fit_marginal <- function(data,
                          parallelization = "mcmapply",
                          BPPARAM = NULL,
                          trace = FALSE, 
-                         simplify = FALSE) {
+                         simplify = FALSE,
+                         filter_cells = FALSE) {
   count_mat <-  data$count_mat
   dat_cov <- data$dat
   filtered_gene <- data$filtered_gene
@@ -222,52 +224,58 @@ fit_marginal <- function(data,
       add_log("fit_marginal","warning", paste0(gene, "is expressed in too few cells."))
       return(list(fit = NA, warning = logs, time = c(NA,NA)))
     }
-    all_covariates <- all.vars(mgcv_formula)[-1]
-    dat_cova <- dat_use[, all_covariates]
-    check_factor <- all(sapply(dat_cova,is.factor))
-    if (length(all_covariates) > 0 & check_factor){
-      remove_idx_list <- lapply(all_covariates, function(x){
-        curr_x <- tapply(dat_use$gene, dat_use[,x], sum)
-        zero_group <- which(curr_x==0)
-        if(length(zero_group) == 0){
-          return(list(idx = NA, changeFormula = FALSE))
-        }else{
-          type <- names(curr_x)[zero_group]
-          if(length(type) == length(unique(dat_use[,x])) - 1){
-            return(list(idx = NA, changeFormula = TRUE))
+    
+    if(filter_cells){
+      all_covariates <- all.vars(mgcv_formula)[-1]
+      dat_cova <- dat_use[, all_covariates]
+      check_factor <- all(sapply(dat_cova,is.factor))
+      if (length(all_covariates) > 0 & check_factor){
+        remove_idx_list <- lapply(all_covariates, function(x){
+          curr_x <- tapply(dat_use$gene, dat_use[,x], sum)
+          zero_group <- which(curr_x==0)
+          if(length(zero_group) == 0){
+            return(list(idx = NA, changeFormula = FALSE))
+          }else{
+            type <- names(curr_x)[zero_group]
+            if(length(type) == length(unique(dat_use[,x])) - 1){
+              return(list(idx = NA, changeFormula = TRUE))
+            }
+            return(list(idx = which(dat_use[,x] %in% type), changeFormula = FALSE))
           }
-          return(list(idx = which(dat_use[,x] %in% type), changeFormula = FALSE))
+          
+        })
+        names(remove_idx_list) <- all_covariates
+        remove_idx <- lapply(remove_idx_list, function(x)x$idx)
+        remove_cell <- unlist(remove_idx)
+        if(all(is.na(remove_cell))){
+          remove_cell <- NA
+        }else{
+          remove_cell <- unique(stats::na.omit(remove_cell))
+        }
+        if(length(remove_cell) > 0 && !any(is.na(remove_cell))){
+          dat_use <- dat_use[-remove_cell,]
         }
         
-      })
-      names(remove_idx_list) <- all_covariates
-      remove_idx <- lapply(remove_idx_list, function(x)x$idx)
-      remove_cell <- unlist(remove_idx)
-      if(all(is.na(remove_cell))){
-        remove_cell <- NA
-      }else{
-        remove_cell <- unique(stats::na.omit(remove_cell))
-      }
-      if(length(remove_cell) > 0 && !any(is.na(remove_cell))){
-        dat_use <- dat_use[-remove_cell,]
-      }
-      
-      changeFormula <-  sapply(remove_idx_list, function(x)x$changeFormula)
-      if(length(which(changeFormula)) > 0){
-        changeVars <- names(which(changeFormula))
-        formulaUpdate <- paste0(changeVars, collapse = "-")
-        mgcv_formula <- stats::update.formula(mgcv_formula, stats::as.formula(paste0("~.-",formulaUpdate)))
-        mu_formula <- stats::update.formula(mu_formula, stats::as.formula(paste0("~.-",formulaUpdate)))
-        sigmaVars <- which(changeVars %in% as.character(sigma_formula))
-        if(length(sigmaVars) > 0){
-          formulaUpdate <- paste0(changeVars[sigmaVars], collapse = "-")
+        changeFormula <-  sapply(remove_idx_list, function(x)x$changeFormula)
+        if(length(which(changeFormula)) > 0){
+          changeVars <- names(which(changeFormula))
+          formulaUpdate <- paste0(changeVars, collapse = "-")
+          mgcv_formula <- stats::update.formula(mgcv_formula, stats::as.formula(paste0("~.-",formulaUpdate)))
+          mu_formula <- stats::update.formula(mu_formula, stats::as.formula(paste0("~.-",formulaUpdate)))
+          sigmaVars <- which(changeVars %in% as.character(sigma_formula))
+          if(length(sigmaVars) > 0){
+            formulaUpdate <- paste0(changeVars[sigmaVars], collapse = "-")
+          }
+          sigma_formula = stats::update.formula(sigma_formula, stats::as.formula(paste0("~.-",formulaUpdate)))
         }
-        sigma_formula = stats::update.formula(sigma_formula, stats::as.formula(paste0("~.-",formulaUpdate)))
+        
+      }else{
+        remove_cell <- NA
       }
-      
     }else{
       remove_cell <- NA
     }
+    
     
     time_list <- c(NA,NA)
     
