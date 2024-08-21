@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">scDesign3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,7 @@
     <a class="dropdown-item" href="../articles/scDesign3-introduction-vignette.html">scDesign3 Introduction</a>
     <a class="dropdown-item" href="../articles/scDesign3-marginal-vignette.html">scDesign3 marginal distribution for genes</a>
     <a class="dropdown-item" href="../articles/scDesign3-copulaCompare-vignette.html">Compare gaussian copula and vine copula</a>
+    <a class="dropdown-item" href="../articles/scDesign3-parallelization-vignette.html">Parallelization in scDesign3</a>
     <a class="dropdown-item" href="../articles/scDesign3-librarySize-vignette.html">Simulate datasets with cell library size</a>
     <a class="dropdown-item" href="../articles/scDesign3-multipleLineages-vignette.html">Simulate datasets with multiple lineages</a>
     <a class="dropdown-item" href="../articles/scDesign3-conditionEffect-vignette.html">Simulate datasets with condition effect</a>
@@ -78,8 +79,8 @@
 <span>  <span class="va">sce</span>,</span>
 <span>  assay_use <span class="op">=</span> <span class="st">"counts"</span>,</span>
 <span>  <span class="va">celltype</span>,</span>
-<span>  <span class="va">pseudotime</span>,</span>
-<span>  <span class="va">spatial</span>,</span>
+<span>  pseudotime <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  spatial <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">other_covariates</span>,</span>
 <span>  ncell <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">sce</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
 <span>  <span class="va">mu_formula</span>,</span>
@@ -87,9 +88,11 @@
 <span>  family_use <span class="op">=</span> <span class="st">"nb"</span>,</span>
 <span>  n_cores <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  usebam <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  edf_flexible <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">corr_formula</span>,</span>
 <span>  empirical_quantile <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  copula <span class="op">=</span> <span class="st">"gaussian"</span>,</span>
+<span>  if_sparse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  fastmvn <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  DT <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  pseudo_obs <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -98,6 +101,7 @@
 <span>  nonnegative <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  nonzerovar <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_model <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  simplify <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  parallelization <span class="op">=</span> <span class="st">"mcmapply"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trace <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -124,7 +128,7 @@ multiple lineages. Default is NULL.</p></dd>
 
 
 <dt>spatial</dt>
-<dd><p>A length two string vector of the names of spatial coordinates. Defualt is NULL.</p></dd>
+<dd><p>A length two string vector of the names of spatial coordinates. Default is NULL.</p></dd>
 
 
 <dt>other_covariates</dt>
@@ -153,7 +157,11 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.</p></dd>
 
 
 <dt>usebam</dt>
-<dd><p>A logic variable. If use <code><a href="https://rdrr.io/pkg/mgcv/man/bam.html" class="external-link">bam</a></code> for acceleration.</p></dd>
+<dd><p>A logic variable. If use <code><a href="https://rdrr.io/pkg/mgcv/man/bam.html" class="external-link">bam</a></code> for acceleration in marginal fitting.</p></dd>
+
+
+<dt>edf_flexible</dt>
+<dd><p>A logic variable. It is used for accelerating for spatial model if k is large in 'mu_formula'. Default is FALSE.</p></dd>
 
 
 <dt>corr_formula</dt>
@@ -166,6 +174,10 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.</p></dd>
 
 <dt>copula</dt>
 <dd><p>A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are &gt;1000.</p></dd>
+
+
+<dt>if_sparse</dt>
+<dd><p>A logic variable. Only works for Gaussian copula (<code>family_set = "gaussian"</code>). If TRUE, a thresholding strategy will make the corr matrix sparse.</p></dd>
 
 
 <dt>fastmvn</dt>
@@ -188,12 +200,11 @@ Default is FALSE.</p></dd>
 
 
 <dt>important_feature</dt>
-<dd><p>A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
-for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+<dd><p>A numeric value or vector which indicates whether a gene will be used in correlation estimation or not. If this is a numeric value, then
+gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 be a logical vector with length equal to the number of genes in <code>sce</code>. <code>TRUE</code> in the logical vector means the corresponding gene will be included in
 gene-gene correlation estimation and <code>FALSE</code> in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-The default value for is a vector with length equal to the number of inputted genes and every value equals to <code>TRUE</code>.</p></dd>
+The default value for is "all" (a special string which means no filtering).</p></dd>
 
 
 <dt>nonnegative</dt>
@@ -206,6 +217,10 @@ The default value for is a vector with length equal to the number of inputted ge
 
 <dt>return_model</dt>
 <dd><p>A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.</p></dd>
+
+
+<dt>simplify</dt>
+<dd><p>A logic variable. If TRUE, the fitted regression model will only keep the essential contains for <code>predict</code>, otherwise the fitted models can be VERY large. Default is FALSE.</p></dd>
 
 
 <dt>parallelization</dt>
@@ -258,12 +273,14 @@ will be returned, FALSE otherwise. Default is FALSE.</p></dd>
 <span class="r-in"><span>spatial <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>other_covariates <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>mu_formula <span class="op">=</span> <span class="st">"s(pseudotime, bs = 'cr', k = 10)"</span>,</span></span>
-<span class="r-in"><span>sigma_formula <span class="op">=</span> <span class="st">"s(pseudotime, bs = 'cr', k = 3)"</span>,</span></span>
-<span class="r-in"><span>family_use <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"nb"</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"zip"</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>sigma_formula <span class="op">=</span> <span class="st">"1"</span>,</span></span>
+<span class="r-in"><span>family_use <span class="op">=</span> <span class="st">"nb"</span>,</span></span>
 <span class="r-in"><span>n_cores <span class="op">=</span> <span class="fl">2</span>,</span></span>
 <span class="r-in"><span>usebam <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>edf_flexible <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>corr_formula <span class="op">=</span> <span class="st">"pseudotime"</span>,</span></span>
-<span class="r-in"><span>copula <span class="op">=</span> <span class="st">"vine"</span>,</span></span>
+<span class="r-in"><span>copula <span class="op">=</span> <span class="st">"gaussian"</span>,</span></span>
+<span class="r-in"><span>if_sparse <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>DT <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>pseudo_obs <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>ncell <span class="op">=</span> <span class="fl">1000</span>,</span></span>
@@ -276,24 +293,12 @@ will be returned, FALSE otherwise. Default is FALSE.</p></dd>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Start Marginal Fitting</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Marginal Fitting End</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Start Copula Fitting</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Convert Residuals to Uniform</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Convert Residuals to Multivariate Gaussian</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Converting End</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Copula group 1 starts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Starts</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Time difference of 0.03707647 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Ends</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Copula group 2 starts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Starts</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Time difference of 0.0361855 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Ends</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Copula group 3 starts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Starts</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Time difference of 0.04220414 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Ends</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Copula group 4 starts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Starts</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Time difference of 0.01957035 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Ends</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Copula Fitting End</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Start Parameter Extraction</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Parameter</span>
@@ -313,7 +318,7 @@ will be returned, FALSE otherwise. Default is FALSE.</p></dd>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Dongyuan Song, Qingyang Wang.</p>
+  <p></p><p>Developed by Dongyuan Song, Qingyang Wang, Chenxin Jiang.</p>
 </div>
 
 <div class="pkgdown-footer-right">

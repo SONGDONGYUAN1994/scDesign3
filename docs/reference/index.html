@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">scDesign3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,8 @@
     <a class="dropdown-item" href="../articles/scDesign3-introduction-vignette.html">scDesign3 Introduction</a>
     <a class="dropdown-item" href="../articles/scDesign3-marginal-vignette.html">scDesign3 marginal distribution for genes</a>
     <a class="dropdown-item" href="../articles/scDesign3-copulaCompare-vignette.html">Compare gaussian copula and vine copula</a>
+    <a class="dropdown-item" href="../articles/scDesign3-parallelization-vignette.html">Parallelization in scDesign3</a>
+    <a class="dropdown-item" href="../articles/scDesign3-cellType-vignette.html">Simulate datasets with cell type and modified cell-type proportions </a>
     <a class="dropdown-item" href="../articles/scDesign3-librarySize-vignette.html">Simulate datasets with cell library size</a>
     <a class="dropdown-item" href="../articles/scDesign3-multipleLineages-vignette.html">Simulate datasets with multiple lineages</a>
     <a class="dropdown-item" href="../articles/scDesign3-conditionEffect-vignette.html">Simulate datasets with condition effect</a>
@@ -79,14 +81,19 @@
 
       <dl><dt>
           
+          <code><a href="ba.html">ba()</a></code> 
+        </dt>
+        <dd>Functions from gamlss/gamlss.add with bugs fixed</dd>
+      </dl><dl><dt>
+          
           <code><a href="construct_data.html">construct_data()</a></code> 
         </dt>
-        <dd>Construct the input data (covaraite matrix and expression matrix)</dd>
+        <dd>Construct the input data (covariate matrix and expression matrix)</dd>
       </dl><dl><dt>
           
           <code><a href="example_sce.html">example_sce</a></code> 
         </dt>
-        <dd>A SingelCellExperiment object containing both cell type and pseudotime</dd>
+        <dd>A SingleCellExperiment object containing both cell type and pseudotime</dd>
       </dl><dl><dt>
           
           <code><a href="extract_para.html">extract_para()</a></code> 
@@ -104,6 +111,21 @@
         <dd>Fit the marginal models</dd>
       </dl><dl><dt>
           
+          <code><a href="ga.html">ga()</a></code> 
+        </dt>
+        <dd>Functions from gamlss/gamlss.add with bugs fixed</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gamlss.ba.html">gamlss.ba()</a></code> 
+        </dt>
+        <dd>Support for Function ba()</dd>
+      </dl><dl><dt>
+          
+          <code><a href="gamlss.ga.html">gamlss.ga()</a></code> 
+        </dt>
+        <dd>Support for Function ga()</dd>
+      </dl><dl><dt>
+          
           <code><a href="perform_lrt.html">perform_lrt()</a></code> 
         </dt>
         <dd>Perform the likelihood ratio test</dd>
@@ -111,10 +133,7 @@
           
           <code><a href="plot_reduceddim.html">plot_reduceddim()</a></code> 
         </dt>
-        <dd>Dimensionality reduction and visualization
-<code>plot_reduceddim</code> performs the dimensionality reduction
-on the reference data, projects the synthetic datasets on the same low dimensional space,
-then visualize the results.</dd>
+        <dd>Dimensionality reduction and visualization</dd>
       </dl><dl><dt>
           
           <code><a href="scdesign3.html">scdesign3()</a></code> 
@@ -125,12 +144,18 @@ then visualize the results.</dd>
           <code><a href="simu_new.html">simu_new()</a></code> 
         </dt>
         <dd>Simulate new data</dd>
+      </dl><dl><dt>
+          
+          <code><a href="sparse_cov.html">sparse_cov()</a></code> 
+        </dt>
+        <dd>This function computes the thresholding sparse covariance/correlation estimator 
+with the optimal threshold level.</dd>
       </dl></div>
   </main></div>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Dongyuan Song, Qingyang Wang.</p>
+  <p></p><p>Developed by Dongyuan Song, Qingyang Wang, Chenxin Jiang.</p>
 </div>
 
 <div class="pkgdown-footer-right">

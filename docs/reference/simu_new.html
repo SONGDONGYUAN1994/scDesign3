@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">scDesign3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,7 @@
     <a class="dropdown-item" href="../articles/scDesign3-introduction-vignette.html">scDesign3 Introduction</a>
     <a class="dropdown-item" href="../articles/scDesign3-marginal-vignette.html">scDesign3 marginal distribution for genes</a>
     <a class="dropdown-item" href="../articles/scDesign3-copulaCompare-vignette.html">Compare gaussian copula and vine copula</a>
+    <a class="dropdown-item" href="../articles/scDesign3-parallelization-vignette.html">Parallelization in scDesign3</a>
     <a class="dropdown-item" href="../articles/scDesign3-librarySize-vignette.html">Simulate datasets with cell library size</a>
     <a class="dropdown-item" href="../articles/scDesign3-multipleLineages-vignette.html">Simulate datasets with multiple lineages</a>
     <a class="dropdown-item" href="../articles/scDesign3-conditionEffect-vignette.html">Simulate datasets with condition effect</a>
@@ -91,7 +92,8 @@
 <span>  <span class="va">new_covariate</span>,</span>
 <span>  important_feature <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  parallelization <span class="op">=</span> <span class="st">"mcmapply"</span>,</span>
-<span>  BPPARAM <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  BPPARAM <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">filtered_gene</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -174,6 +176,11 @@ Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the
 this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 <code>MulticoreParam</code> object offered by the package 'BiocParallel. The default value is NULL.</p></dd>
 
+
+<dt>filtered_gene</dt>
+<dd><p>A vector or NULL which contains genes that are excluded in the marginal and copula fitting 
+steps because these genes only express in less than two cells. This can be obtain from  <code><a href="construct_data.html">construct_data</a></code></p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -184,7 +191,7 @@ this parameter must be NULL. When the parameter parallelization = 'bpmapply',  t
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The function takes the new covariate (if use) from <code><a href="construct_data.html">construct_data</a></code>,
-parameter matricies from <code><a href="extract_para.html">extract_para</a></code> and multivariate Unifs from <code><a href="fit_copula.html">fit_copula</a></code>.</p>
+parameter matrices from <code><a href="extract_para.html">extract_para</a></code> and multivariate Unifs from <code><a href="fit_copula.html">fit_copula</a></code>.</p>
     </div>
 
     <div class="section level2">
@@ -220,7 +227,7 @@ parameter matricies from <code><a href="extract_para.html">extract_para</a></cod
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Converting End</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Copula group 1 starts</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Starts</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Time difference of 0.1187477 secs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Time difference of 0.1432807 secs</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Ends</span>
 <span class="r-in"><span>  <span class="va">my_para</span> <span class="op">&lt;-</span> <span class="fu"><a href="extract_para.html">extract_para</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    sce <span class="op">=</span> <span class="va">example_sce</span>,</span></span>
@@ -241,7 +248,8 @@ parameter matricies from <code><a href="extract_para.html">extract_para</a></cod
 <span class="r-in"><span>  family_use <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"nb"</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"zip"</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  input_data <span class="op">=</span> <span class="va">my_data</span><span class="op">$</span><span class="va">dat</span>,</span></span>
 <span class="r-in"><span>  new_covariate <span class="op">=</span> <span class="va">my_data</span><span class="op">$</span><span class="va">new_covariate</span>,</span></span>
-<span class="r-in"><span>  important_feature <span class="op">=</span> <span class="va">my_copula</span><span class="op">$</span><span class="va">important_feature</span></span></span>
+<span class="r-in"><span>  important_feature <span class="op">=</span> <span class="va">my_copula</span><span class="op">$</span><span class="va">important_feature</span>,</span></span>
+<span class="r-in"><span>  filtered_gene <span class="op">=</span> <span class="va">my_data</span><span class="op">$</span><span class="va">filtered_gene</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Use Copula to sample a multivariate quantile matrix</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Sample Copula group 1 starts</span>
@@ -253,7 +261,7 @@ parameter matricies from <code><a href="extract_para.html">extract_para</a></cod
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Dongyuan Song, Qingyang Wang.</p>
+  <p></p><p>Developed by Dongyuan Song, Qingyang Wang, Chenxin Jiang.</p>
 </div>
 
 <div class="pkgdown-footer-right">

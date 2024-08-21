@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="index.html">scDesign3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,8 @@
     <a class="dropdown-item" href="articles/scDesign3-introduction-vignette.html">scDesign3 Introduction</a>
     <a class="dropdown-item" href="articles/scDesign3-marginal-vignette.html">scDesign3 marginal distribution for genes</a>
     <a class="dropdown-item" href="articles/scDesign3-copulaCompare-vignette.html">Compare gaussian copula and vine copula</a>
+    <a class="dropdown-item" href="articles/scDesign3-parallelization-vignette.html">Parallelization in scDesign3</a>
+    <a class="dropdown-item" href="articles/scDesign3-cellType-vignette.html">Simulate datasets with cell type and modified cell-type proportions </a>
     <a class="dropdown-item" href="articles/scDesign3-librarySize-vignette.html">Simulate datasets with cell library size</a>
     <a class="dropdown-item" href="articles/scDesign3-multipleLineages-vignette.html">Simulate datasets with multiple lineages</a>
     <a class="dropdown-item" href="articles/scDesign3-conditionEffect-vignette.html">Simulate datasets with condition effect</a>
@@ -90,7 +92,7 @@
 <p>The R package <strong>scDesign3</strong> is an all-in-one single-cell data simulation tool by using reference datasets with different cell states (cell types, trajectories or and spatial coordinates), different modalities (gene expression, chromatin accessibility, protein abundance, DNA methylation, etc), and complex experimental designs. The transparent parameters enable users to alter models as needed; the model evaluation metrics (AIC, BIC) and convenient visualization function help users select models. <span style="color:blue"> <strong>Detailed tutorials that illustrate various functionalities of scDesign3 are available at this <a href="https://songdongyuan1994.github.io/scDesign3/docs/index.html" class="external-link">website</a></strong></span>. The following illustration figure summarizes the usage of scDesign3:</p>
 <p><img src="reference/figures/scDesign3_illustration.png" width="600"></p>
 <p>To find out more details about <strong>scDesign3</strong>, you can check out our manuscript on Nature Biotechnology:</p>
-<p><a href="https://www.nature.com/articles/s41587-023-01772-1" class="external-link">Song, D., Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> (2023).</a></p>
+<p><a href="https://www.nature.com/articles/s41587-023-01772-1" class="external-link">Song, D., Wang, Q., Yan, G. <em>et al.</em> scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> <strong>42</strong>, 247–252 (2024).</a></p>
 <p>Please note that the parallel computing of scDesign3 is mainly designed for UNIX OS; be careful when you set <code>n_cores</code>.</p>
 </div>
 <div class="section level1">
@@ -118,7 +120,7 @@
 <h2 id="quick-start">Quick Start<a name="quick-start"></a>
 <a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<p>The following code is a quick example of running our simulator. The function <code><a href="reference/scdesign3.html">scdesign3()</a></code> takes in a <code>SinglecellExperiment</code> object with the cell covariates(such as cell types, pesudotime, or spatial coordinates) stored in the <code>colData</code> of the <code>SinglecellExperiment</code> object. For more details on the <code>SinlgeCellExperiment</code> object, please check on its <a href="https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html" class="external-link">Bioconductor link</a>.</p>
+<p>The following code is a quick example of running our simulator. The function <code><a href="reference/scdesign3.html">scdesign3()</a></code> takes in a <code>SinglecellExperiment</code> object with the cell covariates(such as cell types, pseudotime, or spatial coordinates) stored in the <code>colData</code> of the <code>SinglecellExperiment</code> object. For more details on the <code>SinlgeCellExperiment</code> object, please check on its <a href="https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html" class="external-link">Bioconductor link</a>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">example_simu</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scdesign3.html">scdesign3</a></span><span class="op">(</span></span>
 <span>    sce <span class="op">=</span> <span class="va">example_sce</span>,</span>
@@ -155,9 +157,9 @@
 <li>
 <code>celltype</code>: A string of the column name of the cell type variable in the colData of the sce. Default is ‘cell_type’. The cell type variable in the colData of the sce should be a factor variable. Use NULL if there is no column in the colData that contains the cell-type information.</li>
 <li>
-<code>pseudotime</code>: A string or a string vector of the name of pseudotime and (if exist) multiple lineages. Default is NULL. If the data only has one lineage, then this parameter should be the column name of the pesudotime variable in the colData of the sce. If the data has multiple lingaes, then this parameter be the column names of the pseudotime variables for each lineage and the vaiables indicating which lineage that a cell belongs to. The pseudotime variables should be continuous numeric variables.</li>
+<code>pseudotime</code>: A string or a string vector of the name of pseudotime and (if exist) multiple lineages. Default is NULL. If the data only has one lineage, then this parameter should be the column name of the pseudotime variable in the colData of the sce. If the data has multiple lingaes, then this parameter be the column names of the pseudotime variables for each lineage and the variables indicating which lineage that a cell belongs to. The pseudotime variables should be continuous numeric variables.</li>
 <li>
-<code>spatial</code>: A length-two string vector of the column names of spatial coordinates in the colData of sce. Defualt is NULL.</li>
+<code>spatial</code>: A length-two string vector of the column names of spatial coordinates in the colData of sce. Default is NULL.</li>
 <li>
 <code>other_covariate</code>: A string or a string vector of the other covariates in the colData of sce you want to include in the data. For example, you can put the column names of the batch variables and/or condition variables in the colData of sce here if your sce contains these information and you want to include these variables in<code>mu_formula</code> or <code>sigma_formula</code> or <code>corr_formula</code>.</li>
 <li>
@@ -169,7 +171,9 @@
 <li>
 <code>n_cores</code>: An integer. The number of cores to use.</li>
 <li>
-<code>usebam</code>: A logic variable. If use bam (generalized additive models for very large datasets ) for acceleration.</li>
+<code>usebam</code>: A logic variable. If TRUE, use bam (generalized additive models for very large datasets) for acceleration.</li>
+<li>
+<code>edf_flexible</code>: A logic variable. If TRUE, the degree of freedom for each gene’s regression model will be automatically selected for acceleration.</li>
 <li>
 <code>corr_formula</code>: A string of the correlation structure. For example, if you want to obtain a correlation structure for each cell type, then this parameter should be the column name of the cell type variable in the colData of sce.</li>
 <li>
@@ -227,6 +231,7 @@
 </ul>
 </li>
 </ul>
+<p>For more details about the <code>mu_formula</code> and <code>sigma_formula</code> formula specification, please check online materials about the package <a href="https://cran.r-project.org/web/packages/mgcv/index.html" class="external-link">mgcv</a>. Technically speaking, you can try any formulas as long as they are available for <strong>mgcv</strong>.</p>
 </div>
 <div class="section level2">
 <h2 id="tutorials">Tutorials<a name="tutorials"></a>
@@ -236,6 +241,7 @@
 <ul>
 <li>Data simulation
 <ul>
+<li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-cellType-vignette.html" class="external-link">Simulate datasets with cell type and modified cell-type proportions</a></li>
 <li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-librarySize-vignette.html" class="external-link">Simulate datasets with cell library size</a></li>
 <li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-multipleLineages-vignette.html" class="external-link">Simulate datasets with multiple lineages</a></li>
 <li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-spatial-vignette.html" class="external-link">Simulate spatial transcriptomic data</a></li>
@@ -250,6 +256,7 @@
 <li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-introduction-vignette.html" class="external-link">scDesign3 introduction</a></li>
 <li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-marginal-vignette.html" class="external-link">scDesign3 marginal distribution for genes</a></li>
 <li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-copulaCompare-vignette.html" class="external-link">Compare Gaussian copula and Vine copula</a></li>
+<li><a href="https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-parallelization-vignette.html" class="external-link">Parallelization in scDesign3</a></li>
 </ul>
 </li>
 <li>Model selection
@@ -274,6 +281,20 @@
 <p>Any questions or suggestions on <code>scDesign3</code> are welcomed! Please report it on <a href="https://github.com/SONGDONGYUAN1994/scDesign3/issues" class="external-link">issues</a>, or contact Dongyuan Song (<a href="mailto:dongyuansong@ucla.edu" class="email">dongyuansong@ucla.edu</a>) or Qingyang Wang (<a href="mailto:qw802@g.ucla.edu" class="email">qw802@g.ucla.edu</a>).</p>
 </div>
 <div class="section level2">
+<h2 id="changelog">Changelog<a class="anchor" aria-label="anchor" href="#changelog"></a>
+</h2>
+<ul>
+<li>2024-06-22 Important changes
+<ul>
+<li>Add sparse Gaussian copula for <code>fit_copula</code>
+</li>
+<li>Add automatic k selection for <code>fit_marginal</code>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section level2">
 <h2 id="related-manuscripts">Related Manuscripts<a name="related-manuscripts"></a>
 <a class="anchor" aria-label="anchor" href="#related-manuscripts"></a>
 </h2>
@@ -281,24 +302,24 @@
 <li>The original <strong>scDesign3</strong> paper
 <ul>
 <li>
-<strong>scDesign3</strong>: <a href="https://www.nature.com/articles/s41587-023-01772-1" class="external-link">Song, D., Wang, Q., Yan, G. et al. scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> (2023).</a>
+<strong>scDesign3</strong>: <a href="https://www.nature.com/articles/s41587-023-01772-1" class="external-link">Song, D., Wang, Q., Yan, G. <em>et al.</em> scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. <em>Nat Biotechnol</em> <strong>42</strong>, 247–252 (2024).</a>
 </li>
 </ul>
 </li>
 <li>The predecessors of <strong>scDesign3</strong>
 <ul>
 <li>
-<strong>scDesign</strong>: <a href="https://academic.oup.com/bioinformatics/article/35/14/i41/5529133" class="external-link">Li, W. V., &amp; Li, J. J. (2019). A statistical simulator scDesign for rational scRNA-seq experimental design. Bioinformatics, 35(14), i41-i50.</a>
+<strong>scDesign</strong>: <a href="https://academic.oup.com/bioinformatics/article/35/14/i41/5529133" class="external-link">Li, W. V., &amp; Li, J. J. (2019). A statistical simulator scDesign for rational scRNA-seq experimental design. <em>Bioinformatics</em>, <strong>35</strong>(14), i41-i50.</a>
 </li>
 <li>
-<strong>scDesign2</strong>: <a href="https://link.springer.com/article/10.1186/s13059-021-02367-2" class="external-link">Sun, T., Song, D., Li, W. V., &amp; Li, J. J. (2021). scDesign2: a transparent simulator that generates high-fidelity single-cell gene expression count data with gene correlations captured. Genome biology, 22(1), 1-37.</a>
+<strong>scDesign2</strong>: <a href="https://link.springer.com/article/10.1186/s13059-021-02367-2" class="external-link">Sun, T., Song, D., Li, W. V., &amp; Li, J. J. (2021). scDesign2: a transparent simulator that generates high-fidelity single-cell gene expression count data with gene correlations captured. <em>Genome biology</em>, <strong>22</strong>(1), 1-37.</a>
 </li>
 </ul>
 </li>
-<li>The simulator for single-cell multi-omics reads developed by our lab memeber Guanao Yan
+<li>The simulator for single-cell multi-omics reads developed by our lab member Guanao Yan
 <ul>
 <li>
-<strong>scReadSim</strong>: <a href="https://www.biorxiv.org/content/10.1101/2022.05.29.493924v1.abstract" class="external-link">Yan, G., &amp; Li, J. J. (2022). scReadSim: a single-cell multi-omics read simulator. bioRxiv.</a>
+<strong>scReadSim</strong>: <a href="https://doi.org/10.1038/s41467-023-43162-w" class="external-link">Yan, G., Song, D. &amp; Li, J.J. scReadSim: a single-cell RNA-seq and ATAC-seq read simulator. <em>Nat Commun</em> <strong>14</strong>, 7482 (2023)</a>
 </li>
 </ul>
 </li>
@@ -309,6 +330,7 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://www.bioconductor.org/packages/scDesign3" class="external-link">View on Bioconductor</a></li>
 <li><a href="https://github.com/SONGDONGYUAN1994/scDesign3/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/SONGDONGYUAN1994/scDesign3/issues" class="external-link">Report a bug</a></li>
 </ul>
@@ -336,6 +358,7 @@
 <ul class="list-unstyled">
 <li>Dongyuan Song <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-1114-1215" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 <li>Qingyang Wang <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-1051-609X" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Chenxin Jiang <br><small class="roles"> Author </small> <a href="https://orcid.org/0009-0005-7369-4116" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 </ul>
 </div>
 
@@ -347,7 +370,7 @@
 
     <footer><div class="pkgdown-footer-left">
   <p></p>
-<p>Developed by Dongyuan Song, Qingyang Wang.</p>
+<p>Developed by Dongyuan Song, Qingyang Wang, Chenxin Jiang.</p>
 </div>
 
 <div class="pkgdown-footer-right">

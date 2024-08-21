@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">scDesign3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,7 @@
     <a class="dropdown-item" href="../articles/scDesign3-introduction-vignette.html">scDesign3 Introduction</a>
     <a class="dropdown-item" href="../articles/scDesign3-marginal-vignette.html">scDesign3 marginal distribution for genes</a>
     <a class="dropdown-item" href="../articles/scDesign3-copulaCompare-vignette.html">Compare gaussian copula and vine copula</a>
+    <a class="dropdown-item" href="../articles/scDesign3-parallelization-vignette.html">Parallelization in scDesign3</a>
     <a class="dropdown-item" href="../articles/scDesign3-librarySize-vignette.html">Simulate datasets with cell library size</a>
     <a class="dropdown-item" href="../articles/scDesign3-multipleLineages-vignette.html">Simulate datasets with multiple lineages</a>
     <a class="dropdown-item" href="../articles/scDesign3-conditionEffect-vignette.html">Simulate datasets with condition effect</a>
@@ -87,6 +88,7 @@
 <span>  epsilon <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  family_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="st">"indep"</span><span class="op">)</span>,</span>
 <span>  important_feature <span class="op">=</span> <span class="st">"all"</span>,</span>
+<span>  if_sparse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">n_cores</span>,</span>
 <span>  parallelization <span class="op">=</span> <span class="st">"mcmapply"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -144,12 +146,15 @@ Default is FALSE.</p></dd>
 
 
 <dt>important_feature</dt>
-<dd><p>A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
-for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+<dd><p>A numeric value or vector which indicates whether a gene will be used in correlation estimation or not. If this is a numeric value, then
+gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 be a logical vector with length equal to the number of genes in <code>sce</code>. <code>TRUE</code> in the logical vector means the corresponding gene will be included in
 gene-gene correlation estimation and <code>FALSE</code> in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-The default value for is "all".</p></dd>
+The default value for is "all" (a special string which means no filtering).</p></dd>
+
+
+<dt>if_sparse</dt>
+<dd><p>A logic variable. Only works for Gaussian copula (<code>family_set = "gaussian"</code>). If TRUE, a thresholding strategy will make the corr matrix sparse.</p></dd>
 
 
 <dt>n_cores</dt>
@@ -225,7 +230,7 @@ and fit the copula model on the residuals.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Converting End</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Copula group 1 starts</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Starts</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Time difference of 0.1267049 secs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Time difference of 0.1842949 secs</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Vine Copula Estimation Ends</span>
 <span class="r-in"><span>  </span></span>
 </code></pre></div>
@@ -235,7 +240,7 @@ and fit the copula model on the residuals.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Dongyuan Song, Qingyang Wang.</p>
+  <p></p><p>Developed by Dongyuan Song, Qingyang Wang, Chenxin Jiang.</p>
 </div>
 
 <div class="pkgdown-footer-right">

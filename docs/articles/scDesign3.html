@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">scDesign3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,7 @@
     <a class="dropdown-item" href="../articles/scDesign3-introduction-vignette.html">scDesign3 Introduction</a>
     <a class="dropdown-item" href="../articles/scDesign3-marginal-vignette.html">scDesign3 marginal distribution for genes</a>
     <a class="dropdown-item" href="../articles/scDesign3-copulaCompare-vignette.html">Compare gaussian copula and vine copula</a>
+    <a class="dropdown-item" href="../articles/scDesign3-parallelization-vignette.html">Parallelization in scDesign3</a>
     <a class="dropdown-item" href="../articles/scDesign3-librarySize-vignette.html">Simulate datasets with cell library size</a>
     <a class="dropdown-item" href="../articles/scDesign3-multipleLineages-vignette.html">Simulate datasets with multiple lineages</a>
     <a class="dropdown-item" href="../articles/scDesign3-conditionEffect-vignette.html">Simulate datasets with condition effect</a>
@@ -102,9 +103,9 @@ Wang</h4>
 Angeles<br><a class="author_email" href="mailto:#"></a><a href="mailto:qw802@g.ucla.edu" class="email">qw802@g.ucla.edu</a>
       </address>
                   
-            <h4 data-toc-skip class="date">17 July 2023</h4>
+            <h4 data-toc-skip class="date">21 August 2024</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/SONGDONGYUAN1994/scDesign3/blob/HEAD/vignettes/vignettes/scDesign3.Rmd" class="external-link"><code>vignettes/vignettes/scDesign3.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/SONGDONGYUAN1994/scDesign3/blob/HEAD/../../vignettes/scDesign3.Rmd" class="external-link"><code>../../vignettes/scDesign3.Rmd</code></a></small>
       <div class="d-none name"><code>scDesign3.Rmd</code></div>
     </div>
 
@@ -165,7 +166,7 @@ highly variable genes and filter out some cell types to ensure a
 </h2>
 <p>The function <code><a href="../reference/scdesign3.html">scdesign3()</a></code> takes in a
 <code>SinglecellExperiment</code> object with the cell covariates (such
-as cell types, pesudotime, or spatial coordinates) stored in the
+as cell types, pseudotime, or spatial coordinates) stored in the
 <code>colData</code> of the <code>SinglecellExperiment</code>
 object.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -178,7 +179,7 @@ object.</p>
 <span>    spatial <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>    other_covariates <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>    mu_formula <span class="op">=</span> <span class="st">"s(pseudotime, k = 10, bs = 'cr')"</span>,</span>
-<span>    sigma_formula <span class="op">=</span> <span class="st">"s(pseudotime, k = 5, bs = 'cr')"</span>,</span>
+<span>    sigma_formula <span class="op">=</span> <span class="st">"1"</span>, <span class="co"># If you want your dispersion also varies along pseudotime, use "s(pseudotime, k = 5, bs = 'cr')"</span></span>
 <span>    family_use <span class="op">=</span> <span class="st">"nb"</span>,</span>
 <span>    n_cores <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>    usebam <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -187,8 +188,7 @@ object.</p>
 <span>    DT <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    pseudo_obs <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    return_model <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>    nonzerovar <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>    parallelization <span class="op">=</span> <span class="st">"pbmcmapply"</span></span>
+<span>    nonzerovar <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>The output of <code><a href="../reference/scdesign3.html">scdesign3()</a></code> is a list which includes:</p>
 <ul>
@@ -271,8 +271,8 @@ the input and synthetic <code>SinglecellExperiment</code> objects.</p>
 </h2>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.3.0 (2023-04-21)</span></span>
-<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu (64-bit)</span></span>
+<span><span class="co">#&gt; R version 4.4.0 (2024-04-24)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
 <span><span class="co">#&gt; Running under: Ubuntu 20.04.6 LTS</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
@@ -295,44 +295,44 @@ the input and synthetic <code>SinglecellExperiment</code> objects.</p>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] ggplot2_3.4.2               SingleCellExperiment_1.22.0</span></span>
+<span><span class="co">#&gt;  [1] ggplot2_3.5.0               SingleCellExperiment_1.22.0</span></span>
 <span><span class="co">#&gt;  [3] SummarizedExperiment_1.30.2 Biobase_2.60.0             </span></span>
 <span><span class="co">#&gt;  [5] GenomicRanges_1.52.0        GenomeInfoDb_1.36.1        </span></span>
 <span><span class="co">#&gt;  [7] IRanges_2.34.1              S4Vectors_0.38.1           </span></span>
 <span><span class="co">#&gt;  [9] BiocGenerics_0.46.0         MatrixGenerics_1.12.2      </span></span>
-<span><span class="co">#&gt; [11] matrixStats_1.0.0           scDesign3_0.99.5           </span></span>
+<span><span class="co">#&gt; [11] matrixStats_1.0.0           scDesign3_1.1.3            </span></span>
 <span><span class="co">#&gt; [13] BiocStyle_2.28.0           </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;  [1] tidyselect_1.2.0        viridisLite_0.4.2       farver_2.1.1           </span></span>
-<span><span class="co">#&gt;  [4] dplyr_1.1.2             viridis_0.6.3           bitops_1.0-7           </span></span>
-<span><span class="co">#&gt;  [7] fastmap_1.1.1           RCurl_1.98-1.12         digest_0.6.33          </span></span>
-<span><span class="co">#&gt; [10] lifecycle_1.0.3         survival_3.5-5          gamlss.dist_6.0-5      </span></span>
-<span><span class="co">#&gt; [13] magrittr_2.0.3          compiler_4.3.0          rlang_1.1.1            </span></span>
-<span><span class="co">#&gt; [16] sass_0.4.6              tools_4.3.0             utf8_1.2.3             </span></span>
-<span><span class="co">#&gt; [19] yaml_2.3.7              knitr_1.43              labeling_0.4.2         </span></span>
-<span><span class="co">#&gt; [22] askpass_1.1             S4Arrays_1.0.4          mclust_6.0.0           </span></span>
-<span><span class="co">#&gt; [25] reticulate_1.30         DelayedArray_0.26.6     withr_2.5.0            </span></span>
-<span><span class="co">#&gt; [28] purrr_1.0.1             desc_1.4.2              grid_4.3.0             </span></span>
-<span><span class="co">#&gt; [31] fansi_1.0.4             colorspace_2.1-0        scales_1.2.1           </span></span>
-<span><span class="co">#&gt; [34] MASS_7.3-60             cli_3.6.1               mvtnorm_1.2-2          </span></span>
-<span><span class="co">#&gt; [37] rmarkdown_2.23          crayon_1.5.2            ragg_1.2.5             </span></span>
-<span><span class="co">#&gt; [40] generics_0.1.3          umap_0.2.10.0           rstudioapi_0.15.0      </span></span>
-<span><span class="co">#&gt; [43] RSpectra_0.16-1         cachem_1.0.8            stringr_1.5.0          </span></span>
-<span><span class="co">#&gt; [46] zlibbioc_1.46.0         splines_4.3.0           parallel_4.3.0         </span></span>
-<span><span class="co">#&gt; [49] BiocManager_1.30.21     XVector_0.40.0          vctrs_0.6.3            </span></span>
-<span><span class="co">#&gt; [52] Matrix_1.6-0            jsonlite_1.8.7          bookdown_0.34          </span></span>
-<span><span class="co">#&gt; [55] gamlss_5.4-12           irlba_2.3.5.1           pbmcapply_1.5.1        </span></span>
-<span><span class="co">#&gt; [58] systemfonts_1.0.4       jquerylib_0.1.4         glue_1.6.2             </span></span>
-<span><span class="co">#&gt; [61] pkgdown_2.0.7           stringi_1.7.12          gtable_0.3.3           </span></span>
-<span><span class="co">#&gt; [64] munsell_0.5.0           tibble_3.2.1            pillar_1.9.0           </span></span>
-<span><span class="co">#&gt; [67] htmltools_0.5.5         openssl_2.0.6           gamlss.data_6.0-2      </span></span>
-<span><span class="co">#&gt; [70] GenomeInfoDbData_1.2.10 R6_2.5.1                textshaping_0.3.6      </span></span>
-<span><span class="co">#&gt; [73] rprojroot_2.0.3         evaluate_0.21           lattice_0.21-8         </span></span>
-<span><span class="co">#&gt; [76] highr_0.10              png_0.1-8               memoise_2.0.1          </span></span>
-<span><span class="co">#&gt; [79] bslib_0.5.0             Rcpp_1.0.11             gridExtra_2.3          </span></span>
-<span><span class="co">#&gt; [82] nlme_3.1-162            mgcv_1.8-42             xfun_0.39              </span></span>
-<span><span class="co">#&gt; [85] fs_1.6.2                pkgconfig_2.0.3</span></span></code></pre></div>
+<span><span class="co">#&gt;  [4] dplyr_1.1.4             viridis_0.6.4           bitops_1.0-7           </span></span>
+<span><span class="co">#&gt;  [7] fastmap_1.1.1           RCurl_1.98-1.12         coop_0.6-3             </span></span>
+<span><span class="co">#&gt; [10] digest_0.6.33           lifecycle_1.0.4         survival_3.5-8         </span></span>
+<span><span class="co">#&gt; [13] gamlss.dist_6.0-5       magrittr_2.0.3          compiler_4.4.0         </span></span>
+<span><span class="co">#&gt; [16] rlang_1.1.3             sass_0.4.7              tools_4.4.0            </span></span>
+<span><span class="co">#&gt; [19] utf8_1.2.4              yaml_2.3.7              knitr_1.43             </span></span>
+<span><span class="co">#&gt; [22] labeling_0.4.3          askpass_1.1             S4Arrays_1.2.0         </span></span>
+<span><span class="co">#&gt; [25] mclust_6.0.1            reticulate_1.30         DelayedArray_0.26.6    </span></span>
+<span><span class="co">#&gt; [28] abind_1.4-5             withr_3.0.0             purrr_1.0.1            </span></span>
+<span><span class="co">#&gt; [31] desc_1.4.2              grid_4.4.0              fansi_1.0.6            </span></span>
+<span><span class="co">#&gt; [34] colorspace_2.1-0        scales_1.3.0            MASS_7.3-60.0.1        </span></span>
+<span><span class="co">#&gt; [37] cli_3.6.2               mvtnorm_1.2-2           rmarkdown_2.23         </span></span>
+<span><span class="co">#&gt; [40] crayon_1.5.2            ragg_1.2.5              generics_0.1.3         </span></span>
+<span><span class="co">#&gt; [43] umap_0.2.10.0           rstudioapi_0.15.0       RSpectra_0.16-2        </span></span>
+<span><span class="co">#&gt; [46] cachem_1.0.8            stringr_1.5.1           zlibbioc_1.46.0        </span></span>
+<span><span class="co">#&gt; [49] splines_4.4.0           parallel_4.4.0          BiocManager_1.30.21.1  </span></span>
+<span><span class="co">#&gt; [52] XVector_0.40.0          vctrs_0.6.5             Matrix_1.7-0           </span></span>
+<span><span class="co">#&gt; [55] jsonlite_1.8.7          bookdown_0.34           gamlss_5.4-12          </span></span>
+<span><span class="co">#&gt; [58] irlba_2.3.5.1           systemfonts_1.0.4       jquerylib_0.1.4        </span></span>
+<span><span class="co">#&gt; [61] glue_1.7.0              pkgdown_2.0.7           stringi_1.8.3          </span></span>
+<span><span class="co">#&gt; [64] gtable_0.3.4            munsell_0.5.0           tibble_3.2.1           </span></span>
+<span><span class="co">#&gt; [67] pillar_1.9.0            htmltools_0.5.5         openssl_2.1.0          </span></span>
+<span><span class="co">#&gt; [70] gamlss.data_6.0-2       GenomeInfoDbData_1.2.10 R6_2.5.1               </span></span>
+<span><span class="co">#&gt; [73] textshaping_0.3.6       rprojroot_2.0.3         evaluate_0.21          </span></span>
+<span><span class="co">#&gt; [76] lattice_0.22-5          highr_0.10              png_0.1-8              </span></span>
+<span><span class="co">#&gt; [79] memoise_2.0.1           bslib_0.5.0             Rcpp_1.0.12            </span></span>
+<span><span class="co">#&gt; [82] gridExtra_2.3           nlme_3.1-163            mgcv_1.9-1             </span></span>
+<span><span class="co">#&gt; [85] xfun_0.39               fs_1.6.3                pkgconfig_2.0.3</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
@@ -342,7 +342,7 @@ the input and synthetic <code>SinglecellExperiment</code> objects.</p>
 
     <footer><div class="pkgdown-footer-left">
   <p></p>
-<p>Developed by Dongyuan Song, Qingyang Wang.</p>
+<p>Developed by Dongyuan Song, Qingyang Wang, Chenxin Jiang.</p>
 </div>
 
 <div class="pkgdown-footer-right">

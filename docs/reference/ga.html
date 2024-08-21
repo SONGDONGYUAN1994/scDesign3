@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">scDesign3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,11 +28,15 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/scDesign3-introduction-vignette.html">scDesign3 Introduction</a>
+    <a class="dropdown-item" href="../articles/scDesign3-marginal-vignette.html">scDesign3 marginal distribution for genes</a>
     <a class="dropdown-item" href="../articles/scDesign3-copulaCompare-vignette.html">Compare gaussian copula and vine copula</a>
+    <a class="dropdown-item" href="../articles/scDesign3-parallelization-vignette.html">Parallelization in scDesign3</a>
+    <a class="dropdown-item" href="../articles/scDesign3-librarySize-vignette.html">Simulate datasets with cell library size</a>
     <a class="dropdown-item" href="../articles/scDesign3-multipleLineages-vignette.html">Simulate datasets with multiple lineages</a>
     <a class="dropdown-item" href="../articles/scDesign3-conditionEffect-vignette.html">Simulate datasets with condition effect</a>
     <a class="dropdown-item" href="../articles/scDesign3-batchEffect-vignette.html">Simulate datasets with batch effect</a>
     <a class="dropdown-item" href="../articles/scDesign3-spatial-vignette.html">Simulate spatial transcriptomic data</a>
+    <a class="dropdown-item" href="../articles/scDesign3-spatial-deconvolution.html">Simulate spot-resolution spatial data for cell-type deconvolution</a>
     <a class="dropdown-item" href="../articles/scDesign3-scATACseq-vignette.html">Simulate single-cell ATAC-seq data</a>
     <a class="dropdown-item" href="../articles/scDesign3-CITEseq-vignette.html">Simulate CITE-seq data</a>
     <a class="dropdown-item" href="../articles/scDesign3-multiomics-vignette.html">Simulate multi-omics data from single-omic data</a>
@@ -40,6 +44,9 @@
     <a class="dropdown-item" href="../articles/scDesign3-pseudotimeGOF-vignette.html">Evaluate pseudotime goodness-of-fit by scDesign3</a>
     <a class="dropdown-item" href="../articles/scDesign3-DEanalysis-vignette.html">Benchmarking DE Analysis with scDesign3</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -68,7 +75,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ga</span><span class="op">(</span><span class="va">formula</span>, <span class="va">envir</span>, control <span class="op">=</span> <span class="fu"><a href="ga.control.html">ga.control</a></span><span class="op">(</span><span class="va">...</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ga</span><span class="op">(</span><span class="va">formula</span>, <span class="va">envir</span>, control <span class="op">=</span> <span class="fu">ga.control</span><span class="op">(</span><span class="va">...</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -90,16 +97,29 @@
 
 </dl></div>
     <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>A xvar list.</p>
+    </div>
+    <div class="section level2">
     <h2 id="ga">ga<a class="anchor" aria-label="anchor" href="#ga"></a></h2>
     <p>NA</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"No example"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "No example"</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Dongyuan Song, Qingyang Wang.</p>
+  <p></p><p>Developed by Dongyuan Song, Qingyang Wang, Chenxin Jiang.</p>
 </div>
 
 <div class="pkgdown-footer-right">

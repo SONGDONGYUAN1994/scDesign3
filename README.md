@@ -116,6 +116,7 @@ For more details about the `mu_formula` and `sigma_formula` formula specificatio
 For all detailed tutorials, please check the [website](https://songdongyuan1994.github.io/scDesign3/docs/index.html). The tutorials will demonstrate the applications of **scDesign3** from the following four perspectives: data simulation, model parameters, model selection, and model alteration.
 
 -   Data simulation
+    -   [Simulate datasets with cell type and modified cell-type proportions](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-cellType-vignette.html)
     -   [Simulate datasets with cell library size](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-librarySize-vignette.html)
     -   [Simulate datasets with multiple lineages](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-multipleLineages-vignette.html)
     -   [Simulate spatial transcriptomic data](https://songdongyuan1994.github.io/scDesign3/docs/articles/scDesign3-spatial-vignette.html)

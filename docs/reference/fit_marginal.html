@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">scDesign3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,7 @@
     <a class="dropdown-item" href="../articles/scDesign3-introduction-vignette.html">scDesign3 Introduction</a>
     <a class="dropdown-item" href="../articles/scDesign3-marginal-vignette.html">scDesign3 marginal distribution for genes</a>
     <a class="dropdown-item" href="../articles/scDesign3-copulaCompare-vignette.html">Compare gaussian copula and vine copula</a>
+    <a class="dropdown-item" href="../articles/scDesign3-parallelization-vignette.html">Parallelization in scDesign3</a>
     <a class="dropdown-item" href="../articles/scDesign3-librarySize-vignette.html">Simulate datasets with cell library size</a>
     <a class="dropdown-item" href="../articles/scDesign3-multipleLineages-vignette.html">Simulate datasets with multiple lineages</a>
     <a class="dropdown-item" href="../articles/scDesign3-conditionEffect-vignette.html">Simulate datasets with condition effect</a>
@@ -81,10 +82,13 @@
 <span>  <span class="va">sigma_formula</span>,</span>
 <span>  <span class="va">family_use</span>,</span>
 <span>  <span class="va">n_cores</span>,</span>
-<span>  <span class="va">usebam</span>,</span>
+<span>  usebam <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  edf_flexible <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  parallelization <span class="op">=</span> <span class="st">"mcmapply"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  trace <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  trace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  simplify <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  filter_cells <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -95,11 +99,11 @@
 
 
 <dt>predictor</dt>
-<dd><p>A string of the predictor for the gam/gamlss model. Default is gene. This is essentially just a name.</p></dd>
+<dd><p>A string of the predictor for the gam/gamlss model. Default is "gene". This is just a name.</p></dd>
 
 
 <dt>mu_formula</dt>
-<dd><p>A string of the mu parameter formula</p></dd>
+<dd><p>A string of the mu parameter formula. It follows the format of formula in <code><a href="https://rdrr.io/pkg/mgcv/man/bam.html" class="external-link">bam</a></code>. Note: if the formula has multiple smoothers (<code>s()</code>) (we do not recommend this), please put the one with largest k (most complex one) as the first one.</p></dd>
 
 
 <dt>sigma_formula</dt>
@@ -109,7 +113,7 @@
 <dt>family_use</dt>
 <dd><p>A string or a vector of strings of the marginal distribution.
 Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
-'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomial distribution',
 and 'gaussian distribution' respectively.</p></dd>
 
 
@@ -119,6 +123,10 @@ and 'gaussian distribution' respectively.</p></dd>
 
 <dt>usebam</dt>
 <dd><p>A logic variable. If use <code><a href="https://rdrr.io/pkg/mgcv/man/bam.html" class="external-link">bam</a></code> for acceleration.</p></dd>
+
+
+<dt>edf_flexible</dt>
+<dd><p>A logic variable. It uses simpler model to accelerate the marginal fitting with a mild loss of accuracy. If TRUE, the fitted regression model will use the fitted relationship between Gini coefficient and the effective degrees of freedom on a random selected gene sets. Default is FALSE.</p></dd>
 
 
 <dt>parallelization</dt>
@@ -134,8 +142,16 @@ this parameter must be NULL. When the parameter parallelization = 'bpmapply',  t
 
 
 <dt>trace</dt>
-<dd><p>A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss
+<dd><p>A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss will be returned.
 will be returned, FALSE otherwise. Default is FALSE.</p></dd>
+
+
+<dt>simplify</dt>
+<dd><p>A logic variable. If TRUE, the fitted regression model will only keep the essential contains for <code>predict</code>. Default is FALSE.</p></dd>
+
+
+<dt>filter_cell</dt>
+<dd><p>A logic variable. If TRUE, when all covariates used for fitting the GAM/GAMLSS model are categorical, the code will check each unique combination of categories and remove cells in that category if it has all zero gene expression for each fitted gene.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -178,7 +194,7 @@ and fit the regression models for each feature based on users' specification.</p
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Dongyuan Song, Qingyang Wang.</p>
+  <p></p><p>Developed by Dongyuan Song, Qingyang Wang, Chenxin Jiang.</p>
 </div>
 
 <div class="pkgdown-footer-right">
