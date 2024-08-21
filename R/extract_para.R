@@ -1,6 +1,6 @@
 #' Extract the parameters of each cell's distribution
 #'
-#' \code{extract_para} generates parameter matricies which determine each cell's distribution
+#' \code{extract_para} generates parameter matrices which determine each cell's distribution
 #'
 #' The function takes the new covariate (if use) from \code{\link{construct_data}} and
 #' marginal models from \code{\link{fit_marginal}}.
@@ -11,9 +11,9 @@
 #' @param n_cores An integer. The number of cores to use.
 #' @param family_use A string of the marginal distribution.
 #' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
-#' 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+#' 'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomial distribution',
 #' and 'gaussian distribution' respectively.
-#' @param new_covariate A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}} and the
+#' @param new_covariate A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}} and the
 #' correlation group assignment for each cell in the column 'corr_group'.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
@@ -81,19 +81,24 @@ extract_para <-  function(sce,
 
   # find gene whose marginal is fitted
   qc_gene_idx <- which(!is.na(marginal_list))
-  
+  if(length(family_use) != 1){
+    family_use <- family_use[qc_gene_idx]
+  }
   # check if user inputted new covariates
   data_temp <- data[,colnames(new_covariate), drop = FALSE]
   if(identical(data_temp, new_covariate)){
     new_covariate <- NULL
   }
   
+  count_mat <- SummarizedExperiment::assay(sce, assay_use)
+  
   mat_function <-function(x, y) {
     fit <- marginal_list[[x]]
     removed_cell <- removed_cell_list[[x]]
-    count_mat <-
-      t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
-    data$gene <- count_mat[,x]
+    #count_mat <-
+    #  t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
+    #data$gene <- count_mat[,x]
+    data$gene <- count_mat[x, ]
     # if(!"gamlss" %in% class(fit)){
     #   modelframe <- model.frame(fit)
     # }else{
@@ -226,7 +231,7 @@ extract_para <-  function(sce,
     }
 
     if(length(mean_vec) < total_cells){
-      full_means <- rep(NA, total_cells)
+      full_means <- rep(0, total_cells)
       names(full_means) <- cell_names
       full_means[names(mean_vec)] <- mean_vec
       full_theta <- rep(NA, total_cells)
@@ -256,15 +261,20 @@ extract_para <-  function(sce,
     para_mat
   }
   paraFunc <- parallel::mcmapply
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
   if(parallelization == "pbmcmapply"){
     paraFunc <- pbmcapply::pbmcmapply
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE))
   }else{
     mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,SIMPLIFY = FALSE
@@ -298,7 +308,7 @@ extract_para <-  function(sce,
       colnames(sigma_mat) <- colnames(zero_mat) <- rownames(sce)
   }
 
-
+  zero_mat <- Matrix::Matrix(zero_mat, sparse = TRUE)
   return(list(
     mean_mat = mean_mat,
     sigma_mat = sigma_mat,

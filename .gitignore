@@ -1,3 +1,5 @@
+scDesign3.Rproj
+.git
 .Rproj
 .Rproj.user
 .Rhistory
@@ -7,7 +9,8 @@ inst/doc
 /doc/
 /Meta/
 docs
-
+# pkgdown
+.yml 
 # History files
 .Rhistory
 .Rapp.history
@@ -57,3 +60,6 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+.git/
+.Rproj.user/

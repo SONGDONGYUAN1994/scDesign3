@@ -50,6 +50,8 @@ The ggplot or the data.frame of reduced dimensions.
 }
 \description{
 \code{plot_reduceddim} performs the dimensionality reduction
+}
+\details{
 This function takes a reference sce and a list of new sces, performs the dimensionality reduction on the reference data, 
 projects the synthetic datasets on the same low dimensional space,
 then visualize the results.

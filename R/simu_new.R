@@ -3,7 +3,7 @@
 #' \code{simu_new} generates new simulated data based on fitted marginal and copula models.
 #'
 #' The function takes the new covariate (if use) from \code{\link{construct_data}},
-#' parameter matricies from \code{\link{extract_para}} and multivariate Unifs from \code{\link{fit_copula}}.
+#' parameter matrices from \code{\link{extract_para}} and multivariate Unifs from \code{\link{fit_copula}}.
 #'
 #' @param sce A \code{SingleCellExperiment} object.
 #' @param assay_use A string which indicates the assay you will use in the sce. Default is 'counts'.
@@ -32,7 +32,8 @@
 #' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
 #' this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 #' \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.
-#'
+#' @param filtered_gene A vector or NULL which contains genes that are excluded in the marginal and copula fitting 
+#' steps because these genes only express in less than two cells. This can be obtain from  \code{\link{construct_data}}
 #' @return A feature by cell matrix of the new simulated count (expression) matrix or sparse matrix.
 #' @examples
 #'   data(example_sce)
@@ -81,7 +82,8 @@
 #'   family_use = c(rep("nb", 5), rep("zip", 5)),
 #'   input_data = my_data$dat,
 #'   new_covariate = my_data$new_covariate,
-#'   important_feature = my_copula$important_feature
+#'   important_feature = my_copula$important_feature,
+#'   filtered_gene = my_data$filtered_gene
 #'   )
 #'
 #' @export simu_new
@@ -102,7 +104,8 @@ simu_new <- function(sce,
                      new_covariate,
                      important_feature = "all",
                      parallelization = "mcmapply",
-                     BPPARAM = NULL){
+                     BPPARAM = NULL,
+                     filtered_gene){
   if(!is.null(quantile_mat) & !is.null(copula_list)) {
     stop("You can only provide either the quantile_mat or the copula_list!")
   }
@@ -113,7 +116,10 @@ simu_new <- function(sce,
     new_covariate <- NULL
   }
   
-  qc_gene_idx <- which(apply(mean_mat, 2, function(x){!sum(x,na.rm = TRUE)==0}))
+  qc_gene_idx <- which(!rownames(sce) %in% filtered_gene)
+  if(length(family_use) != 1){
+    family_use <- family_use[qc_gene_idx]
+  }
  
     if(!is.null(quantile_mat)) {
       message("Multivariate quantile matrix is provided")
@@ -162,18 +168,22 @@ simu_new <- function(sce,
           if(curr_ncell == 0) {
             new_mvu <- NULL
           } else {
-            if (methods::is(cor.mat, "matrix")) {
+            if (methods::is(cor.mat, "matrix") | methods::is(cor.mat, "dsCMatrix")) {
               #message(paste0("Group ", group_index, " Start"))
               
               #message("Sample MVN")
               #sample from mvn for important genes only
               corr_gene_idx <- apply(cor.mat, 2, function(x) length(which(x < 1e-5)) != length(x)-1)
               corr_gene <- colnames(cor.mat)[which(corr_gene_idx)]
-              new_mvn_important <- sampleMVN(n = curr_ncell,
-                                   Sigma = cor.mat[corr_gene, corr_gene],
-                                   n_cores = n_cores,
-                                   fastmvn = fastmvn)
-              colnames(new_mvn_important) <- corr_gene
+              if(length(corr_gene)!=0) {
+                new_mvn_important <- sampleMVN(n = curr_ncell,
+                                               Sigma = cor.mat[corr_gene, corr_gene],
+                                               n_cores = n_cores,
+                                               fastmvn = fastmvn)
+              
+              colnames(new_mvn_important) <- corr_gene} else {
+                new_mvn_important <- NULL
+              }
               #message("MVN Sampling End")
               ind_gene <- colnames(cor.mat)[which(corr_gene_idx==FALSE)]
               if(length(ind_gene) > 0){
@@ -292,7 +302,10 @@ simu_new <- function(sce,
 
   ## New count
   paraFunc <- parallel::mcmapply
-
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
@@ -307,9 +320,10 @@ simu_new <- function(sce,
     total_cells <- dim(new_covariate)[1]
     cell_names <- rownames(new_covariate)
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use, SIMPLIFY = TRUE
@@ -330,8 +344,6 @@ simu_new <- function(sce,
   new_count <- as.matrix(t(new_count))
 
   if(nonnegative) new_count[new_count < 0] <- 0
-
-
 
   if(nonzerovar) {
     row_vars <- matrixStats::rowVars(new_count[qc_gene_idx,])

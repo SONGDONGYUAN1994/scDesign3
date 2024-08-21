@@ -1,16 +1,9 @@
-citHeader("To cite our manuscript for scDesign3:")
-
-bibentry(bibtype="Article",
-title = "A unified framework of realistic in silico data generation and statistical model inference for single-cell and spatial omics",
-author = personList(as.person("Dongyuan Song"),
-                   as.person("Qingyang Wang"),
-                   as.person("Guanao Yan"),
-                   as.person("Tianyang Liu"),
-                   as.person("Jingyi Jessica Li")),
-journal = "bioRxiv",
-pages = "2022--09",
-year = "2022",
-textVersion =
-         paste("Song, D., Wang, Q., Yan, G., Liu, T., & Li, J. J. (2022).",
-               "A unified framework of realistic in silico data generation and statistical model inference for single-cell and spatial omics.",
-               "bioRxiv, 2022-09."))
+bibentry(
+  bibtype  = "Article",
+  title = "scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics",
+  author = "Song, Dongyuan and Wang, Qingyang and Yan, Guanao and Liu, Tianyang and Sun, Tianyi and Li, Jingyi Jessica",
+  journal = "Nature Biotechnology",
+  year = 2023,
+  publisher = "Nature Publishing Group US New York",
+  doi = "10.1038/s41587-023-01772-1",
+)

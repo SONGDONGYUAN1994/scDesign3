@@ -8,8 +8,8 @@ scdesign3(
   sce,
   assay_use = "counts",
   celltype,
-  pseudotime,
-  spatial,
+  pseudotime = NULL,
+  spatial = NULL,
   other_covariates,
   ncell = dim(sce)[2],
   mu_formula,
@@ -17,9 +17,11 @@ scdesign3(
   family_use = "nb",
   n_cores = 2,
   usebam = FALSE,
+  edf_flexible = FALSE,
   corr_formula,
   empirical_quantile = FALSE,
   copula = "gaussian",
+  if_sparse = FALSE,
   fastmvn = FALSE,
   DT = TRUE,
   pseudo_obs = FALSE,
@@ -28,6 +30,7 @@ scdesign3(
   nonnegative = TRUE,
   nonzerovar = FALSE,
   return_model = FALSE,
+  simplify = FALSE,
   parallelization = "mcmapply",
   BPPARAM = NULL,
   trace = FALSE
@@ -43,7 +46,7 @@ scdesign3(
 \item{pseudotime}{A string or a string vector of the name of pseudotime and (if exist)
 multiple lineages. Default is NULL.}
 
-\item{spatial}{A length two string vector of the names of spatial coordinates. Defualt is NULL.}
+\item{spatial}{A length two string vector of the names of spatial coordinates. Default is NULL.}
 
 \item{other_covariates}{A string or a string vector of the other covariates you want to include in the data.}
 
@@ -58,13 +61,17 @@ Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{n_cores}{An integer. The number of cores to use.}
 
-\item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.}
+\item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration in marginal fitting.}
+
+\item{edf_flexible}{A logic variable. It is used for accelerating for spatial model if k is large in 'mu_formula'. Default is FALSE.}
 
 \item{corr_formula}{A string of the correlation structure.}
 
 \item{empirical_quantile}{Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL CDF values of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.}
 
 \item{copula}{A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.}
+
+\item{if_sparse}{A logic variable. Only works for Gaussian copula (\code{family_set = "gaussian"}). If TRUE, a thresholding strategy will make the corr matrix sparse.}
 
 \item{fastmvn}{An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE. It only matters for Gaussian copula.}
 
@@ -77,18 +84,19 @@ Default is FALSE.}
 
 \item{family_set}{A string or a string vector of the bivariate copula families. Default is c("gauss", "indep"). For more information please check package \code{rvinecoplib}.}
 
-\item{important_feature}{A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
-for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+\item{important_feature}{A numeric value or vector which indicates whether a gene will be used in correlation estimation or not. If this is a numeric value, then
+gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.}
+The default value for is "all" (a special string which means no filtering).}
 
 \item{nonnegative}{A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
 
 \item{nonzerovar}{A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA. Default is FALSE.}
 
 \item{return_model}{A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.}
+
+\item{simplify}{A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}, otherwise the fitted models can be VERY large. Default is FALSE.}
 
 \item{parallelization}{A string indicating the specific parallelization function to use.
 Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
@@ -124,12 +132,14 @@ pseudotime = "pseudotime",
 spatial = NULL,
 other_covariates = NULL,
 mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
-family_use = c(rep("nb", 5), rep("zip", 5)),
+sigma_formula = "1",
+family_use = "nb",
 n_cores = 2,
 usebam = FALSE,
+edf_flexible = FALSE,
 corr_formula = "pseudotime",
-copula = "vine",
+copula = "gaussian",
+if_sparse = TRUE,
 DT = TRUE,
 pseudo_obs = FALSE,
 ncell = 1000,

@@ -6,7 +6,13 @@
 #' @param envir The environment.
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
-#' @noRd
+#' 
+#' @return A xvar list.
+#' 
+#' @examples
+#' print("No example")
+#' 
+#' @export
 ga <- function(formula, envir, control = ga.control(...), ...)
 {
   #------------------------------------------
@@ -99,7 +105,10 @@ ga <- function(formula, envir, control = ga.control(...), ...)
 #' @param formula A formula of the model.
 #' @param control The control of the model fitting.
 #' @param ... Other arguments.
-#' @noRd
+#' @return A xvar list.
+#' @examples
+#' print("No example")
+#' @export
 ba <-function(formula, control = ba.control(...), ...)
 {
   #------------------------------------------
@@ -359,15 +368,18 @@ model.frame.gamlss <- function(formula, what = c("mu", "sigma", "nu", "tau"), pa
   mf
 }
 
-##' Support for Function ga()
-##'
-##'This is support for the  smoother functions \code{ga()} intefaces for Simon Woood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
-##' @param x The explanatory variables
-##' @param y Iterative y variable
-##' @param w Iterative weights
-##' @param xeval If xeval=TRUE then predicion is used
-##' @param ... Other arguments
-##' @noRd
+#' Support for Function ga()
+#'
+#'This is support for the  smoother functions \code{ga()} interfaces for Simon Wood's \code{gam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ga}.
+#' @param x The explanatory variables
+#' @param y Iterative y variable
+#' @param w Iterative weights
+#' @param xeval If xeval=TRUE then prediction is used
+#' @param ... Other arguments
+#' @return Not used
+#' @examples
+#' print("No example")
+#' @export
 gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting
@@ -400,15 +412,18 @@ gamlss.ga <-function(x, y, w, xeval = NULL, ...) {
 }
 
 
-##' Support for Function ba()
-##'
-##'This is support for the  smoother functions \code{ba()} intefaces for Simon Woood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
-##' @param x The explanatory variables
-##' @param y Iterative y variable
-##' @param w Iterative weights
-##' @param xeval If xeval=TRUE then predicion is used
-##' @param ... Other arguments
-##' @noRd
+#' Support for Function ba()
+#'
+#'This is support for the  smoother functions \code{ba()} interfaces for Simon Wood's \code{bam()} functions from package \pkg{mgcv}. It is not intended to be called directly by users. From \code{gamlss.add::gamlss.ba}.
+#' @param x The explanatory variables
+#' @param y Iterative y variable
+#' @param w Iterative weights
+#' @param xeval If xeval=TRUE then prediction is used
+#' @param ... Other arguments
+#' @return Not used
+#' @examples
+#' print("No example")
+#' @export
 gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
   if (is.null(xeval))
   {#fitting
@@ -450,10 +465,8 @@ gamlss.ba <-function(x, y, w, xeval = NULL, ...) {
   }
 }
 
-
-
-
-## Accessed from gamlss's github 04/10/2023
+# Accessed from gamlss's github 04/10/2023
+#' @export
 predict.gamlss <- function(object,
                            what = c("mu", "sigma", "nu", "tau"),
                            parameter = NULL,
@@ -530,7 +543,7 @@ predict.gamlss <- function(object,
   ## keep only the same variables
   ## this assumes that all the relevant variables will be in newdata
   ## what happens if not?
-  data <- data[,match(names(newdata),names(data))]
+  data <- data[,match(names(newdata),names(data)), drop=FALSE]
   ## merge the two data together
   data <- concat(data,newdata)
   ## get the formula
@@ -544,6 +557,9 @@ predict.gamlss <- function(object,
   offsetVar <- if (!is.null(off.num <- attr(Terms, "offset"))) # new
     eval(attr(Terms, "variables")[[off.num + 1]], data)
   ## model frame
+  if(is.null(environment(Terms))){
+    environment(Terms) <- globalenv()
+  }
   m <- stats::model.frame(Terms, data, xlev = object[[paste(what,"xlevels",sep=".")]])
   ## model design matrix y and w
   X <- stats::model.matrix(Terms, data, contrasts = object$contrasts)

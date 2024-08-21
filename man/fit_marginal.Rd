@@ -11,29 +11,34 @@ fit_marginal(
   sigma_formula,
   family_use,
   n_cores,
-  usebam,
+  usebam = FALSE,
+  edf_flexible = FALSE,
   parallelization = "mcmapply",
   BPPARAM = NULL,
-  trace = FALSE
+  trace = FALSE,
+  simplify = FALSE,
+  filter_cells = FALSE
 )
 }
 \arguments{
 \item{data}{An object from \code{\link{construct_data}}.}
 
-\item{predictor}{A string of the predictor for the gam/gamlss model. Default is gene. This is essentially just a name.}
+\item{predictor}{A string of the predictor for the gam/gamlss model. Default is "gene". This is just a name.}
 
-\item{mu_formula}{A string of the mu parameter formula}
+\item{mu_formula}{A string of the mu parameter formula. It follows the format of formula in \code{\link[mgcv]{bam}}. Note: if the formula has multiple smoothers (\code{s()}) (we do not recommend this), please put the one with largest k (most complex one) as the first one.}
 
 \item{sigma_formula}{A string of the sigma parameter formula}
 
 \item{family_use}{A string or a vector of strings of the marginal distribution.
 Must be one of 'binomial', 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
-'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomial distribution',
 and 'gaussian distribution' respectively.}
 
 \item{n_cores}{An integer. The number of cores to use.}
 
 \item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.}
+
+\item{edf_flexible}{A logic variable. It uses simpler model to accelerate the marginal fitting with a mild loss of accuracy. If TRUE, the fitted regression model will use the fitted relationship between Gini coefficient and the effective degrees of freedom on a random selected gene sets. Default is FALSE.}
 
 \item{parallelization}{A string indicating the specific parallelization function to use.
 Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
@@ -43,8 +48,12 @@ Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the
 this parameter must be NULL. When the parameter parallelization = 'bpmapply',  this parameter must be one of the
 \code{MulticoreParam} object offered by the package 'BiocParallel. The default value is NULL.}
 
-\item{trace}{A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss
+\item{trace}{A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss will be returned.
 will be returned, FALSE otherwise. Default is FALSE.}
+
+\item{simplify}{A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}. Default is FALSE.}
+
+\item{filter_cell}{A logic variable. If TRUE, when all covariates used for fitting the GAM/GAMLSS model are categorical, the code will check each unique combination of categories and remove cells in that category if it has all zero gene expression for each fitted gene.}
 }
 \value{
 A list of fitted regression models. The length is equal to the total feature number.

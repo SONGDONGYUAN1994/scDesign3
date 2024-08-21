@@ -7,7 +7,7 @@
 #' @param celltype A string of the name of cell type variable in the \code{colData} of the sce. Default is 'cell_type'.
 #' @param pseudotime A string or a string vector of the name of pseudotime and (if exist)
 #' multiple lineages. Default is NULL.
-#' @param spatial A length two string vector of the names of spatial coordinates. Defualt is NULL.
+#' @param spatial A length two string vector of the names of spatial coordinates. Default is NULL.
 #' @param other_covariates A string or a string vector of the other covariates you want to include in the data.
 #' @param ncell The number of cell you want to simulate. Default is \code{dim(sce)[2]} (the same number as the input data).
 #' @param mu_formula A string of the mu parameter formula
@@ -15,10 +15,12 @@
 #' @param family_use A string of the marginal distribution.
 #' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param n_cores An integer. The number of cores to use.
-#' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration.
+#' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration in marginal fitting.
+#' @param edf_flexible A logic variable. It is used for accelerating for spatial model if k is large in 'mu_formula'. Default is FALSE.
 #' @param corr_formula A string of the correlation structure.
 #' @param empirical_quantile Please only use it if you clearly know what will happen! A logic variable. If TRUE, DO NOT fit the copula and use the EMPIRICAL CDF values of the original data; it will make the simulated data fixed (no randomness). Default is FALSE. Only works if ncell is the same as your original data.
 #' @param copula A string of the copula choice. Must be one of 'gaussian' or 'vine'. Default is 'gaussian'. Note that vine copula may have better modeling of high-dimensions, but can be very slow when features are >1000.
+#' @param if_sparse A logic variable. Only works for Gaussian copula (\code{family_set = "gaussian"}). If TRUE, a thresholding strategy will make the corr matrix sparse.
 #' @param fastmvn An logical variable. If TRUE, the sampling of multivariate Gaussian is done by \code{mvnfast}, otherwise by \code{mvtnorm}. Default is FALSE. It only matters for Gaussian copula.
 #' @param DT A logic variable. If TRUE, perform the distributional transformation
 #' to make the discrete data 'continuous'. This is useful for discrete distributions (e.g., Poisson, NB).
@@ -26,15 +28,15 @@
 #' @param pseudo_obs A logic variable. If TRUE, use the empirical quantiles instead of theoretical quantiles for fitting copula.
 #' Default is FALSE.
 #' @param family_set A string or a string vector of the bivariate copula families. Default is c("gauss", "indep"). For more information please check package \code{rvinecoplib}.
-#' @param important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-#' this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
-#' for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+#' @param important_feature A numeric value or vector which indicates whether a gene will be used in correlation estimation or not. If this is a numeric value, then
+#' gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 #' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 #' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-#' The default value for is a vector with length equal to the number of inputted genes and every value equals to \code{TRUE}.
+#' The default value for is "all" (a special string which means no filtering).
 #' @param nonnegative A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
 #' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA. Default is FALSE.
 #' @param return_model A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
+#' @param simplify A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}, otherwise the fitted models can be VERY large. Default is FALSE.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
 #' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
@@ -61,12 +63,14 @@
 #' spatial = NULL,
 #' other_covariates = NULL,
 #' mu_formula = "s(pseudotime, bs = 'cr', k = 10)",
-#' sigma_formula = "s(pseudotime, bs = 'cr', k = 3)",
-#' family_use = c(rep("nb", 5), rep("zip", 5)),
+#' sigma_formula = "1",
+#' family_use = "nb",
 #' n_cores = 2,
 #' usebam = FALSE,
+#' edf_flexible = FALSE,
 #' corr_formula = "pseudotime",
-#' copula = "vine",
+#' copula = "gaussian",
+#' if_sparse = TRUE,
 #' DT = TRUE,
 #' pseudo_obs = FALSE,
 #' ncell = 1000,
@@ -77,8 +81,8 @@
 scdesign3 <- function(sce,
                       assay_use = "counts",
                       celltype,
-                      pseudotime,
-                      spatial,
+                      pseudotime = NULL,
+                      spatial = NULL,
                       other_covariates,
                       ncell = dim(sce)[2],
                       mu_formula,
@@ -86,9 +90,11 @@ scdesign3 <- function(sce,
                       family_use = "nb",
                       n_cores = 2,
                       usebam = FALSE,
+                      edf_flexible = FALSE,
                       corr_formula,
                       empirical_quantile = FALSE,
                       copula = "gaussian",
+                      if_sparse = FALSE,
                       fastmvn = FALSE,
                       DT = TRUE,
                       pseudo_obs = FALSE,
@@ -97,6 +103,7 @@ scdesign3 <- function(sce,
                       nonnegative = TRUE,
                       nonzerovar = FALSE,
                       return_model = FALSE,
+                      simplify = FALSE,
                       parallelization = "mcmapply",
                       BPPARAM = NULL,
                       trace = FALSE) {
@@ -111,7 +118,7 @@ scdesign3 <- function(sce,
     other_covariates = other_covariates,
     ncell = ncell,
     corr_by = corr_formula,
-    parallelization = "mcmapply",
+    parallelization = parallelization,
     BPPARAM = BPPARAM
   )
   message("Input Data Construction End")
@@ -124,9 +131,11 @@ scdesign3 <- function(sce,
     data = input_data,
     family_use = family_use,
     usebam = usebam,
+    edf_flexible = edf_flexible,
     parallelization = parallelization,
     BPPARAM = BPPARAM,
-    trace = trace
+    trace = trace, 
+    simplify = simplify
   )
   message("Marginal Fitting End")
 
@@ -143,6 +152,7 @@ scdesign3 <- function(sce,
       family_set = family_set,
       n_cores = n_cores,
       important_feature = important_feature,
+      if_sparse = if_sparse,
       parallelization = parallelization,
       BPPARAM = BPPARAM
     )
@@ -158,6 +168,7 @@ scdesign3 <- function(sce,
       family_set = family_set,
       n_cores = n_cores,
       important_feature = important_feature,
+      if_sparse = if_sparse,
       parallelization = parallelization,
       BPPARAM = BPPARAM
     )
@@ -200,7 +211,8 @@ Extraction End")
       new_covariate = input_data$newCovariate,
       important_feature = copula_res$important_feature,
       parallelization = parallelization,
-      BPPARAM = BPPARAM
+      BPPARAM = BPPARAM,
+      filtered_gene = input_data$filtered_gene
     )
   } else {
     new_count <- simu_new(
@@ -219,7 +231,8 @@ Extraction End")
       new_covariate = input_data$newCovariate,
       important_feature = copula_res$important_feature,
       parallelization = parallelization,
-      BPPARAM = BPPARAM
+      BPPARAM = BPPARAM,
+      filtered_gene = input_data$filtered_gene
     )
   }
   
@@ -241,3 +254,8 @@ Extraction End")
   )
   return(scdesign3_res)
 }
+
+
+
+
+

@@ -20,12 +20,12 @@
 #' Default is FALSE.
 #' @param epsilon A numeric variable for preventing the transformed quantiles to collapse to 0 or 1.
 #' @param family_set A string or a string vector of the bivariate copula families. Default is c("gaussian", "indep").
-#' @param important_feature A string or vector which indicates whether a gene will be used in correlation estimation or not. If this is a string, then
-#' this string must be either "all" (using all genes) or "auto", which indicates that the genes will be automatically selected based on the proportion of zero expression across cells
-#' for each gene. Gene with zero proportion greater than 0.8 will be excluded form gene-gene correlation estimation. If this is a vector, then this should
+#' @param important_feature A numeric value or vector which indicates whether a gene will be used in correlation estimation or not. If this is a numeric value, then
+#' gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 #' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 #' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-#' The default value for is "all".
+#' The default value for is "all" (a special string which means no filtering).
+#' @param if_sparse A logic variable. Only works for Gaussian copula (\code{family_set = "gaussian"}). If TRUE, a thresholding strategy will make the corr matrix sparse. 
 #' @param n_cores An integer. The number of cores to use.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
@@ -87,6 +87,7 @@ fit_copula <- function(sce,
                        epsilon = 1e-6,
                        family_set = c("gaussian", "indep"),
                        important_feature = "all",
+                       if_sparse = FALSE,
                        n_cores,
                        parallelization = "mcmapply",
                        BPPARAM = NULL) {
@@ -102,6 +103,9 @@ fit_copula <- function(sce,
   marginals <- lapply(marginal_list, function(x){x$fit})
   # find gene whose marginal is fitted
   qc_gene_idx <- which(!is.na(marginals))
+  if(length(family_use) != 1){
+    family_use <- family_use[qc_gene_idx]
+  }
   group_index <- unique(input_data$corr_group)
   ind <- group_index[1] == "ind"
   if(ind) {
@@ -132,14 +136,15 @@ fit_copula <- function(sce,
         stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
       }
     }else{
-      if(important_feature=="auto"){
+      if(is.numeric(important_feature)){
+        stopifnot(important_feature <= 1)
         gene_zero_prop <- apply(as.matrix(SummarizedExperiment::assay(sce, assay_use)), 1, function(y){
           sum(y < 1e-5) / dim(sce)[2]
         })
-        important_feature = gene_zero_prop < 0.8 ## default zero proportion in scDesign2
+        important_feature <- gene_zero_prop < important_feature ## default zero proportion in scDesign2 is 0.8.
         names(important_feature) <- rownames(sce)
       }else{
-        stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
+        stop("The important_feature should either be a numeric value or a logical vector with the length equals to the number of genes in the input data")
       }
     }
     
@@ -184,7 +189,8 @@ fit_copula <- function(sce,
         n_cores = n_cores,
         family_use = family_use,
         epsilon = epsilon,
-        parallelization = parallelization
+        parallelization = parallelization,
+        BPPARAM = BPPARAM
       )
       message("Converting End")
     } else{
@@ -199,7 +205,8 @@ fit_copula <- function(sce,
         family_use = family_use,
         n_cores = n_cores,
         epsilon = epsilon,
-        parallelization = parallelization
+        parallelization = parallelization,
+        BPPARAM = BPPARAM
       )
       message("Converting End")
     }
@@ -210,14 +217,15 @@ fit_copula <- function(sce,
         stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
       }
     }else{
-      if(important_feature=="auto"){
+      if(is.numeric(important_feature)){
+        stopifnot(important_feature <= 1)
         gene_zero_prop <- apply(as.matrix(SummarizedExperiment::assay(sce, assay_use)), 1, function(y){
           sum(y < 1e-5) / dim(sce)[2]
         })
-        important_feature = gene_zero_prop < 0.8 ## default zero proportion in scDesign2
+        important_feature <- gene_zero_prop < important_feature ## default zero proportion in scDesign2 is 0.8.
         names(important_feature) <- rownames(sce)
       }else{
-        stop("The important_feature should either be 'auto' or a logical vector with the length equals to the number of genes in the input data")
+        stop("The important_feature should either be a numeric value or a logical vector with the length equals to the number of genes in the input data")
       }
     }
     
@@ -246,7 +254,7 @@ fit_copula <- function(sce,
           cor.mat <- cal_cor(
             curr_mat,
             important_feature = important_feature,
-            if.sparse = FALSE,
+            if_sparse = if_sparse,
             lambda = 0.05,
             tol = 1e-8,
             ind = ind
@@ -357,7 +365,7 @@ fit_copula <- function(sce,
 ## Calculate the correlation matrix. If use sparse cor estimation, package spcov will be used (it can be VERY SLOW).
 cal_cor <- function(norm.mat,
                     important_feature,
-                    if.sparse = FALSE,
+                    if_sparse = FALSE,
                     lambda = 0.05,
                     tol = 1e-8,
                     ind = FALSE) {
@@ -370,7 +378,15 @@ cal_cor <- function(norm.mat,
     rownames(cor.mat) <- colnames(norm.mat)
     colnames(cor.mat) <- colnames(norm.mat)
     important.mat <- norm.mat[,which(important_feature)]
-    important_cor.mat <- corrlation(important.mat)
+    if (if_sparse) {
+      important_cor.mat <- sparse_cov(important.mat, 
+                               method = 'qiu', 
+                               operator = 'hard', 
+                               corr = TRUE)
+    } else {
+      important_cor.mat <- correlation(important.mat)
+    }
+
     #s_d <- apply(norm.mat, 2, stats::sd)
     s_d <- matrixStats::colSds(important.mat,na.rm = TRUE)
     if (any(0 == s_d)) {
@@ -381,8 +397,8 @@ cal_cor <- function(norm.mat,
 
   n <- dim(cor.mat)[1]
 
-  ### We currently gave up this because the sparse corr calclulation is too slow.
-  # if (if.sparse) {
+  ### We currently gave up this because the sparse corr calculation is too slow.
+  # if (if_sparse) {
   #   ifposd <- matrixcalc::is.positive.definite(cor.mat, tol = tol)
   #   if (!ifposd) {
   #     warning("Cor matrix is not positive defnite! Add tol to the diagnol.")
@@ -402,7 +418,9 @@ cal_cor <- function(norm.mat,
   #   )
   #   cor.mat <- scor$Sigma
   # }
-
+  if (if_sparse) {
+  cor.mat <- methods::as(methods::as(methods::as(cor.mat, "dMatrix"), "symmetricMatrix"), "CsparseMatrix")
+  }
   cor.mat
 }
 
@@ -416,7 +434,8 @@ convert_n <- function(sce,
                       epsilon = 1e-6,
                       family_use,
                       n_cores,
-                      parallelization) {
+                      parallelization,
+                      BPPARAM) {
   ## Extract count matrix
   count_mat <-
       t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
@@ -593,16 +612,20 @@ convert_n <- function(sce,
   }
 
   paraFunc <- parallel::mcmapply
-
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
   if(parallelization == "pbmcmapply"){
     paraFunc <- pbmcapply::pbmcmapply
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
@@ -630,7 +653,8 @@ convert_u <- function(sce,
                       epsilon = 1e-6,
                       n_cores,
                       family_use,
-                      parallelization) {
+                      parallelization,
+                      BPPARAM) {
   ## Extract count matrix
   count_mat <-
       t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
@@ -648,7 +672,7 @@ convert_u <- function(sce,
       data<- data[-removed_cell,]
     }
     if (methods::is(fit, "gamlss")) {
-      mean_vec <- stats::predict(fit, type = "response", what = "mu", data = data)
+      mean_vec <- stats::predict(fit, type = "response", what = "mu", data = data) #
       if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
       } else if (y == "gaussian") {
@@ -656,7 +680,7 @@ convert_u <- function(sce,
           stats::predict(fit, type = "response", what = "sigma", data = data) # called the theta_vec but actually used as sigma_vec for Gaussian
       } else if (y == "nb") {
         theta_vec <-
-          1 / stats::predict(fit, type = "response", what = "sigma", data = data)
+          1 / stats::predict(fit, type = "response", what = "sigma", data = data) #
         #theta_vec[theta_vec < 1e-3] <- 1e-3
       } else if (y == "zip") {
         theta_vec <- rep(NA, length(mean_vec))
@@ -800,16 +824,20 @@ convert_u <- function(sce,
   }
 
   paraFunc <- parallel::mcmapply
-
+  if(.Platform$OS.type == "windows"){
+    BPPARAM <- BiocParallel::SnowParam()
+    parallelization <- "bpmapply"
+  }
   if(parallelization == "bpmapply"){
     paraFunc <- BiocParallel::bpmapply
   }
   if(parallelization == "pbmcmapply"){
     paraFunc <- pbmcapply::pbmcmapply
   }
-
   if(parallelization == "bpmapply"){
-    BPPARAM$workers <- n_cores
+    if(class(BPPARAM)[1] != "SerialParam"){
+      BPPARAM$workers <- n_cores
+    }
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
@@ -830,13 +858,14 @@ convert_u <- function(sce,
 }
 
 
-## Calcluate Gaussian copula aic
+## Calculate Gaussian copula AIC
 cal_aic <- function(norm.mat,
                     cor.mat,
                     ind) {
   if (ind) {
     copula.aic = 0
   } else {
+    cor.mat <- as.matrix(cor.mat)
     copula.nop <- (as.integer(sum(cor.mat != 0)) - dim(cor.mat)[1]) / 2
 
     copula.aic <-
@@ -853,6 +882,7 @@ cal_aic <- function(norm.mat,
   copula.aic
 }
 
+## Calculate Gaussian copula BIC
 cal_bic <- function(norm.mat,
                     cor.mat,
                     ind) {
@@ -860,6 +890,7 @@ cal_bic <- function(norm.mat,
   if (ind) {
     copula.bic = 0
   } else {
+    cor.mat <- as.matrix(cor.mat)
     copula.nop <- (as.integer(sum(cor.mat != 0)) - dim(cor.mat)[1]) / 2
 
     copula.bic <-
@@ -877,21 +908,41 @@ cal_bic <- function(norm.mat,
 }
 
 ## Similar to the cora function from "Rfast" but uses different functions to calculate column means and row sums.
-corrlation <- function(x) {
-  mat <- t(x) - matrixStats::colMeans2(x)
-  mat <- mat / sqrt(matrixStats::rowSums2(mat^2))
-  tcrossprod(mat)
+correlation <- function(x) {
+  # mat <- t(x) - matrixStats::colMeans2(x)
+  # mat <- mat / sqrt(matrixStats::rowSums2(mat^2))
+  # tcrossprod(mat)
+  coop::pcor(x)
+}
+
+## Similar to the cova function from "Rfast" but uses different functions to calculate column means and row sums.
+covariance <- function(x) {
+  # n <- dim(x)[1]
+  # m <- sqrt(n) * matrixStats::colMeans2(x) 
+  # s <- (crossprod(x) - tcrossprod(m))/(n - 1)
+  # s
+  coop::covar(x)
 }
 
 ### Sample MVN based on cor
 sampleMVN <- function(n,
-                      Sigma, n_cores = n_cores, fastmvn = fastmvn) {
-  if(fastmvn) {
-    mvnrv <- mvnfast::rmvn(n, mu = rep(0, dim(Sigma)[1]), sigma = Sigma, ncores = n_cores)
+                      Sigma, 
+                      n_cores = n_cores,
+                      fastmvn = fastmvn) {
+  if_sparse <- methods::is(Sigma, "dsCMatrix")
+  p <- dim(Sigma)[1]
+  if(if_sparse) {
+    CH <- Matrix::Cholesky(methods::as(methods::as(methods::as(Sigma, "dMatrix"), "symmetricMatrix"), "CsparseMatrix"))
+    mvnrv <- sparseMVN::rmvn.sparse(n = n, rep(0, p), CH, prec = FALSE)
   } else {
-    mvnrv <-
-      rmvnorm(n, mean = rep(0, dim(Sigma)[1]), sigma = Sigma, checkSymmetry = FALSE, method="eigen")
+    if(fastmvn) {
+      mvnrv <- mvnfast::rmvn(n, mu = rep(0, p), sigma = Sigma, ncores = n_cores)
+    } else {
+      mvnrv <-
+        rmvnorm(n, mean = rep(0, p), sigma = Sigma, checkSymmetry = FALSE, method="eigen")
+    }
   }
+  
   mvnrvq <- apply(mvnrv, 2, stats::pnorm)
 
   return(mvnrvq)
@@ -914,7 +965,7 @@ rmvnorm <- function(n, mean = rep(0, nrow(sigma)), sigma = diag(length(mean)),
   R <- if(method == "eigen") {
     ev <- eigen(sigma, symmetric = TRUE)
     if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))){
-      warning("sigma is numerically not positive semidefinite")
+      warning("Sigma is numerically not positive semidefinite")
     }
     ## ev$vectors %*% diag(sqrt(ev$values), length(ev$values)) %*% t(ev$vectors)
     ## faster for large  nrow(sigma):
@@ -923,7 +974,7 @@ rmvnorm <- function(n, mean = rep(0, nrow(sigma)), sigma = diag(length(mean)),
   else if(method == "svd"){
     s. <- svd(sigma)
     if (!all(s.$d >= -sqrt(.Machine$double.eps) * abs(s.$d[1]))){
-      warning("sigma is numerically not positive semidefinite")
+      warning("Sigma is numerically not positive semidefinite")
     }
     t(s.$v %*% (t(s.$u) * sqrt(pmax(s.$d, 0))))
   }

@@ -27,10 +27,10 @@ extract_para(
 
 \item{family_use}{A string of the marginal distribution.
 Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian', which represent 'poisson distribution',
-'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomail distribution',
+'negative binomial distribution', 'zero-inflated poisson distribution', 'zero-inflated negative binomial distribution',
 and 'gaussian distribution' respectively.}
 
-\item{new_covariate}{A data.frame which contains covaraites of targeted simulated data from  \code{\link{construct_data}} and the
+\item{new_covariate}{A data.frame which contains covariates of targeted simulated data from  \code{\link{construct_data}} and the
 correlation group assignment for each cell in the column 'corr_group'.}
 
 \item{parallelization}{A string indicating the specific parallelization function to use.
@@ -52,7 +52,7 @@ A list with the components:
 }
 }
 \description{
-\code{extract_para} generates parameter matricies which determine each cell's distribution
+\code{extract_para} generates parameter matrices which determine each cell's distribution
 }
 \details{
 The function takes the new covariate (if use) from \code{\link{construct_data}} and
