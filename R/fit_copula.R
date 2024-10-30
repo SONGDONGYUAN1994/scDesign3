@@ -96,7 +96,7 @@ fit_copula <- function(sce,
       message("Use the empirical quantile matrices from the original data; do not fit copula. This will make the result FIXED.")
   }
   
-  if(important_feature == "all") {
+  if(identical(important_feature, "all")) {
     important_feature <- rep(TRUE, dim(sce)[1])
   }
   
