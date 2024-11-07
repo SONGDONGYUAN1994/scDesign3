@@ -27,6 +27,7 @@
 #' The default value for is "all" (a special string which means no filtering).
 #' @param if_sparse A logic variable. Only works for Gaussian copula (\code{family_set = "gaussian"}). If TRUE, a thresholding strategy will make the corr matrix sparse. 
 #' @param n_cores An integer. The number of cores to use.
+#' @param correlation_function A string. If 'default', the function from \code{Rfast}; if 'coop', the function from \code{coop}, which call BLAS.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
 #' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
@@ -88,6 +89,7 @@ fit_copula <- function(sce,
                        family_set = c("gaussian", "indep"),
                        important_feature = "all",
                        if_sparse = FALSE,
+                       correlation_function = "default",
                        n_cores,
                        parallelization = "mcmapply",
                        BPPARAM = NULL) {
@@ -908,20 +910,31 @@ cal_bic <- function(norm.mat,
 }
 
 ## Similar to the cora function from "Rfast" but uses different functions to calculate column means and row sums.
-correlation <- function(x) {
-  # mat <- t(x) - matrixStats::colMeans2(x)
-  # mat <- mat / sqrt(matrixStats::rowSums2(mat^2))
-  # tcrossprod(mat)
-  coop::pcor(x)
+correlation <- function(x, correlation_function) {
+  if(correlation_function == "default") {
+    mat <- t(x) - matrixStats::colMeans2(x)
+    mat <- mat / sqrt(matrixStats::rowSums2(mat^2))
+    tcrossprod(mat)
+  } else if (correlation_function == "coop") {
+    coop::pcor(x, inplace = TRUE)
+  } else {
+    stop("correlation_function is either default or coop.")
+  }
+  
+  
 }
 
 ## Similar to the cova function from "Rfast" but uses different functions to calculate column means and row sums.
 covariance <- function(x) {
-  # n <- dim(x)[1]
-  # m <- sqrt(n) * matrixStats::colMeans2(x) 
-  # s <- (crossprod(x) - tcrossprod(m))/(n - 1)
-  # s
-  coop::covar(x)
+  if(correlation_function == "default") {
+  n <- dim(x)[1]
+  m <- sqrt(n) * matrixStats::colMeans2(x)
+  s <- (crossprod(x) - tcrossprod(m))/(n - 1)
+  s} else if (correlation_function == "coop") {
+    coop::covar(x, inplace = TRUE)
+  } else {
+  stop("correlation_function is either default or coop.")
+  }
 }
 
 ### Sample MVN based on cor
