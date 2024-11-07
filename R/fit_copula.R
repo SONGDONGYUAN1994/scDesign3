@@ -386,7 +386,7 @@ cal_cor <- function(norm.mat,
                                operator = 'hard', 
                                corr = TRUE)
     } else {
-      important_cor.mat <- correlation(important.mat)
+      important_cor.mat <- correlation(important.mat, correlation_function = correlation_fucntion)
     }
 
     #s_d <- apply(norm.mat, 2, stats::sd)
