@@ -16,6 +16,7 @@ scdesign3(
   sigma_formula = "1",
   family_use = "nb",
   n_cores = 2,
+  correlation_function = "default",
   usebam = FALSE,
   edf_flexible = FALSE,
   corr_formula,
@@ -60,6 +61,8 @@ multiple lineages. Default is NULL.}
 Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.}
 
 \item{n_cores}{An integer. The number of cores to use.}
+
+\item{correlation_function}{A string. If 'default', the function from \code{Rfast}; if 'coop', the function from \code{coop}, which calls BLAS.}
 
 \item{usebam}{A logic variable. If use \code{\link[mgcv]{bam}} for acceleration in marginal fitting.}
 

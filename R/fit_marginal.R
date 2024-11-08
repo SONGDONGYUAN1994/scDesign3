@@ -25,7 +25,7 @@
 #' @param trace A logic variable. If TRUE, the warning/error log and runtime for gam/gamlss will be returned.
 #' will be returned, FALSE otherwise. Default is FALSE.
 #' @param simplify A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}. Default is FALSE.
-#' @param filter_cell A logic variable. If TRUE, when all covariates used for fitting the GAM/GAMLSS model are categorical, the code will check each unique combination of categories and remove cells in that category if it has all zero gene expression for each fitted gene.
+#' @param filter_cells A logic variable. If TRUE, when all covariates used for fitting the GAM/GAMLSS model are categorical, the code will check each unique combination of categories and remove cells in that category if it has all zero gene expression for each fitted gene.
 #' @return A list of fitted regression models. The length is equal to the total feature number.
 #' @examples
 #'   data(example_sce)

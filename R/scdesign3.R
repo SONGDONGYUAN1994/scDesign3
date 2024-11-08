@@ -15,6 +15,7 @@
 #' @param family_use A string of the marginal distribution.
 #' Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 #' @param n_cores An integer. The number of cores to use.
+#' @param correlation_function A string. If 'default', the function from \code{Rfast}; if 'coop', the function from \code{coop}, which calls BLAS.
 #' @param usebam A logic variable. If use \code{\link[mgcv]{bam}} for acceleration in marginal fitting.
 #' @param edf_flexible A logic variable. It is used for accelerating for spatial model if k is large in 'mu_formula'. Default is FALSE.
 #' @param corr_formula A string of the correlation structure.
@@ -89,6 +90,7 @@ scdesign3 <- function(sce,
                       sigma_formula = "1",
                       family_use = "nb",
                       n_cores = 2,
+                      correlation_function = "default",
                       usebam = FALSE,
                       edf_flexible = FALSE,
                       corr_formula,
@@ -167,6 +169,7 @@ scdesign3 <- function(sce,
       copula = copula,
       family_set = family_set,
       n_cores = n_cores,
+      correlation_function = correlation_function,
       important_feature = important_feature,
       if_sparse = if_sparse,
       parallelization = parallelization,

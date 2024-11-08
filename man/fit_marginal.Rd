@@ -53,7 +53,7 @@ will be returned, FALSE otherwise. Default is FALSE.}
 
 \item{simplify}{A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}. Default is FALSE.}
 
-\item{filter_cell}{A logic variable. If TRUE, when all covariates used for fitting the GAM/GAMLSS model are categorical, the code will check each unique combination of categories and remove cells in that category if it has all zero gene expression for each fitted gene.}
+\item{filter_cells}{A logic variable. If TRUE, when all covariates used for fitting the GAM/GAMLSS model are categorical, the code will check each unique combination of categories and remove cells in that category if it has all zero gene expression for each fitted gene.}
 }
 \value{
 A list of fitted regression models. The length is equal to the total feature number.

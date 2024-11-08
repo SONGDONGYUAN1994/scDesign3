@@ -27,7 +27,7 @@
 #' The default value for is "all" (a special string which means no filtering).
 #' @param if_sparse A logic variable. Only works for Gaussian copula (\code{family_set = "gaussian"}). If TRUE, a thresholding strategy will make the corr matrix sparse. 
 #' @param n_cores An integer. The number of cores to use.
-#' @param correlation_function A string. If 'default', the function from \code{Rfast}; if 'coop', the function from \code{coop}, which call BLAS.
+#' @param correlation_function A string. If 'default', the function from \code{Rfast}; if 'coop', the function from \code{coop}, which calls BLAS.
 #' @param parallelization A string indicating the specific parallelization function to use.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
 #' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
@@ -257,6 +257,7 @@ fit_copula <- function(sce,
             curr_mat,
             important_feature = important_feature,
             if_sparse = if_sparse,
+            correlation_function = correlation_function,
             lambda = 0.05,
             tol = 1e-8,
             ind = ind
@@ -367,6 +368,7 @@ fit_copula <- function(sce,
 ## Calculate the correlation matrix. If use sparse cor estimation, package spcov will be used (it can be VERY SLOW).
 cal_cor <- function(norm.mat,
                     important_feature,
+                    correlation_function = "default",
                     if_sparse = FALSE,
                     lambda = 0.05,
                     tol = 1e-8,
@@ -386,7 +388,7 @@ cal_cor <- function(norm.mat,
                                operator = 'hard', 
                                corr = TRUE)
     } else {
-      important_cor.mat <- correlation(important.mat, correlation_function = correlation_fucntion)
+      important_cor.mat <- correlation(important.mat, correlation_function = correlation_function)
     }
 
     #s_d <- apply(norm.mat, 2, stats::sd)
@@ -910,7 +912,7 @@ cal_bic <- function(norm.mat,
 }
 
 ## Similar to the cora function from "Rfast" but uses different functions to calculate column means and row sums.
-correlation <- function(x, correlation_function) {
+correlation <- function(x, correlation_function = "default") {
   if(correlation_function == "default") {
     mat <- t(x) - matrixStats::colMeans2(x)
     mat <- mat / sqrt(matrixStats::rowSums2(mat^2))
@@ -925,7 +927,7 @@ correlation <- function(x, correlation_function) {
 }
 
 ## Similar to the cova function from "Rfast" but uses different functions to calculate column means and row sums.
-covariance <- function(x) {
+covariance <- function(x, correlation_function = "default") {
   if(correlation_function == "default") {
   n <- dim(x)[1]
   m <- sqrt(n) * matrixStats::colMeans2(x)

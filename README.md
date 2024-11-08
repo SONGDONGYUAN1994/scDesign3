@@ -11,7 +11,9 @@ To find out more details about **scDesign3**, you can check out our manuscript o
 
 [Song, D., Wang, Q., Yan, G. *et al.* scDesign3 generates realistic in silico data for multimodal single-cell and spatial omics. *Nat Biotechnol* **42**, 247–252 (2024).](https://www.nature.com/articles/s41587-023-01772-1)
 
-Please note that the parallel computing of scDesign3 is mainly designed for UNIX OS; be careful when you set `n_cores`.
+The computational time is quadratic to the number of features used in copula modeling. Reducing this number will greatly speed up the calculation.
+
+Please note that the parallel computing of scDesign3 is mainly designed for **UNIX OS**; be careful when you set `n_cores`. Please note that you should consider **the balance** between `n_cores` and your ROM (memory). Simply increasing the number of cores without the increase of memory will slow down or froze your program. We recommend that you should allocate at least 1 GB for 1 core.
 
 # Table of contents
 1. [Installation](#installation-)
@@ -49,6 +51,7 @@ example_simu <- scdesign3(
     sigma_formula = "s(pseudotime, k = 5, bs = 'cr')",
     family_use = "nb",
     n_cores = 2,
+    correlation_function = "default",
     usebam = FALSE,
     corr_formula = "1",
     copula = "gaussian",
@@ -78,6 +81,7 @@ The parameters of `scdesign3()` are:
 - `sigma_formula`: A string of the sigma parameter formula for fitting each gene's marginal distribution.
 - `family_use`: A string of the marginal distribution you want to use when fitting each gene's marginal distribution. Must be one of 'poisson', 'nb', 'zip', 'zinb' or 'gaussian'.
 - `n_cores`: An integer. The number of cores to use.
+- `correlation_function`: A string. If 'default', the function from Rfast; if 'coop', the function from coop, which calls BLAS.
 - `usebam`: A logic variable. If TRUE, use bam (generalized additive models for very large datasets) for acceleration.
 - `edf_flexible`: A logic variable. If TRUE, the degree of freedom for each gene's regression model will be automatically selected for acceleration.
 - `corr_formula`: A string of the correlation structure. For example, if you want to obtain a correlation structure for each cell type, then this parameter should be the column name of the cell type variable in the colData of sce.
@@ -142,6 +146,9 @@ For all detailed tutorials, please check the [website](https://songdongyuan1994.
 Any questions or suggestions on `scDesign3` are welcomed! Please report it on [issues](https://github.com/SONGDONGYUAN1994/scDesign3/issues), or contact Dongyuan Song ([dongyuansong\@ucla.edu](mailto:dongyuansong@ucla.edu){.email}) or Qingyang Wang ([qw802\@g.ucla.edu](mailto:qw802@g.ucla.edu){.email}).
 
 ## Changelog
+-   2024-11-07
+    - Add options for correlation estimation. The alternative is from R package [coop](https://cran.rstudio.com/web/packages/coop/index.html), which requires BLAS
+    
 -   2024-06-22 Important changes
     - Add sparse Gaussian copula for `fit_copula`
     - Add automatic k selection for `fit_marginal`
