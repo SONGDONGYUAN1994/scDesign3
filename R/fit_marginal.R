@@ -515,7 +515,47 @@ fit_marginal <- function(data,
           add_log("gamlss","warning", toString(w))
         })
       
-    } else {
+    } else if (family_gene == "gamma"){
+      mgcv.fit <- withCallingHandlers(
+        tryCatch({
+          start.time <- Sys.time()
+          res <- fitfunc(formula = mgcv_formula, data = dat_use, family =Gamma(link = "log"), discrete = usebam)
+          end.time <- Sys.time()
+          time <- as.numeric(end.time - start.time)
+          time_list[1] <- time
+          res
+        }, error=function(e) {
+          add_log("gam","error", toString(e))
+          NULL
+        }), warning=function(w) {
+          add_log("gam","warning", toString(w))
+        })
+      
+      if (sigma_formula != "~1") {
+        gamlss.fit <- withCallingHandlers(
+          tryCatch({
+            start.time = Sys.time()
+            res <- gamlss::gamlss(
+              formula = mu_formula,
+              #sigma.formula = sigma_formula, ## Poisson has constant mean
+              data = dat_use,
+              family = gamlss.dist::GA,
+              control = gamlss::gamlss.control(trace = FALSE, c.crit = 0.1))
+            end.time = Sys.time()
+            time = as.numeric(end.time - start.time)
+            time_list[2] <- time
+            res
+          }, error=function(e) {
+            add_log("gamlss","error", toString(e))
+            NULL
+          }), warning=function(w) {
+            add_log("gamlss","warning", toString(w))
+          })
+      } else {
+        gamlss.fit <- NULL
+      }
+      
+    }else {
       stop("The regression distribution must be one of gaussian, poisson, nb, zip or zinb!")
     }
     

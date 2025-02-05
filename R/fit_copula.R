@@ -90,7 +90,8 @@ fit_copula <- function(sce,
                        if_sparse = FALSE,
                        n_cores,
                        parallelization = "mcmapply",
-                       BPPARAM = NULL) {
+                       BPPARAM = NULL,
+                       common_pathway) {
 
   if(empirical_quantile == TRUE) {
       message("Use the empirical quantile matrices from the original data; do not fit copula. This will make the result FIXED.")
@@ -190,7 +191,8 @@ fit_copula <- function(sce,
         family_use = family_use,
         epsilon = epsilon,
         parallelization = parallelization,
-        BPPARAM = BPPARAM
+        BPPARAM = BPPARAM,
+        common_pathway = common_pathway
       )
       message("Converting End")
     } else{
@@ -330,11 +332,19 @@ fit_copula <- function(sce,
     
     copula.aic <- sum(sapply(newmvn.list, function(x)
       x$model_aic))
-    marginal.aic <- sum(sapply(marginals[qc_gene_idx], stats::AIC))
+    # if(methods::is(marginals[[1]], "cv.glmnet")){
+    #   marginal.aic <- 0
+    #   marginal.bic <- 0
+    # }else{
+    #   marginal.aic <- sum(sapply(marginals[qc_gene_idx], stats::AIC))
+    #   marginal.bic <- sum(sapply(marginals[qc_gene_idx], stats::BIC))
+    # }
+    marginal.aic <- 0
+    marginal.bic <- 0
     
     copula.bic <- sum(sapply(newmvn.list, function(x)
       x$model_bic))
-    marginal.bic <- sum(sapply(marginals[qc_gene_idx], stats::BIC))
+    
     
     model_aic <- c(marginal.aic, copula.aic, marginal.aic + copula.aic)
     names(model_aic) <- c("aic.marginal", "aic.copula", "aic.total")
@@ -435,7 +445,8 @@ convert_n <- function(sce,
                       family_use,
                       n_cores,
                       parallelization,
-                      BPPARAM) {
+                      BPPARAM,
+                      common_pathway) {
   ## Extract count matrix
   count_mat <-
       t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
@@ -470,10 +481,21 @@ convert_n <- function(sce,
         theta_vec <- stats::predict(fit, type = "response", what = "sigma", data = data)
         zero_vec <-
           stats::predict(fit, type = "response", what = "nu", data = data)
-      } else {
+      } else if(y == "gamma"){
+        theta_vec <- stats::predict(fit, type = "response", what = "sigma", data = data)
+        } else {
         stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
       }
-    } else {
+    } else if (methods::is(fit, "cv.glmnet")){
+      if (y == "gamma"){
+        new_X <-model.matrix( ~ ., data[,c("batch", paste0(names(common_pathway[[x]]),"_eff"))])[,-1]
+        mean_df <- exp(stats::predict(fit, newx = new_X, s = "lambda.min"))
+        mean_vec <- as.vector(mean_df)
+        names(mean_vec) <- rownames(mean_df)
+        fit_gamma <- MASS::fitdistr(count_mat[,x],"gamma")
+        theta_vec <- rep(as.numeric(fit_gamma$estimate["shape"]), length(mean_vec)) 
+      }
+      }else {
       ## if input is from mgcv
       ## Check the family (since sometimes zip and zinb may degenerate into poisson or nb)
 
@@ -481,7 +503,6 @@ convert_n <- function(sce,
       if (grepl("Negative Binomial", y)) {
         y <- "nb"
       }
-
       mean_vec <- stats::predict(fit, type = "response")
       if (y == "poisson" | y == "binomial") {
         theta_vec <- rep(NA, length(mean_vec))
@@ -490,7 +511,10 @@ convert_n <- function(sce,
       } else if (y == "nb") {
         theta <- fit$family$getTheta(TRUE)
         theta_vec <- rep(theta, length(mean_vec))
-      } else {
+      } else if (y == "Gamma" | y=="gamma"){
+        theta <- summary(fit)$dispersion # called the theta_vec but actually used as shape for Gamma
+        theta_vec <- rep(1/ theta, length(mean_vec))
+        }else {
         stop("Distribution of mgcv must be one of gaussian, poisson or nb!")
       }
     }
@@ -534,6 +558,10 @@ convert_n <- function(sce,
                             sigma = abs(x[3]),
                             nu = x[4])
       })
+    } else if (y == "Gamma" | y == "gamma") {
+      pvec <- apply(family_frame, 1, function(x) {
+        stats::pgamma(x[1], rate =x[3]/x[2] , shape = x[3])
+      })
     } else {
       stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
     }
@@ -571,7 +599,11 @@ convert_n <- function(sce,
                  ),
                  0)
         })
-      } else {
+      }  else if (y == "Gamma" | y =="gamma") {
+        pvec2 <- apply(family_frame, 1, function(x) {
+          ifelse(x[1]-1 > 0, stats::pgamma(x[1] -1 , rate =x[3]/x[2] , shape = x[3]),0)
+        })
+      }else {
         stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
       }
 
@@ -628,7 +660,7 @@ convert_n <- function(sce,
     }
     mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)
   }else{
-    mat <- paraFunc(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE, mc.cores = n_cores)
+    mat <- mapply(mat_function, x = seq_len(dim(sce)[1]), y = family_use, SIMPLIFY = TRUE)
   }
   colnames(mat) <- rownames(sce)
   rownames(mat) <- colnames(sce)
@@ -690,7 +722,9 @@ convert_u <- function(sce,
         theta_vec <- stats::predict(fit, type = "response", what = "sigma", data = data)
         zero_vec <-
           stats::predict(fit, type = "response", what = "nu", data = data)
-      } else {
+      } else if(y == "gamma"){
+        theta_vec <- stats::predict(fit, type = "response", what = "sigma", data = data)
+      }else {
         stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
       }
     } else {

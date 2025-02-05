@@ -13,7 +13,8 @@ extract_para(
   new_covariate,
   parallelization = "mcmapply",
   BPPARAM = NULL,
-  data
+  data,
+  common_pathway
 )
 }
 \arguments{

@@ -75,7 +75,8 @@ extract_para <-  function(sce,
                           new_covariate,
                           parallelization = "mcmapply",
                           BPPARAM = NULL,
-                          data) {
+                          data,
+                          common_pathway) {
   removed_cell_list <- lapply(marginal_list, function(x){x$removed_cell})
   marginal_list <- lapply(marginal_list, function(x){x$fit})
 
@@ -181,7 +182,16 @@ extract_para <-  function(sce,
       } else {
         stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb, zip or zinb!")
       }
-    } else {
+    } else if (methods::is(fit, "cv.glmnet")){
+      if (y == "gamma"){
+        new_X <- model.matrix( ~ ., data[,c("batch", paste0(names(common_pathway[[x]]),"_eff"))])[,-1]
+        mean_df <- exp(stats::predict(fit, newx = new_X, s = "lambda.min"))
+        mean_vec <- as.vector(mean_df)
+        names(mean_vec) <- rownames(mean_df)
+        fit_gamma <- MASS::fitdistr(count_mat[x,],"gamma")
+        theta_vec <- rep(as.numeric(fit_gamma$estimate["shape"]), length(mean_vec)) 
+      }
+    }else {
       ## Fit is mgcv::gam
       if (is.null(new_covariate)) {
         y <- stats::family(fit)$family[1]
@@ -197,7 +207,10 @@ extract_para <-  function(sce,
         } else if (y == "nb") {
           theta <- fit$family$getTheta(TRUE)
           theta_vec <- 1/rep(theta, total_cells)
-        } else {
+        } else if (y == "Gamma"){
+          theta <- summary(fit)$dispersion # called the theta_vec but actually used as shape for Gamma
+          theta_vec <- rep(1/theta, total_cells)
+          }else {
           stop("Distribution of gamlss must be one of gaussian, binomial, poisson, nb!")
         }
       } else{
@@ -205,8 +218,6 @@ extract_para <-  function(sce,
         if (grepl("Negative Binomial", y)) {
           y <- "nb"
         }
-
-
         mean_vec <-
           stats::predict(fit, type = "response", newdata = new_covariate)
         if (y == "poisson" | y == "binomial") {
@@ -219,7 +230,12 @@ extract_para <-  function(sce,
         } else if (y == "nb") {
           theta <- fit$family$getTheta(TRUE)
           theta_vec <- 1/rep(theta, total_cells)
-        } else {
+        } else if (y == "Gamma"){
+          theta_vec = 1/stats::predict(fit,
+                                     type = "response",
+                                     what = "sigma",
+                                     newdata = new_covariate)
+          }else {
           stop("Distribution of gam must be one of gaussian, binomial, poisson, nb!")
         }
       }
@@ -277,8 +293,8 @@ extract_para <-  function(sce,
     }
     mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE))
   }else{
-    mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,SIMPLIFY = FALSE
-                                  ,mc.cores = n_cores
+    mat <- suppressMessages(mapply(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,SIMPLIFY = FALSE
+                                  #,mc.cores = n_cores
                                    ))
   }
   mean_mat <- sapply(mat, function(x)

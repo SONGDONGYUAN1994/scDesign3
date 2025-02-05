@@ -20,7 +20,8 @@ fit_copula(
   if_sparse = FALSE,
   n_cores,
   parallelization = "mcmapply",
-  BPPARAM = NULL
+  BPPARAM = NULL,
+  common_pathway
 )
 }
 \arguments{

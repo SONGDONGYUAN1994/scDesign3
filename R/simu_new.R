@@ -281,7 +281,11 @@ simu_new <- function(sce,
                               mu = para_mat[, 1],
                               sigma = para_mat[, 2],
                               nu = ifelse(para_mat[, 4] != 0, para_mat[, 4],  2.2e-16))
-      } else {
+      } else if (y == "gamma"){
+        qfvec <- stats::qgamma(p = para_mat[, 3],
+                               shape = para_mat[,2],
+                               rate = para_mat[,2]/para_mat[,1])
+        }else {
         stop("Distribution of gamlss must be one of gaussian, poisson, nb, zip or zinb!")
       }
       

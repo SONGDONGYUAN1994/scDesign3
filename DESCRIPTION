@@ -13,7 +13,6 @@ Description: We present a statistical simulator, scDesign3, to generate realisti
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
-Depends: R (>= 4.3.0)
 Imports:
     dplyr,
     tibble,
@@ -55,6 +54,6 @@ biocViews:
     Spatial
 URL: https://github.com/SONGDONGYUAN1994/scDesign3
 BugReports: https://github.com/SONGDONGYUAN1994/scDesign3/issues
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Config/testthat/edition: 3
 VignetteBuilder: knitr
