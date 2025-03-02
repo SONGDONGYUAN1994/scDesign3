@@ -159,7 +159,8 @@ test_that("Run scDesign3", {
     DT = TRUE,
     pseudo_obs = FALSE,
     ncell = 1000,
-    return_model = TRUE, simplify = TRUE
+    return_model = TRUE, simplify = TRUE, 
+    n_rep = 2
   )
 
   # my_simu2 <- scdesign3(

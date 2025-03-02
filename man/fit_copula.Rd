@@ -18,6 +18,7 @@ fit_copula(
   family_set = c("gaussian", "indep"),
   important_feature = "all",
   if_sparse = FALSE,
+  correlation_function = "default",
   n_cores,
   parallelization = "mcmapply",
   BPPARAM = NULL
@@ -57,6 +58,8 @@ gene-gene correlation estimation and \code{FALSE} in the logical vector means th
 The default value for is "all" (a special string which means no filtering).}
 
 \item{if_sparse}{A logic variable. Only works for Gaussian copula (\code{family_set = "gaussian"}). If TRUE, a thresholding strategy will make the corr matrix sparse.}
+
+\item{correlation_function}{A string. If 'default', the function from \code{Rfast}; if 'coop', the function from \code{coop}, which calls BLAS.}
 
 \item{n_cores}{An integer. The number of cores to use.}
 

@@ -543,7 +543,7 @@ predict.gamlss <- function(object,
   ## keep only the same variables
   ## this assumes that all the relevant variables will be in newdata
   ## what happens if not?
-  data <- data[,match(names(newdata),names(data))]
+  data <- data[,match(names(newdata),names(data)), drop=FALSE]
   ## merge the two data together
   data <- concat(data,newdata)
   ## get the formula
