@@ -31,12 +31,13 @@
 #' gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 #' be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 #' gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-#' The default value for is "all" (a special string which means no filtering).
+#' The default value is "all" (a special string which means no filtering).
 #' @param nonnegative A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).
 #' @param nonzerovar A logical variable. If TRUE, for any gene with zero variance, a cell will be replaced with 1. This is designed for avoiding potential errors, for example, PCA. Default is FALSE.
 #' @param return_model A logic variable. If TRUE, the marginal models and copula models will be returned. Default is FALSE.
 #' @param simplify A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}, otherwise the fitted models can be VERY large. Default is FALSE.
 #' @param parallelization A string indicating the specific parallelization function to use.
+#' @param n_rep An integer number. The number of replicates of simulated new count matrix. Default is 1.
 #' Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
 #' \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.
 #' @param BPPARAM A \code{MulticoreParam} object or NULL. When the parameter parallelization = 'mcmapply' or 'pbmcmapply',
@@ -102,6 +103,7 @@ scdesign3 <- function(sce,
                       return_model = FALSE,
                       simplify = FALSE,
                       parallelization = "mcmapply",
+                      n_rep = 1,
                       BPPARAM = NULL,
                       trace = FALSE) {
   message("Input Data Construction Start")
@@ -211,25 +213,50 @@ Extraction End")
       filtered_gene = input_data$filtered_gene
     )
   } else {
-    new_count <- simu_new(
-      sce = sce,
-      assay_use= assay_use,
-      mean_mat = para_list$mean_mat,
-      sigma_mat = para_list$sigma_mat,
-      zero_mat = para_list$zero_mat,
-      quantile_mat = NULL,
-      copula_list = copula_res$copula_list,
-      n_cores = n_cores,
-      family_use = family_use,
-      nonnegative = nonnegative,
-      nonzerovar = nonzerovar,
-      input_data = input_data$dat,
-      new_covariate = input_data$newCovariate,
-      important_feature = copula_res$important_feature,
-      parallelization = parallelization,
-      BPPARAM = BPPARAM,
-      filtered_gene = input_data$filtered_gene
-    )
+    if(n_rep == 1) {
+      new_count <- simu_new(
+        sce = sce,
+        assay_use= assay_use,
+        mean_mat = para_list$mean_mat,
+        sigma_mat = para_list$sigma_mat,
+        zero_mat = para_list$zero_mat,
+        quantile_mat = NULL,
+        copula_list = copula_res$copula_list,
+        n_cores = n_cores,
+        family_use = family_use,
+        nonnegative = nonnegative,
+        nonzerovar = nonzerovar,
+        input_data = input_data$dat,
+        new_covariate = input_data$newCovariate,
+        important_feature = copula_res$important_feature,
+        parallelization = parallelization,
+        BPPARAM = BPPARAM,
+        filtered_gene = input_data$filtered_gene
+      )
+    } else {
+      new_count <- lapply(seq_len(n_rep), function(x) {
+        current_count <- simu_new(
+          sce = sce,
+          assay_use= assay_use,
+          mean_mat = para_list$mean_mat,
+          sigma_mat = para_list$sigma_mat,
+          zero_mat = para_list$zero_mat,
+          quantile_mat = NULL,
+          copula_list = copula_res$copula_list,
+          n_cores = n_cores,
+          family_use = family_use,
+          nonnegative = nonnegative,
+          nonzerovar = nonzerovar,
+          input_data = input_data$dat,
+          new_covariate = input_data$newCovariate,
+          important_feature = copula_res$important_feature,
+          parallelization = parallelization,
+          BPPARAM = BPPARAM,
+          filtered_gene = input_data$filtered_gene
+        )
+        current_count
+      })
+    }
   }
   
   message("New Data Generating End")

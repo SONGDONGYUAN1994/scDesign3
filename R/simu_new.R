@@ -356,7 +356,7 @@ simu_new <- function(sce,
       }
     }
   }
-
+  new_count <- as.matrix(new_count)
   if(methods::is(SummarizedExperiment::assay(sce, assay_use), "sparseMatrix")){
     new_count<- Matrix::Matrix(new_count, sparse = TRUE)
   }
