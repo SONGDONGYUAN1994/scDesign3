@@ -1,3 +1,6 @@
+# 1.3.0 (2025-03-01)
++ Add multiple random samples
+
 # 1.1.4 (2024-11-07)
 * Add options for correlation matrix calculation
 

@@ -33,6 +33,7 @@ scdesign3(
   return_model = FALSE,
   simplify = FALSE,
   parallelization = "mcmapply",
+  n_rep = 1,
   BPPARAM = NULL,
   trace = FALSE
 )
@@ -91,7 +92,7 @@ Default is FALSE.}
 gene with zero proportion greater than this value will be excluded form gene-gene correlation estimation. If this is a vector, then this should
 be a logical vector with length equal to the number of genes in \code{sce}. \code{TRUE} in the logical vector means the corresponding gene will be included in
 gene-gene correlation estimation and \code{FALSE} in the logical vector means the corresponding gene will be excluded from the gene-gene correlation estimation.
-The default value for is "all" (a special string which means no filtering).}
+The default value is "all" (a special string which means no filtering).}
 
 \item{nonnegative}{A logical variable. If TRUE, values < 0 in the synthetic data will be converted to 0. Default is TRUE (since the expression matrix is nonnegative).}
 
@@ -101,7 +102,9 @@ The default value for is "all" (a special string which means no filtering).}
 
 \item{simplify}{A logic variable. If TRUE, the fitted regression model will only keep the essential contains for \code{predict}, otherwise the fitted models can be VERY large. Default is FALSE.}
 
-\item{parallelization}{A string indicating the specific parallelization function to use.
+\item{parallelization}{A string indicating the specific parallelization function to use.}
+
+\item{n_rep}{An integer number. The number of replicates of simulated new count matrix. Default is 1.
 Must be one of 'mcmapply', 'bpmapply', or 'pbmcmapply', which corresponds to the parallelization function in the package
 \code{parallel},\code{BiocParallel}, and \code{pbmcapply} respectively. The default value is 'mcmapply'.}
 
