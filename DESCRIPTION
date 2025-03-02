@@ -1,11 +1,9 @@
 Package: scDesign3
 Type: Package
 Title: A unified framework of realistic in silico data generation and statistical model inference for single-cell and spatial omics
-<<<<<<< HEAD
-Version: 1.1.4
-=======
-Version: 1.3.0
->>>>>>> master
+
+Version: 1.5.0
+
 Authors@R: 
     c(person("Dongyuan", "Song", , "dongyuansong@ucla.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-1114-1215")),
