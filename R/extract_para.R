@@ -98,7 +98,7 @@ extract_para <-  function(sce,
     #count_mat <-
     #  t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
     #data$gene <- count_mat[,x]
-    data$gene <- count_mat[x, ]
+    data$gene <- as.numeric(count_mat[x, ])
     # if(!"gamlss" %in% class(fit)){
     #   modelframe <- model.frame(fit)
     # }else{
