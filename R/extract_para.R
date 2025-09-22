@@ -272,8 +272,8 @@ extract_para <-  function(sce,
     paraFunc <- pbmcapply::pbmcmapply
   }
   if(parallelization == "bpmapply"){
-    #if(class(BPPARAM)[1] != "SerialParam"){
-    if(!is(BPPARAM, "SerialParam")){
+    if(class(BPPARAM)[1] != "SerialParam"){
+    #if(!is(BPPARAM, "SerialParam")){
       BPPARAM$workers <- n_cores
     }
     mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE))

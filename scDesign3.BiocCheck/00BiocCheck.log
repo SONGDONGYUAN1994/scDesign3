@@ -30,7 +30,8 @@ Checking for 'fnd' role in Authors@R...
 No 'fnd' role found in Authors@R. If the work is supported
         by a grant, consider adding the 'fnd' role to the list of authors.
 Checking .Rbuildignore... OK
-Checking for stray BiocCheck output folders... OK
+Checking for stray BiocCheck output folders...
+Remove 'scDesign3.BiocCheck' from the package directory
 Checking for inst/doc folders... OK
 Checking vignette directory... OK
 Checking package installation calls in R code... OK
