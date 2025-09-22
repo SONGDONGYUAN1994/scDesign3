@@ -321,7 +321,8 @@ simu_new <- function(sce,
     cell_names <- rownames(new_covariate)
   }
   if(parallelization == "bpmapply"){
-    if(class(BPPARAM)[1] != "SerialParam"){
+    #if(class(BPPARAM)[1] != "SerialParam"){
+    if(!is(BPPARAM, "SerialParam")){
       BPPARAM$workers <- n_cores
     }
     mat <-  paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use, SIMPLIFY = TRUE, BPPARAM = BPPARAM)

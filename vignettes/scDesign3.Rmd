@@ -3,11 +3,12 @@ title: "scDesign3 Quickstart"
 author: 
   - name: Dongyuan Song
     affiliation:
-    - Bioinformatics IDP, University of California, Los Angeles
+    - Department of Genetics and Genome Sciences, UConn Health, Farmington, CT
+    - Bioinformatics IDP, University of California, Los Angeles, CA
     email: dongyuansong@ucla.edu
   - name: Qingyang Wang
     affiliation:
-    - Department of Statistics, University of California, Los Angeles
+    - Department of Statistics, University of California, Los Angeles, CA
     email: qw802@g.ucla.edu
 output: 
   BiocStyle::html_document:
