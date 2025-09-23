@@ -98,7 +98,7 @@ extract_para <-  function(sce,
     #count_mat <-
     #  t(as.matrix(SummarizedExperiment::assay(sce, assay_use)))
     #data$gene <- count_mat[,x]
-    data$gene <- count_mat[x, ]
+    data$gene <- as.numeric(count_mat[x, ])
     # if(!"gamlss" %in% class(fit)){
     #   modelframe <- model.frame(fit)
     # }else{
@@ -273,6 +273,7 @@ extract_para <-  function(sce,
   }
   if(parallelization == "bpmapply"){
     if(class(BPPARAM)[1] != "SerialParam"){
+    #if(!is(BPPARAM, "SerialParam")){
       BPPARAM$workers <- n_cores
     }
     mat <- suppressMessages(paraFunc(mat_function, x = seq_len(dim(sce)[1])[qc_gene_idx], y = family_use,BPPARAM = BPPARAM,SIMPLIFY = FALSE))

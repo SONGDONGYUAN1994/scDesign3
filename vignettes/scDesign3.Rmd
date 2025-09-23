@@ -3,11 +3,12 @@ title: "scDesign3 Quickstart"
 author: 
   - name: Dongyuan Song
     affiliation:
-    - Bioinformatics IDP, University of California, Los Angeles
+    - Department of Genetics and Genome Sciences, UConn Health, Farmington, CT
+    - Bioinformatics IDP, University of California, Los Angeles, CA
     email: dongyuansong@ucla.edu
   - name: Qingyang Wang
     affiliation:
-    - Department of Statistics, University of California, Los Angeles
+    - Department of Statistics, University of California, Los Angeles, CA
     email: qw802@g.ucla.edu
 output: 
   BiocStyle::html_document:
@@ -52,16 +53,20 @@ scDesign3 is a unified probabilistic framework that generates realistic in silic
 
 ## Read in the reference data
 
-The raw data is from the [scvelo](https://scvelo.readthedocs.io/scvelo.datasets.pancreas/), which describes pancreatic endocrinogenesis. We pre-select the top 1000 highly variable genes and filter out some cell types to ensure a **single trajectory**.
+The raw data is from the [scvelo](https://scvelo.readthedocs.io/scvelo.datasets.pancreas/), which describes pancreatic endocrinogenesis. We pre-select the top 1000 highly variable genes and filter out some cell types to ensure a **single trajectory**. To save computational time, we only use the top 100 genes.
 
 ```{r}
-example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581992")))
-print(example_sce)
+#example_sce <- readRDS((url("https://figshare.com/ndownloader/files/40581992")))
+#print(example_sce)
+#example_sce <- example_sce[1:100, ]
+
+data("example_count", package = "scDesign3")
+data("pseudotime", package = "scDesign3")
+
+example_sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = example_count, logcounts = log1p(example_count)),
+  colData = DataFrame(pseudotime = pseudotime))
 ```
-To save computational time, we only use the top 100 genes.
-```{r}
-example_sce <- example_sce[1:100, ]
-```
+
 
 ## Simulation
 The function `scdesign3()` takes in a `SinglecellExperiment` object with the cell covariates (such as cell types, pseudotime, or spatial coordinates) stored in the `colData` of the `SinglecellExperiment` object.
@@ -70,14 +75,14 @@ set.seed(123)
 example_simu <- scdesign3(
     sce = example_sce,
     assay_use = "counts",
-    celltype = "cell_type",
+    celltype = NULL,
     pseudotime = "pseudotime",
     spatial = NULL,
     other_covariates = NULL,
-    mu_formula = "s(pseudotime, k = 10, bs = 'cr')",
-    sigma_formula = "1", # If you want your dispersion also varies along pseudotime, use "s(pseudotime, k = 5, bs = 'cr')"
+    mu_formula = "s(pseudotime, k = 10, bs = 'cr')", # mgcg::gam stype formula input.
+    sigma_formula = "1", # If you want your dispersion also varies along pseudotime, use "s(pseudotime, k = 5, bs = 'cr')". This will significantly increase the computational cost.
     family_use = "nb",
-    n_cores = 2,
+    n_cores = 2, # Consider the balance between your ROM and threads.
     usebam = FALSE,
     corr_formula = "1",
     copula = "gaussian",
