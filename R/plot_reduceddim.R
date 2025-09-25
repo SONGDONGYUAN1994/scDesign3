@@ -118,13 +118,21 @@ plot_reduceddim <- function(ref_sce,
 
   if(if_plot) {
 
-    p_pca <- ggplot(rd_tbl, aes(x = .data[["PC1"]], y = .data[["PC2"]], color = .data[[color_by]])) +
-      geom_point(alpha = 0.5, size = point_size, aes(shape = .data[[shape_by]])) +
+    aes_args <- list(x = quote(.data[["UMAP1"]]),
+                     y = quote(.data[["UMAP2"]]),
+                     color = substitute(.data[[color_by]]))
+    
+    if (!is.null(shape_by)) {
+      aes_args$shape <- substitute(.data[[shape_by]])
+    }
+    
+    p_pca <- ggplot(rd_tbl, do.call(aes, aes_args)) +
+      geom_point(alpha = 0.5, size = point_size) +
       facet_wrap(~Method, nrow = 1) +
       theme(aspect.ratio = 1, legend.position = "bottom") 
       
-    p_umap <- ggplot(rd_tbl, aes(x = .data[["UMAP1"]], y = .data[["UMAP2"]], color = .data[[color_by]])) +
-      geom_point(alpha = 0.5, size = point_size, aes(shape = .data[[shape_by]])) +
+    p_umap <- ggplot(rd_tbl, do.call(aes, aes_args)) +
+      geom_point(alpha = 0.5, size = point_size) +
       facet_wrap(~Method, nrow = 1) +
       theme(aspect.ratio = 1, legend.position = "bottom") 
       
