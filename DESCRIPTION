@@ -1,7 +1,7 @@
 Package: scDesign3
 Type: Package
 Title: A unified framework of realistic in silico data generation and statistical model inference for single-cell and spatial omics
-Version: 1.7.4
+Version: 1.7.6
 Authors@R: 
     c(person("Dongyuan", "Song", , "dongyuansong@ucla.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-1114-1215")),
@@ -28,7 +28,6 @@ Imports:
     mvtnorm,
     parallel,
     pbmcapply,
-    rvinecopulib,
     umap,
     ggplot2,
     irlba,
@@ -41,6 +40,7 @@ Imports:
 Suggests:
     mvnfast,
     igraph,
+    rvinecopulib,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
